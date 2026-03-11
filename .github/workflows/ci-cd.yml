@@ -85,11 +85,13 @@ jobs:
       # The secret is stored in GitHub Secrets and never written to source.
       - name: Write production appsettings override
         shell: pwsh
+        env:
+          DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         run: |
           $appSettingsPath = Join-Path "${{ env.PUBLISH_DIR }}" "appsettings.Production.json"
           $cfg = @{
             ConnectionStrings = @{
-              Laks = "${{ secrets.DB_CONNECTION_STRING }}"
+              Laks = $env:DB_CONNECTION_STRING
             }
           } | ConvertTo-Json -Depth 5
           Set-Content -Path $appSettingsPath -Value $cfg
