@@ -31,11 +31,16 @@ try
     // ----------------------------------------------------------------
     // Data access
     // ----------------------------------------------------------------
-    var connectionString = builder.Configuration.GetConnectionString("Laks")
-        ?? throw new InvalidOperationException("Connection string 'Laks' is not configured.");
+    var connectionString = builder.Configuration.GetConnectionString("Laks") ?? string.Empty;
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+        Log.Warning("Connection string 'Laks' is not configured – database features will be unavailable.");
 
     builder.Services.AddSingleton<IDbConnectionFactory>(
-        _ => new MySqlConnectionFactory(connectionString));
+        _ => new MySqlConnectionFactory(
+            !string.IsNullOrWhiteSpace(connectionString)
+                ? connectionString
+                : "Server=localhost;Database=laks;Uid=placeholder;Pwd=placeholder;"));
 
     builder.Services.AddScoped<ICatchRepository, CatchRepository>();
     builder.Services.AddScoped<ITripRepository, TripRepository>();
@@ -48,11 +53,11 @@ try
     builder.Services.AddResponseCompression(opts => opts.EnableForHttps = true);
 
     // ----------------------------------------------------------------
-    // Health checks
+    // Health checks (MySQL check only when a real connection string is provided)
     // ----------------------------------------------------------------
-    builder.Services
-        .AddHealthChecks()
-        .AddMySql(connectionString, name: "mysql", tags: ["db", "ready"]);
+    var healthChecks = builder.Services.AddHealthChecks();
+    if (!string.IsNullOrWhiteSpace(connectionString))
+        healthChecks.AddMySql(connectionString, name: "mysql", tags: ["db", "ready"]);
 
     // ----------------------------------------------------------------
     // HTTP pipeline
