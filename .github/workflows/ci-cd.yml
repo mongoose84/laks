@@ -82,6 +82,8 @@ jobs:
           dotnet publish ${{ env.PROJECT_PATH }}
           --configuration Release
           --no-restore
+          --runtime win-x86
+          --self-contained true
           --output ${{ env.PUBLISH_DIR }}
 
       # Inject production connection string into the publish output.
