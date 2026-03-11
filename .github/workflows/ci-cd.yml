@@ -88,7 +88,7 @@ jobs:
       - name: Write production appsettings override
         shell: pwsh
         run: |
-          $appSettingsPath = Join-Path "${{ env.PUBLISH_DIR }}" "appsettings.Production.json"
+          $appSettingsPath = Join-Path "${{ env.PUBLISH_DIR }}" "appsettings.Production.json"https://www.simply.com/dk/controlpanel/agileastronaut.com/getstarted/#web
           $cfg = @{
             ConnectionStrings = @{
               Laks = "${{ secrets.DB_CONNECTION_STRING }}"
@@ -105,7 +105,7 @@ jobs:
           protocol: ftps
           port: 21
           local-dir: ${{ env.PUBLISH_DIR }}/
-          server-dir: ${{ secrets.FTP_LAKS_PATH }}
+          server-dir: ${{ secrets.FTP_PATH }}
 
       - name: Upload publish artifact (rollback snapshot)
         uses: actions/upload-artifact@v4
