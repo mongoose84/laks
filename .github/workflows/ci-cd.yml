@@ -1,0 +1,140 @@
+################################################################################
+# LAKS – CI/CD Pipeline
+# Triggers on every push to main.
+# Steps: restore → build → test → publish → deploy to IIS via Web Deploy.
+#
+# Required GitHub Secrets (Settings → Secrets → Actions):
+#   IIS_SERVER_URL      – Web Deploy endpoint, e.g. https://myserver.com:8172/msdeploy.axd
+#   IIS_SITE_NAME       – IIS site name, e.g. laks
+#   IIS_USER            – Windows user with deploy rights
+#   IIS_PASSWORD        – Password for IIS_USER
+#   DB_CONNECTION_STRING – Full MySQL connection string for production
+################################################################################
+
+name: CI/CD – Build, Test, Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: 'src/Laks.Web/Laks.Web.csproj'
+  PUBLISH_DIR: '${{ github.workspace }}/publish'
+
+jobs:
+  # ── Build & Test ───────────────────────────────────────────────────────────
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore Laks.slnx
+
+      - name: Build
+        run: dotnet build Laks.slnx --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test Laks.slnx --no-build --configuration Release --verbosity normal \
+              --results-directory ./test-results \
+              --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ./test-results/*.trx
+
+  # ── Publish & Deploy ───────────────────────────────────────────────────────
+  deploy:
+    name: Publish & Deploy to IIS
+    needs: build-and-test
+    runs-on: windows-latest          # Web Deploy CLI requires Windows
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore Laks.slnx
+
+      - name: Publish
+        run: >
+          dotnet publish ${{ env.PROJECT_PATH }}
+          --configuration Release
+          --no-restore
+          --output ${{ env.PUBLISH_DIR }}
+
+      # Inject production connection string into the publish output.
+      # The secret is stored in GitHub Secrets and never written to source.
+      - name: Write production appsettings override
+        shell: pwsh
+        run: |
+          $cfg = @{
+            ConnectionStrings = @{
+              Laks = "${{ secrets.DB_CONNECTION_STRING }}"
+            }
+          } | ConvertTo-Json -Depth 5
+          Set-Content -Path "${{ env.PUBLISH_DIR }}\appsettings.Production.json" -Value $cfg
+
+      # ── Safe deploy: keep the previous version as a rollback snapshot ──────
+      - name: Deploy to IIS via Web Deploy
+        shell: pwsh
+        run: |
+          # Download msdeploy if not present on the runner
+          $msDeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          if (-not (Test-Path $msDeploy)) {
+            Write-Host "msdeploy.exe not found – install it on your self-hosted runner."
+            exit 1
+          }
+
+          & $msDeploy `
+            -verb:sync `
+            -source:contentPath="${{ env.PUBLISH_DIR }}" `
+            -dest:contentPath="${{ secrets.IIS_SITE_NAME }}",`
+                 computerName="${{ secrets.IIS_SERVER_URL }}",`
+                 userName="${{ secrets.IIS_USER }}",`
+                 password="${{ secrets.IIS_PASSWORD }}",`
+                 authtype="basic",`
+                 includeAcls="false" `
+            -enableRule:AppOffline `
+            -retryAttempts:3 `
+            -retryInterval:2000
+
+      - name: Smoke test – health endpoint
+        shell: pwsh
+        run: |
+          $baseUrl = "${{ secrets.IIS_SERVER_URL }}" -replace ':8172/msdeploy.axd',''
+          $healthUrl = "$baseUrl/health"
+          Write-Host "Checking $healthUrl"
+          $resp = Invoke-WebRequest -Uri $healthUrl -UseBasicParsing -TimeoutSec 30
+          if ($resp.StatusCode -ne 200) {
+            Write-Error "Health check failed: $($resp.StatusCode)"
+            exit 1
+          }
+          Write-Host "✅ Health check passed"
+
+      - name: Upload publish artifact (rollback snapshot)
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-${{ github.sha }}
+          path: ${{ env.PUBLISH_DIR }}
+          retention-days: 14

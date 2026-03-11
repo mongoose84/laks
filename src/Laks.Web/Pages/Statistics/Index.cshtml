@@ -1,0 +1,209 @@
+@page
+@model Laks.Web.Pages.Statistics.IndexModel
+@{
+    ViewData["Title"] = "Statistics";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h3 mb-0">📊 Fishing Statistics</h1>
+</div>
+
+<!-- Year filter -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-sm-4">
+                <label for="year" class="form-label fw-semibold">Filter angler &amp; species charts by year</label>
+                <select id="year" name="year" class="form-select" onchange="this.form.submit()">
+                    <option value="">— All years —</option>
+                    @foreach (var trip in Model.Trips)
+                    {
+                        <option value="@trip.Year" selected="@(Model.SelectedYear == trip.Year)">@trip.Year</option>
+                    }
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- ① Trend line: catches per year -->
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Total Catches per Year (all-time trend)</div>
+            <div class="card-body">
+                <canvas id="trendChart" height="90"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ② Bar: catches per angler -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">
+                Catches per Angler
+                @if (Model.SelectedYear.HasValue) { <span class="badge bg-primary ms-1">@Model.SelectedYear</span> }
+            </div>
+            <div class="card-body">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ③ Donut: species distribution -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">
+                Species Distribution
+                @if (Model.SelectedYear.HasValue) { <span class="badge bg-primary ms-1">@Model.SelectedYear</span> }
+            </div>
+            <div class="card-body d-flex justify-content-center">
+                <div style="max-width:380px; width:100%">
+                    <canvas id="donutChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+        integrity="sha256-oVuCfnMCHSQQHxJNqCN8TBBoSRUkHISkHQUlDMIXBYc="
+        crossorigin="anonymous"></script>
+<script>
+(function () {
+    'use strict';
+
+    // ----------------------------------------------------------------
+    // Shared chart defaults for readability
+    // ----------------------------------------------------------------
+    Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.font.size   = 13;
+    Chart.defaults.color       = '#495057';
+
+    const PALETTE = [
+        '#0d6efd','#198754','#ffc107','#dc3545','#0dcaf0',
+        '#6610f2','#fd7e14','#20c997','#d63384','#6c757d'
+    ];
+
+    // ① Trend line -------------------------------------------------------
+    const trendLabels = @Html.Raw(Model.TrendLabelsJson);
+    const trendTotals = @Html.Raw(Model.TrendTotalsJson);
+    const trendWeight = @Html.Raw(Model.TrendWeightJson);
+
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: trendLabels,
+            datasets: [
+                {
+                    label: 'Number of catches',
+                    data: trendTotals,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13,110,253,.12)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Total weight (kg)',
+                    data: trendWeight,
+                    borderColor: '#198754',
+                    backgroundColor: 'rgba(25,135,84,.1)',
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    borderDash: [5, 3],
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                tooltip: { callbacks: {
+                    label: ctx => ctx.datasetIndex === 1
+                        ? ` ${ctx.parsed.y.toFixed(1)} kg`
+                        : ` ${ctx.parsed.y} catches`
+                }},
+                legend: { position: 'top' }
+            },
+            scales: {
+                y:  { type: 'linear', position: 'left',  title: { display: true, text: 'Catches' } },
+                y1: { type: 'linear', position: 'right', title: { display: true, text: 'kg' },
+                      grid: { drawOnChartArea: false } }
+            }
+        }
+    });
+
+    // ② Bar: catches per angler ------------------------------------------
+    const barLabels  = @Html.Raw(Model.BarLabelsJson);
+    const barCatches = @Html.Raw(Model.BarCatchesJson);
+    const barWeight  = @Html.Raw(Model.BarWeightJson);
+
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: barLabels,
+            datasets: [
+                {
+                    label: 'Catches',
+                    data: barCatches,
+                    backgroundColor: barLabels.map((_, i) => PALETTE[i % PALETTE.length]),
+                    borderRadius: 4
+                },
+                {
+                    label: 'Total weight (kg)',
+                    data: barWeight,
+                    backgroundColor: 'rgba(25,135,84,.5)',
+                    borderRadius: 4,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                y:  { title: { display: true, text: 'Catches' }, beginAtZero: true },
+                y1: { position: 'right', title: { display: true, text: 'kg' },
+                      grid: { drawOnChartArea: false }, beginAtZero: true }
+            }
+        }
+    });
+
+    // ③ Donut: species distribution --------------------------------------
+    const pieLabels = @Html.Raw(Model.PieLabelsJson);
+    const pieData   = @Html.Raw(Model.PieDataJson);
+
+    new Chart(document.getElementById('donutChart'), {
+        type: 'doughnut',
+        data: {
+            labels: pieLabels,
+            datasets: [{
+                data: pieData,
+                backgroundColor: PALETTE,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: {
+                    label: ctx => {
+                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                        const pct   = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                        return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                    }
+                }}
+            }
+        }
+    });
+}());
+</script>
+}
