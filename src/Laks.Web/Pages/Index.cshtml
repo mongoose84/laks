@@ -1,0 +1,118 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero -->
+<div class="px-4 py-5 mb-4 rounded-3 text-white laks-hero">
+    <div class="container-fluid py-3">
+        <h1 class="display-5 fw-bold">🎣 LAKS – Norwegian Fishing Records</h1>
+        <p class="col-md-8 fs-4">
+            Every summer we chase Atlantic salmon on the Gaula river in Trøndelag, Norway.
+            This site tracks every catch, every angler, and every unforgettable moment since we started.
+        </p>
+        <a class="btn btn-light btn-lg" asp-page="/Statistics/Index">View Statistics &raquo;</a>
+    </div>
+</div>
+
+<!-- Stats overview cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-4">
+        <div class="card text-center shadow-sm h-100">
+            <div class="card-body">
+                <div class="display-4 fw-bold text-primary">@Model.TotalCatches</div>
+                <div class="text-muted">Total fish caught</div>
+            </div>
+        </div>
+    </div>
+    @if (Model.LatestTrip != null)
+    {
+        <div class="col-sm-4">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <div class="display-4 fw-bold text-success">@Model.LatestTrip.Year</div>
+                    <div class="text-muted">Latest trip year</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <div class="display-4 fw-bold text-info">@Model.LatestTrip.TotalCatches</div>
+                    <div class="text-muted">Catches on latest trip</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Latest trip info -->
+@if (Model.LatestTrip != null)
+{
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white fw-semibold">
+            Latest Trip – @Model.LatestTrip.Year
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">River</dt>
+                <dd class="col-sm-9">@Model.LatestTrip.RiverName</dd>
+                <dt class="col-sm-3">Location</dt>
+                <dd class="col-sm-9">@Model.LatestTrip.Location</dd>
+                <dt class="col-sm-3">Dates</dt>
+                <dd class="col-sm-9">@Model.LatestTrip.StartDate.ToString("d MMM") – @Model.LatestTrip.EndDate.ToString("d MMM yyyy")</dd>
+                @if (!string.IsNullOrWhiteSpace(Model.LatestTrip.Description))
+                {
+                    <dt class="col-sm-3">Notes</dt>
+                    <dd class="col-sm-9">@Model.LatestTrip.Description</dd>
+                }
+            </dl>
+        </div>
+        <div class="card-footer">
+            <a asp-page="/Catches/Index" asp-route-tripId="@Model.LatestTrip.Id" class="btn btn-outline-primary btn-sm">
+                View all catches from @Model.LatestTrip.Year
+            </a>
+        </div>
+    </div>
+}
+
+<!-- Recent catches table -->
+@if (Model.RecentCatches.Any())
+{
+    <h2 class="h5 mb-3">Recent Catches</h2>
+    <div class="table-responsive">
+        <table class="table table-hover table-striped align-middle">
+            <thead class="table-primary">
+                <tr>
+                    <th>Date</th>
+                    <th>Year</th>
+                    <th>Angler</th>
+                    <th>Species</th>
+                    <th class="text-end">Weight (kg)</th>
+                    <th class="text-end">Length (cm)</th>
+                    <th>Released</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.RecentCatches)
+                {
+                    <tr>
+                        <td>@c.CatchDate.ToString("d MMM yyyy")</td>
+                        <td>@c.TripYear</td>
+                        <td>@c.AnglerName</td>
+                        <td>@c.SpeciesName</td>
+                        <td class="text-end">@c.WeightKg.ToString("F2")</td>
+                        <td class="text-end">@c.LengthCm.ToString("F1")</td>
+                        <td>@(c.Released ? "✅" : "❌")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <a asp-page="/Catches/Index" class="btn btn-outline-secondary btn-sm">All catches &raquo;</a>
+}
+else
+{
+    <div class="alert alert-info">No catch data available yet.</div>
+}

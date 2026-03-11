@@ -1,0 +1,27 @@
+namespace Laks.Web.Models;
+
+/// <summary>Catches per year – used for the trend-line chart.</summary>
+public class CatchesPerYear
+{
+    public int Year { get; set; }
+    public int TotalCatches { get; set; }
+    public decimal TotalWeightKg { get; set; }
+    public decimal AvgWeightKg { get; set; }
+}
+
+/// <summary>Catches per angler – used for the bar-comparison chart.</summary>
+public class CatchesPerAngler
+{
+    public string AnglerName { get; set; } = string.Empty;
+    public int TotalCatches { get; set; }
+    public decimal TotalWeightKg { get; set; }
+    public decimal BestCatchKg { get; set; }
+}
+
+/// <summary>Distribution by species – used for the pie/donut chart.</summary>
+public class CatchesBySpecies
+{
+    public string SpeciesName { get; set; } = string.Empty;
+    public int TotalCatches { get; set; }
+    public decimal Percentage { get; set; }
+}
