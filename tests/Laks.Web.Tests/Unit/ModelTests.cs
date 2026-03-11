@@ -9,28 +9,19 @@ public class ModelTests
     {
         var c = new Catch();
         Assert.Equal(0, c.Id);
-        Assert.False(c.Released);
-        Assert.Null(c.Notes);
+        Assert.Equal(0, c.SeasonYear);
+        Assert.Equal(string.Empty, c.Notes);
         Assert.Null(c.AnglerName);
     }
 
     [Fact]
-    public void Trip_DefaultValues_AreCorrect()
+    public void FishingSeason_DefaultValues_AreCorrect()
     {
-        var t = new Trip();
-        Assert.Equal(0, t.Id);
-        Assert.Equal(0, t.Year);
-        Assert.Equal(string.Empty, t.RiverName);
-        Assert.Equal(string.Empty, t.Location);
-    }
-
-    [Fact]
-    public void Species_DefaultValues_AreCorrect()
-    {
-        var s = new Species();
-        Assert.Equal(0, s.Id);
-        Assert.Equal(string.Empty, s.Name);
-        Assert.Null(s.NorwegianName);
+        var season = new FishingSeason();
+        Assert.Equal(0, season.Year);
+        Assert.Equal(0, season.TotalCatches);
+        Assert.Equal(0, season.ParticipantCount);
+        Assert.Null(season.FirstCatchDate);
     }
 
     [Fact]

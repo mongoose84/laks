@@ -29,19 +29,19 @@ public class StatisticsPageModelTests
     }
 
     [Fact]
-    public void CatchesBySpecies_Serializes_To_ValidJsonArray()
+    public void CatchesByType_Serializes_To_ValidJsonArray()
     {
-        var data = new List<CatchesBySpecies>
+        var data = new List<CatchesByType>
         {
-            new() { SpeciesName = "Atlantic Salmon", TotalCatches = 10, Percentage = 62.5m },
-            new() { SpeciesName = "Sea Trout",       TotalCatches = 6,  Percentage = 37.5m }
+            new() { TypeName = "Salmon",   TotalCatches = 10, Percentage = 62.5m },
+            new() { TypeName = "Sea Trout", TotalCatches = 6,  Percentage = 37.5m }
         };
 
-        var json   = JsonSerializer.Serialize(data.Select(x => x.SpeciesName));
+        var json   = JsonSerializer.Serialize(data.Select(x => x.TypeName));
         var parsed = JsonSerializer.Deserialize<string[]>(json);
 
         Assert.NotNull(parsed);
-        Assert.Equal("Atlantic Salmon", parsed[0]);
+        Assert.Equal("Salmon", parsed[0]);
         Assert.Equal("Sea Trout", parsed[1]);
     }
 

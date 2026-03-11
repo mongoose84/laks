@@ -6,17 +6,17 @@ namespace Laks.Web.Pages;
 
 public class IndexModel : PageModel
 {
-    private readonly ITripRepository _trips;
+    private readonly ISeasonRepository _seasons;
     private readonly ICatchRepository _catches;
     private readonly ILogger<IndexModel> _logger;
 
-    public Trip? LatestTrip { get; private set; }
+    public FishingSeason? LatestSeason { get; private set; }
     public IEnumerable<Catch> RecentCatches { get; private set; } = [];
     public int TotalCatches { get; private set; }
 
-    public IndexModel(ITripRepository trips, ICatchRepository catches, ILogger<IndexModel> logger)
+    public IndexModel(ISeasonRepository seasons, ICatchRepository catches, ILogger<IndexModel> logger)
     {
-        _trips = trips;
+        _seasons = seasons;
         _catches = catches;
         _logger = logger;
     }
@@ -25,13 +25,13 @@ public class IndexModel : PageModel
     {
         try
         {
-            var tripTask        = _trips.GetLatestAsync();
+            var seasonTask      = _seasons.GetLatestAsync();
             var recentTask      = _catches.GetRecentAsync(5);
             var totalCountTask  = _catches.GetTotalCountAsync();
 
-            await Task.WhenAll(tripTask, recentTask, totalCountTask);
+            await Task.WhenAll(seasonTask, recentTask, totalCountTask);
 
-            LatestTrip    = await tripTask;
+            LatestSeason  = await seasonTask;
             RecentCatches = await recentTask;
             TotalCatches  = await totalCountTask;
         }

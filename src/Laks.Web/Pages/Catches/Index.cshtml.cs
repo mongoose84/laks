@@ -7,32 +7,32 @@ namespace Laks.Web.Pages.Catches;
 public class IndexModel : PageModel
 {
     private readonly ICatchRepository _catches;
-    private readonly ITripRepository _trips;
+    private readonly ISeasonRepository _seasons;
     private readonly ILogger<IndexModel> _logger;
 
     public IEnumerable<Catch> CatchList { get; private set; } = [];
-    public IEnumerable<Trip> Trips { get; private set; } = [];
-    public int? SelectedTripId { get; private set; }
-    public Trip? SelectedTrip { get; private set; }
+    public IEnumerable<FishingSeason> Seasons { get; private set; } = [];
+    public int? SelectedYear { get; private set; }
+    public FishingSeason? SelectedSeason { get; private set; }
 
-    public IndexModel(ICatchRepository catches, ITripRepository trips, ILogger<IndexModel> logger)
+    public IndexModel(ICatchRepository catches, ISeasonRepository seasons, ILogger<IndexModel> logger)
     {
         _catches = catches;
-        _trips   = trips;
+        _seasons = seasons;
         _logger  = logger;
     }
 
-    public async Task OnGetAsync(int? tripId)
+    public async Task OnGetAsync(int? year)
     {
         try
         {
-            SelectedTripId = tripId;
-            Trips          = await _trips.GetAllAsync();
+            SelectedYear = year;
+            Seasons      = await _seasons.GetAllAsync();
 
-            if (tripId.HasValue)
+            if (year.HasValue)
             {
-                SelectedTrip = Trips.FirstOrDefault(t => t.Id == tripId.Value);
-                CatchList    = await _catches.GetByTripAsync(tripId.Value);
+                SelectedSeason = Seasons.FirstOrDefault(s => s.Year == year.Value);
+                CatchList      = await _catches.GetByYearAsync(year.Value);
             }
             else
             {
@@ -41,7 +41,7 @@ public class IndexModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load catches page (tripId={TripId})", tripId);
+            _logger.LogError(ex, "Failed to load catches page (year={Year})", year);
         }
     }
 }

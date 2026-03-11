@@ -18,10 +18,10 @@ public class CatchesPerAngler
     public decimal BestCatchKg { get; set; }
 }
 
-/// <summary>Distribution by species – used for the pie/donut chart.</summary>
-public class CatchesBySpecies
+/// <summary>Distribution by catch type – used for the pie/donut chart.</summary>
+public class CatchesByType
 {
-    public string SpeciesName { get; set; } = string.Empty;
+    public string TypeName { get; set; } = string.Empty;
     public int TotalCatches { get; set; }
     public decimal Percentage { get; set; }
 }

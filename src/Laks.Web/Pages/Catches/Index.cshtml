@@ -9,18 +9,18 @@
     <a asp-page="/Statistics/Index" class="btn btn-outline-primary btn-sm">Statistics &raquo;</a>
 </div>
 
-<!-- Trip filter -->
+<!-- Season filter -->
 <div class="card mb-4 shadow-sm">
     <div class="card-body">
         <form method="get" class="row g-2 align-items-end">
             <div class="col-sm-4">
-                <label for="tripId" class="form-label fw-semibold">Filter by trip year</label>
-                <select id="tripId" name="tripId" class="form-select" onchange="this.form.submit()">
-                    <option value="">— All trips —</option>
-                    @foreach (var trip in Model.Trips)
+                <label for="year" class="form-label fw-semibold">Filter by season year</label>
+                <select id="year" name="year" class="form-select" onchange="this.form.submit()">
+                    <option value="">— All seasons —</option>
+                    @foreach (var season in Model.Seasons)
                     {
-                        <option value="@trip.Id" selected="@(Model.SelectedTripId == trip.Id)">
-                            @trip.Year – @trip.RiverName (@trip.TotalCatches catches)
+                        <option value="@season.Year" selected="@(Model.SelectedYear == season.Year)">
+                            @season.Year (@season.TotalCatches catches)
                         </option>
                     }
                 </select>
@@ -29,12 +29,15 @@
     </div>
 </div>
 
-@if (Model.SelectedTrip != null)
+@if (Model.SelectedSeason != null)
 {
     <div class="alert alert-info">
-        <strong>Trip @Model.SelectedTrip.Year</strong> –
-        @Model.SelectedTrip.RiverName, @Model.SelectedTrip.Location |
-        @Model.SelectedTrip.StartDate.ToString("d MMM") – @Model.SelectedTrip.EndDate.ToString("d MMM yyyy")
+        <strong>Season @Model.SelectedSeason.Year</strong> –
+        @Model.SelectedSeason.TotalCatches catches, @Model.SelectedSeason.ParticipantCount participants
+        @if (Model.SelectedSeason.FirstCatchDate.HasValue && Model.SelectedSeason.LastCatchDate.HasValue)
+        {
+            <span>| @Model.SelectedSeason.FirstCatchDate.Value.ToString("d MMM") – @Model.SelectedSeason.LastCatchDate.Value.ToString("d MMM yyyy")</span>
+        }
     </div>
 }
 
@@ -46,13 +49,15 @@
             <thead class="table-primary">
                 <tr>
                     <th>Date</th>
+                    <th>Time</th>
                     <th>Year</th>
                     <th>Angler</th>
-                    <th>Species</th>
+                    <th>Type</th>
                     <th class="text-end">Weight (kg)</th>
-                    <th class="text-end">Length (cm)</th>
-                    <th>River</th>
-                    <th>Released</th>
+                    <th>Location</th>
+                    <th>Weather</th>
+                    <th>Water level</th>
+                    <th>Bait</th>
                     <th>Notes</th>
                 </tr>
             </thead>
@@ -61,13 +66,15 @@
                 {
                     <tr>
                         <td>@c.CatchDate.ToString("d MMM yyyy")</td>
-                        <td>@c.TripYear</td>
+                        <td>@c.CatchTime.ToString(@"hh\:mm")</td>
+                        <td>@c.SeasonYear</td>
                         <td>@c.AnglerName</td>
-                        <td>@c.SpeciesName</td>
+                        <td>@c.CatchType</td>
                         <td class="text-end fw-semibold">@c.WeightKg.ToString("F2")</td>
-                        <td class="text-end">@c.LengthCm.ToString("F1")</td>
-                        <td>@c.RiverName</td>
-                        <td class="text-center">@(c.Released ? "✅" : "❌")</td>
+                        <td>@c.Location</td>
+                        <td>@c.Weather</td>
+                        <td>@(c.WaterLevel?.ToString("F3") ?? "—")</td>
+                        <td>@c.Bait</td>
                         <td class="text-muted small">@c.Notes</td>
                     </tr>
                 }

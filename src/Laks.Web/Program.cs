@@ -38,7 +38,7 @@ try
         _ => new MySqlConnectionFactory(connectionString));
 
     builder.Services.AddScoped<ICatchRepository, CatchRepository>();
-    builder.Services.AddScoped<ITripRepository, TripRepository>();
+    builder.Services.AddScoped<ISeasonRepository, SeasonRepository>();
     builder.Services.AddScoped<IAnglerRepository, AnglerRepository>();
 
     // ----------------------------------------------------------------
@@ -93,8 +93,12 @@ try
         Results.Ok(await repo.GetCatchesPerAnglerAsync(year)))
         .WithName("CatchesPerAngler");
 
+    app.MapGet("/api/stats/catches-by-type", async (ICatchRepository repo, int? year) =>
+        Results.Ok(await repo.GetCatchesByTypeAsync(year)))
+        .WithName("CatchesByType");
+
     app.MapGet("/api/stats/catches-by-species", async (ICatchRepository repo, int? year) =>
-        Results.Ok(await repo.GetCatchesBySpeciesAsync(year)))
+        Results.Ok(await repo.GetCatchesByTypeAsync(year)))
         .WithName("CatchesBySpecies");
 
     app.MapHealthChecks("/health");

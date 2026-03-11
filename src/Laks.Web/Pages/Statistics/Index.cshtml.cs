@@ -8,7 +8,7 @@ namespace Laks.Web.Pages.Statistics;
 public class IndexModel : PageModel
 {
     private readonly ICatchRepository _catches;
-    private readonly ITripRepository _trips;
+    private readonly ISeasonRepository _seasons;
     private readonly ILogger<IndexModel> _logger;
 
     // Chart data as JSON strings (safe for embedding in script tags)
@@ -23,13 +23,13 @@ public class IndexModel : PageModel
     public string PieLabelsJson { get; private set; } = "[]";
     public string PieDataJson   { get; private set; } = "[]";
 
-    public IEnumerable<Trip> Trips { get; private set; } = [];
+    public IEnumerable<FishingSeason> Seasons { get; private set; } = [];
     public int? SelectedYear { get; private set; }
 
-    public IndexModel(ICatchRepository catches, ITripRepository trips, ILogger<IndexModel> logger)
+    public IndexModel(ICatchRepository catches, ISeasonRepository seasons, ILogger<IndexModel> logger)
     {
         _catches = catches;
-        _trips   = trips;
+        _seasons = seasons;
         _logger  = logger;
     }
 
@@ -39,13 +39,13 @@ public class IndexModel : PageModel
 
         try
         {
-            Trips = await _trips.GetAllAsync();
+            Seasons = await _seasons.GetAllAsync();
 
             var trendTask   = _catches.GetCatchesPerYearAsync();
             var anglerTask  = _catches.GetCatchesPerAnglerAsync(year);
-            var speciesTask = _catches.GetCatchesBySpeciesAsync(year);
+            var typeTask    = _catches.GetCatchesByTypeAsync(year);
 
-            await Task.WhenAll(trendTask, anglerTask, speciesTask);
+            await Task.WhenAll(trendTask, anglerTask, typeTask);
 
             // Trend line – all years
             var trend = (await trendTask).ToList();
@@ -59,10 +59,10 @@ public class IndexModel : PageModel
             BarCatchesJson = Serialize(anglers.Select(x => x.TotalCatches));
             BarWeightJson  = Serialize(anglers.Select(x => x.TotalWeightKg));
 
-            // Pie – species distribution
-            var species = (await speciesTask).ToList();
-            PieLabelsJson = Serialize(species.Select(x => x.SpeciesName));
-            PieDataJson   = Serialize(species.Select(x => x.TotalCatches));
+            // Pie – catch type distribution
+            var types = (await typeTask).ToList();
+            PieLabelsJson = Serialize(types.Select(x => x.TypeName));
+            PieDataJson   = Serialize(types.Select(x => x.TotalCatches));
         }
         catch (Exception ex)
         {

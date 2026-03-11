@@ -7,70 +7,52 @@ public class CatchRepository : ICatchRepository
 {
     private readonly IDbConnectionFactory _db;
 
+    private const string CatchProjection = @"
+            SELECT c.`Id`         AS Id,
+                   c.`PersonId`   AS AnglerId,
+                   YEAR(c.`Date`) AS SeasonYear,
+                   c.`Date`       AS CatchDate,
+                   c.`Time`       AS CatchTime,
+                   c.`Weight`     AS WeightKg,
+                   c.`Location`   AS Location,
+                   c.`Weather`    AS Weather,
+                   c.`WaterLevel` AS WaterLevel,
+                   c.`Bait`       AS Bait,
+                   c.`Latitude`   AS Latitude,
+                   c.`Longitude`  AS Longitude,
+                   c.`Comment`    AS Notes,
+                   c.`Type`       AS CatchType,
+                   p.`Name`       AS AnglerName
+            FROM   `Catch` c
+            JOIN   `Person` p ON p.`Id` = c.`PersonId`";
+
     public CatchRepository(IDbConnectionFactory db) => _db = db;
 
     public async Task<IEnumerable<Catch>> GetRecentAsync(int count = 20)
     {
-        const string sql = @"
-            SELECT c.id          AS Id,
-                   c.trip_id     AS TripId,
-                   c.angler_id   AS AnglerId,
-                   c.species_id  AS SpeciesId,
-                   c.catch_date  AS CatchDate,
-                   c.weight_kg   AS WeightKg,
-                   c.length_cm   AS LengthCm,
-                   c.released    AS Released,
-                   c.notes       AS Notes,
-                   a.name        AS AnglerName,
-                   s.name        AS SpeciesName,
-                   t.year        AS TripYear,
-                   t.river_name  AS RiverName
-            FROM   catches c
-            JOIN   anglers  a ON a.id = c.angler_id
-            JOIN   species  s ON s.id = c.species_id
-            JOIN   trips    t ON t.id = c.trip_id
-            ORDER  BY c.catch_date DESC
+        var sql = CatchProjection + @"
+            ORDER BY c.`Date` DESC, c.`Time` DESC
             LIMIT  @Count";
 
         using var conn = _db.CreateConnection();
         return await conn.QueryAsync<Catch>(sql, new { Count = count });
     }
 
-    public async Task<IEnumerable<Catch>> GetByTripAsync(int tripId)
+    public async Task<IEnumerable<Catch>> GetByYearAsync(int year)
     {
-        const string sql = @"
-            SELECT c.id, c.trip_id AS TripId, c.angler_id AS AnglerId,
-                   c.species_id AS SpeciesId, c.catch_date AS CatchDate,
-                   c.weight_kg AS WeightKg, c.length_cm AS LengthCm,
-                   c.released AS Released, c.notes AS Notes,
-                   a.name AS AnglerName, s.name AS SpeciesName,
-                   t.year AS TripYear, t.river_name AS RiverName
-            FROM   catches c
-            JOIN   anglers a ON a.id = c.angler_id
-            JOIN   species s ON s.id = c.species_id
-            JOIN   trips   t ON t.id = c.trip_id
-            WHERE  c.trip_id = @TripId
-            ORDER  BY c.catch_date, a.name";
+        var sql = CatchProjection + @"
+            WHERE  YEAR(c.`Date`) = @Year
+            ORDER  BY c.`Date` DESC, c.`Time` DESC, p.`Name`";
 
         using var conn = _db.CreateConnection();
-        return await conn.QueryAsync<Catch>(sql, new { TripId = tripId });
+        return await conn.QueryAsync<Catch>(sql, new { Year = year });
     }
 
     public async Task<IEnumerable<Catch>> GetByAnglerAsync(int anglerId)
     {
-        const string sql = @"
-            SELECT c.id, c.trip_id AS TripId, c.angler_id AS AnglerId,
-                   c.species_id AS SpeciesId, c.catch_date AS CatchDate,
-                   c.weight_kg AS WeightKg, c.length_cm AS LengthCm,
-                   c.released AS Released, c.notes AS Notes,
-                   a.name AS AnglerName, s.name AS SpeciesName,
-                   t.year AS TripYear, t.river_name AS RiverName
-            FROM   catches c
-            JOIN   anglers a ON a.id = c.angler_id
-            JOIN   species s ON s.id = c.species_id
-            JOIN   trips   t ON t.id = c.trip_id
-            WHERE  c.angler_id = @AnglerId
-            ORDER  BY c.catch_date DESC";
+        var sql = CatchProjection + @"
+            WHERE  c.`PersonId` = @AnglerId
+            ORDER  BY c.`Date` DESC, c.`Time` DESC";
 
         using var conn = _db.CreateConnection();
         return await conn.QueryAsync<Catch>(sql, new { AnglerId = anglerId });
@@ -79,20 +61,19 @@ public class CatchRepository : ICatchRepository
     public async Task<int> GetTotalCountAsync()
     {
         using var conn = _db.CreateConnection();
-        return await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM catches");
+        return await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM `Catch`");
     }
 
     public async Task<IEnumerable<CatchesPerYear>> GetCatchesPerYearAsync()
     {
         const string sql = @"
-            SELECT t.year                    AS Year,
-                   COUNT(c.id)               AS TotalCatches,
-                   COALESCE(SUM(c.weight_kg), 0)  AS TotalWeightKg,
-                   COALESCE(AVG(c.weight_kg), 0)  AS AvgWeightKg
-            FROM   catches c
-            JOIN   trips   t ON t.id = c.trip_id
-            GROUP  BY t.year
-            ORDER  BY t.year";
+            SELECT YEAR(c.`Date`)            AS Year,
+                   COUNT(c.`Id`)             AS TotalCatches,
+                   COALESCE(SUM(c.`Weight`), 0) AS TotalWeightKg,
+                   COALESCE(AVG(c.`Weight`), 0) AS AvgWeightKg
+            FROM   `Catch` c
+            GROUP  BY YEAR(c.`Date`)
+            ORDER  BY YEAR(c.`Date`)";
 
         using var conn = _db.CreateConnection();
         return await conn.QueryAsync<CatchesPerYear>(sql);
@@ -100,36 +81,33 @@ public class CatchRepository : ICatchRepository
 
     public async Task<IEnumerable<CatchesPerAngler>> GetCatchesPerAnglerAsync(int? year = null)
     {
-        var sql = @"
-            SELECT a.name                     AS AnglerName,
-                   COUNT(c.id)                AS TotalCatches,
-                   COALESCE(SUM(c.weight_kg), 0)   AS TotalWeightKg,
-                   COALESCE(MAX(c.weight_kg), 0)   AS BestCatchKg
-            FROM   catches c
-            JOIN   anglers  a ON a.id = c.angler_id
-            JOIN   trips    t ON t.id = c.trip_id
-            WHERE  (@Year IS NULL OR t.year = @Year)
-            GROUP  BY a.id, a.name
+        const string sql = @"
+            SELECT p.`Name`                    AS AnglerName,
+                   COUNT(c.`Id`)               AS TotalCatches,
+                   COALESCE(SUM(c.`Weight`), 0) AS TotalWeightKg,
+                   COALESCE(MAX(c.`Weight`), 0) AS BestCatchKg
+            FROM   `Catch` c
+            JOIN   `Person` p ON p.`Id` = c.`PersonId`
+            WHERE  (@Year IS NULL OR YEAR(c.`Date`) = @Year)
+            GROUP  BY p.`Id`, p.`Name`
             ORDER  BY TotalCatches DESC";
 
         using var conn = _db.CreateConnection();
         return await conn.QueryAsync<CatchesPerAngler>(sql, new { Year = year });
     }
 
-    public async Task<IEnumerable<CatchesBySpecies>> GetCatchesBySpeciesAsync(int? year = null)
+    public async Task<IEnumerable<CatchesByType>> GetCatchesByTypeAsync(int? year = null)
     {
-        var sql = @"
-            SELECT s.name                                                  AS SpeciesName,
-                   COUNT(c.id)                                             AS TotalCatches,
-                   ROUND(COUNT(c.id) * 100.0 / SUM(COUNT(c.id)) OVER (), 1) AS Percentage
-            FROM   catches  c
-            JOIN   species  s ON s.id = c.species_id
-            JOIN   trips    t ON t.id = c.trip_id
-            WHERE  (@Year IS NULL OR t.year = @Year)
-            GROUP  BY s.id, s.name
+        const string sql = @"
+            SELECT c.`Type`                                                AS TypeName,
+                   COUNT(c.`Id`)                                            AS TotalCatches,
+                   ROUND(COUNT(c.`Id`) * 100.0 / SUM(COUNT(c.`Id`)) OVER (), 1) AS Percentage
+            FROM   `Catch` c
+            WHERE  (@Year IS NULL OR YEAR(c.`Date`) = @Year)
+            GROUP  BY c.`Type`
             ORDER  BY TotalCatches DESC";
 
         using var conn = _db.CreateConnection();
-        return await conn.QueryAsync<CatchesBySpecies>(sql, new { Year = year });
+        return await conn.QueryAsync<CatchesByType>(sql, new { Year = year });
     }
 }

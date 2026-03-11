@@ -11,14 +11,26 @@ public class AnglerRepository : IAnglerRepository
 
     public async Task<IEnumerable<Angler>> GetAllAsync()
     {
-        const string sql = "SELECT id, name, country FROM anglers ORDER BY name";
+        const string sql = @"
+            SELECT p.`Id`   AS Id,
+                   p.`Name` AS Name,
+                   NULL     AS Country
+            FROM   `Person` p
+            ORDER  BY p.`Name`";
+
         using var conn = _db.CreateConnection();
         return await conn.QueryAsync<Angler>(sql);
     }
 
     public async Task<Angler?> GetByIdAsync(int id)
     {
-        const string sql = "SELECT id, name, country FROM anglers WHERE id = @Id";
+        const string sql = @"
+            SELECT p.`Id`   AS Id,
+                   p.`Name` AS Name,
+                   NULL     AS Country
+            FROM   `Person` p
+            WHERE  p.`Id` = @Id";
+
         using var conn = _db.CreateConnection();
         return await conn.QueryFirstOrDefaultAsync<Angler>(sql, new { Id = id });
     }

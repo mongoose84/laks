@@ -26,52 +26,48 @@
             </div>
         </div>
     </div>
-    @if (Model.LatestTrip != null)
+    @if (Model.LatestSeason != null)
     {
         <div class="col-sm-4">
             <div class="card text-center shadow-sm h-100">
                 <div class="card-body">
-                    <div class="display-4 fw-bold text-success">@Model.LatestTrip.Year</div>
-                    <div class="text-muted">Latest trip year</div>
+                    <div class="display-4 fw-bold text-success">@Model.LatestSeason.Year</div>
+                    <div class="text-muted">Latest season</div>
                 </div>
             </div>
         </div>
         <div class="col-sm-4">
             <div class="card text-center shadow-sm h-100">
                 <div class="card-body">
-                    <div class="display-4 fw-bold text-info">@Model.LatestTrip.TotalCatches</div>
-                    <div class="text-muted">Catches on latest trip</div>
+                    <div class="display-4 fw-bold text-info">@Model.LatestSeason.TotalCatches</div>
+                    <div class="text-muted">Catches in latest season</div>
                 </div>
             </div>
         </div>
     }
 </div>
 
-<!-- Latest trip info -->
-@if (Model.LatestTrip != null)
+<!-- Latest season info -->
+@if (Model.LatestSeason != null)
 {
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-primary text-white fw-semibold">
-            Latest Trip – @Model.LatestTrip.Year
+            Latest Season – @Model.LatestSeason.Year
         </div>
         <div class="card-body">
             <dl class="row mb-0">
-                <dt class="col-sm-3">River</dt>
-                <dd class="col-sm-9">@Model.LatestTrip.RiverName</dd>
-                <dt class="col-sm-3">Location</dt>
-                <dd class="col-sm-9">@Model.LatestTrip.Location</dd>
-                <dt class="col-sm-3">Dates</dt>
-                <dd class="col-sm-9">@Model.LatestTrip.StartDate.ToString("d MMM") – @Model.LatestTrip.EndDate.ToString("d MMM yyyy")</dd>
-                @if (!string.IsNullOrWhiteSpace(Model.LatestTrip.Description))
+                <dt class="col-sm-3">Participants</dt>
+                <dd class="col-sm-9">@Model.LatestSeason.ParticipantCount</dd>
+                @if (Model.LatestSeason.FirstCatchDate.HasValue && Model.LatestSeason.LastCatchDate.HasValue)
                 {
-                    <dt class="col-sm-3">Notes</dt>
-                    <dd class="col-sm-9">@Model.LatestTrip.Description</dd>
+                    <dt class="col-sm-3">Recorded period</dt>
+                    <dd class="col-sm-9">@Model.LatestSeason.FirstCatchDate.Value.ToString("d MMM") – @Model.LatestSeason.LastCatchDate.Value.ToString("d MMM yyyy")</dd>
                 }
             </dl>
         </div>
         <div class="card-footer">
-            <a asp-page="/Catches/Index" asp-route-tripId="@Model.LatestTrip.Id" class="btn btn-outline-primary btn-sm">
-                View all catches from @Model.LatestTrip.Year
+            <a asp-page="/Catches/Index" asp-route-year="@Model.LatestSeason.Year" class="btn btn-outline-primary btn-sm">
+                View all catches from @Model.LatestSeason.Year
             </a>
         </div>
     </div>
@@ -86,12 +82,12 @@
             <thead class="table-primary">
                 <tr>
                     <th>Date</th>
+                    <th>Time</th>
                     <th>Year</th>
                     <th>Angler</th>
-                    <th>Species</th>
+                    <th>Type</th>
                     <th class="text-end">Weight (kg)</th>
-                    <th class="text-end">Length (cm)</th>
-                    <th>Released</th>
+                    <th>Location</th>
                 </tr>
             </thead>
             <tbody>
@@ -99,12 +95,12 @@
                 {
                     <tr>
                         <td>@c.CatchDate.ToString("d MMM yyyy")</td>
-                        <td>@c.TripYear</td>
+                        <td>@c.CatchTime.ToString(@"hh\:mm")</td>
+                        <td>@c.SeasonYear</td>
                         <td>@c.AnglerName</td>
-                        <td>@c.SpeciesName</td>
+                        <td>@c.CatchType</td>
                         <td class="text-end">@c.WeightKg.ToString("F2")</td>
-                        <td class="text-end">@c.LengthCm.ToString("F1")</td>
-                        <td>@(c.Released ? "✅" : "❌")</td>
+                        <td>@c.Location</td>
                     </tr>
                 }
             </tbody>
