@@ -46,9 +46,7 @@ jobs:
         run: dotnet build Laks.slnx --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test Laks.slnx --no-build --configuration Release --verbosity normal \
-              --results-directory ./test-results \
-              --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test Laks.slnx --no-build --configuration Release --verbosity normal --results-directory ./test-results --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
         if: always()
@@ -88,7 +86,7 @@ jobs:
       - name: Write production appsettings override
         shell: pwsh
         run: |
-          $appSettingsPath = Join-Path "${{ env.PUBLISH_DIR }}" "appsettings.Production.json"https://www.simply.com/dk/controlpanel/agileastronaut.com/getstarted/#web
+          $appSettingsPath = Join-Path "${{ env.PUBLISH_DIR }}" "appsettings.Production.json"
           $cfg = @{
             ConnectionStrings = @{
               Laks = "${{ secrets.DB_CONNECTION_STRING }}"
