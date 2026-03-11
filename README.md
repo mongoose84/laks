@@ -4,7 +4,7 @@ A production-ready web application for tracking yearly salmon fishing results on
 
 ## Recommended Stack (5 lines)
 
-- **Backend:** ASP.NET Core 8 LTS – Razor Pages (server-rendered, minimal JavaScript)
+- **Backend:** ASP.NET Core 9 – Razor Pages (server-rendered, minimal JavaScript)
 - **Data access:** Dapper + parameterized queries against an existing MySQL database
 - **Charts:** Chart.js 4 (CDN) – trend line, bar comparison, donut/pie distribution
 - **Logging:** Serilog – rolling file logs suitable for IIS hosting
@@ -65,9 +65,9 @@ laks/
 
 | Tool | Version |
 |------|---------|
-| .NET SDK | 8.x LTS |
+| .NET SDK | 9.x |
 | MySQL Server | 8.x |
-| IIS | 10+ with ASP.NET Core Hosting Bundle 8 |
+| IIS | 10+ with ASP.NET Core Hosting Bundle 9 |
 
 ### 1 – Clone & restore
 
@@ -103,9 +103,8 @@ Edit `src/Laks.Web/appsettings.Development.json`:
 ### 4 – Run locally
 
 ```bash
-cd src/Laks.Web
-dotnet run
-# Open https://localhost:5001
+dotnet run --project .\src\Laks.Web\Laks.Web.csproj
+# Open the HTTPS URL shown in the terminal
 ```
 
 ### 5 – Run tests
@@ -159,7 +158,7 @@ or use Web Deploy's built-in "take a backup" option before sync.
 ## IIS Prerequisites Checklist
 
 - [ ] Windows Server with IIS 10+
-- [ ] .NET 8 Hosting Bundle installed (`dotnet-hosting-win.exe`)
+- [ ] .NET 9 Hosting Bundle installed (`dotnet-hosting-win.exe`)
 - [ ] Web Deploy 3.x installed
 - [ ] `AspNetCoreModuleV2` present in IIS modules
 - [ ] Application pool set to **No Managed Code** (in-process model)
