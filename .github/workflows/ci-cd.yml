@@ -75,7 +75,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore Laks.slnx
+        run: dotnet restore Laks.slnx --runtime win-x86
 
       - name: Publish
         run: >
