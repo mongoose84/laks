@@ -20,7 +20,7 @@ on:
     branches: [main]
 
 env:
-  DOTNET_VERSION: '8.0.x'
+  DOTNET_VERSION: '9.0.x'
   PROJECT_PATH: 'src/Laks.Web/Laks.Web.csproj'
   PUBLISH_DIR: '${{ github.workspace }}/publish'
 
