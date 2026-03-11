@@ -1,13 +1,13 @@
 ################################################################################
 # LAKS – CI/CD Pipeline
 # Triggers on every push to main.
-# Steps: restore → build → test → publish → deploy to IIS via Web Deploy.
+# Steps: restore → build → test → publish → deploy via FTP.
 #
 # Required GitHub Secrets (Settings → Secrets → Actions):
-#   IIS_SERVER_URL      – Web Deploy endpoint, e.g. https://myserver.com:8172/msdeploy.axd
-#   IIS_SITE_NAME       – IIS site name, e.g. laks
-#   IIS_USER            – Windows user with deploy rights
-#   IIS_PASSWORD        – Password for IIS_USER
+#   FTP_URL              – FTP/FTPS host
+#   FTP_USERNAME         – FTP user
+#   FTP_PASSWORD         – FTP password
+#   FTP_PATH             – Remote deploy folder path
 #   DB_CONNECTION_STRING – Full MySQL connection string for production
 ################################################################################
 
@@ -59,9 +59,9 @@ jobs:
 
   # ── Publish & Deploy ───────────────────────────────────────────────────────
   deploy:
-    name: Publish & Deploy to IIS
+    name: Publish & Deploy via FTP
     needs: build-and-test
-    runs-on: windows-latest          # Web Deploy CLI requires Windows
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
@@ -88,49 +88,24 @@ jobs:
       - name: Write production appsettings override
         shell: pwsh
         run: |
+          $appSettingsPath = Join-Path "${{ env.PUBLISH_DIR }}" "appsettings.Production.json"
           $cfg = @{
             ConnectionStrings = @{
               Laks = "${{ secrets.DB_CONNECTION_STRING }}"
             }
           } | ConvertTo-Json -Depth 5
-          Set-Content -Path "${{ env.PUBLISH_DIR }}\appsettings.Production.json" -Value $cfg
+          Set-Content -Path $appSettingsPath -Value $cfg
 
-      # ── Safe deploy: keep the previous version as a rollback snapshot ──────
-      - name: Deploy to IIS via Web Deploy
-        shell: pwsh
-        run: |
-          # Download msdeploy if not present on the runner
-          $msDeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-          if (-not (Test-Path $msDeploy)) {
-            Write-Host "msdeploy.exe not found – install it on your self-hosted runner."
-            exit 1
-          }
-
-          & $msDeploy `
-            -verb:sync `
-            -source:contentPath="${{ env.PUBLISH_DIR }}" `
-            -dest:contentPath="${{ secrets.IIS_SITE_NAME }}",`
-                 computerName="${{ secrets.IIS_SERVER_URL }}",`
-                 userName="${{ secrets.IIS_USER }}",`
-                 password="${{ secrets.IIS_PASSWORD }}",`
-                 authtype="basic",`
-                 includeAcls="false" `
-            -enableRule:AppOffline `
-            -retryAttempts:3 `
-            -retryInterval:2000
-
-      - name: Smoke test – health endpoint
-        shell: pwsh
-        run: |
-          $baseUrl = "${{ secrets.IIS_SERVER_URL }}" -replace ':8172/msdeploy.axd',''
-          $healthUrl = "$baseUrl/health"
-          Write-Host "Checking $healthUrl"
-          $resp = Invoke-WebRequest -Uri $healthUrl -UseBasicParsing -TimeoutSec 30
-          if ($resp.StatusCode -ne 200) {
-            Write-Error "Health check failed: $($resp.StatusCode)"
-            exit 1
-          }
-          Write-Host "✅ Health check passed"
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_URL }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ${{ env.PUBLISH_DIR }}/
+          server-dir: ${{ secrets.FTP_LAKS_PATH }}
 
       - name: Upload publish artifact (rollback snapshot)
         uses: actions/upload-artifact@v4
