@@ -2,7 +2,7 @@
 description: 'Backend development specialist with security focus'
 tools: ['changes', 'codebase', 'editFiles', 'runCommands', 'runTasks',
         'search', 'problems', 'testFailure', 'terminalLastCommand']
-model: Claude Sonnet 4
+model: Claude Sonnet 4.6
 ---
 
 Backend specialist: c# with .NET. Focuses on API design, database optimization, security, and testing.
