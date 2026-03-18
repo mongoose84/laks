@@ -1,0 +1,163 @@
+.laks-dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.laks-conditions-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.condition-card {
+  border: 0;
+}
+
+.laks-primary-value {
+  font-size: clamp(2.25rem, 4.5vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.laks-season-value {
+  font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.condition-card--rising {
+  background: #edf8f0;
+  border-left: 4px solid #1f7a3f;
+}
+
+.condition-card--stable {
+  background: #ecf3fb;
+  border-left: 4px solid #0c64b8;
+}
+
+.condition-card--falling {
+  background: #fff7ea;
+  border-left: 4px solid #bf5f00;
+}
+
+.leaderboard-table {
+  font-variant-numeric: tabular-nums;
+}
+
+.catch-map {
+  height: 420px;
+  border-radius: 0.5rem;
+  border: 1px solid #d0dae4;
+}
+
+.recent-catch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.recent-catch-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: #f8fafc;
+}
+
+.initials-circle {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  background: linear-gradient(160deg, #153a5b 0%, #2f6a9a 100%);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.laks-season-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.summary-cell {
+  background: #f6f8fb;
+  border: 1px solid #d8e0ea;
+  border-radius: 0.5rem;
+  padding: 0.65rem;
+}
+
+.summary-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-label {
+  font-size: 0.75rem;
+  color: #617084;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.laks-records-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.record-card {
+  border: 1px solid #d8e0ea;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background: #fbfdff;
+}
+
+.record-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+@media (max-width: 1024px) {
+  .laks-conditions-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .condition-card--season {
+    grid-column: span 3;
+  }
+
+  .laks-season-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .laks-conditions-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .condition-card--season {
+    grid-column: span 2;
+  }
+
+  .laks-season-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .laks-records-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .catch-map {
+    height: 320px;
+  }
+}

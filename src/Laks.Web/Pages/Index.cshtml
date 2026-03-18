@@ -4,111 +4,38 @@
     ViewData["Title"] = "Home";
 }
 
-<!-- Hero -->
-<div class="px-4 py-5 mb-4 rounded-3 text-white laks-hero">
-    <div class="container-fluid py-3">
-        <h1 class="display-5 fw-bold">🎣 LAKS – Norwegian Fishing Records</h1>
-        <p class="col-md-8 fs-4">
-            Every summer we chase Atlantic salmon on the Gaula river in Trøndelag, Norway.
-            This site tracks every catch, every angler, and every unforgettable moment since we started.
-        </p>
-        <a class="btn btn-light btn-lg" asp-page="/Statistics/Index">View Statistics &raquo;</a>
-    </div>
+<div class="laks-dashboard-page">
+    <partial name="_ConditionsStrip" model="Model" />
+    <partial name="_WaterLevelChart" model="Model" />
+    <partial name="_Leaderboard" model="Model" />
+    <partial name="_CatchMap" model="Model" />
+    <partial name="_RecentCatches" model="Model" />
+    <partial name="_SeasonSummary" model="Model" />
+    <partial name="_AllTimeRecords" model="Model" />
 </div>
 
-<!-- Stats overview cards -->
-<div class="row g-4 mb-4">
-    <div class="col-sm-4">
-        <div class="card text-center shadow-sm h-100">
-            <div class="card-body">
-                <div class="display-4 fw-bold text-primary">@Model.TotalCatches</div>
-                <div class="text-muted">Total fish caught</div>
-            </div>
-        </div>
-    </div>
-    @if (Model.LatestSeason != null)
-    {
-        <div class="col-sm-4">
-            <div class="card text-center shadow-sm h-100">
-                <div class="card-body">
-                    <div class="display-4 fw-bold text-success">@Model.LatestSeason.Year</div>
-                    <div class="text-muted">Latest season</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="card text-center shadow-sm h-100">
-                <div class="card-body">
-                    <div class="display-4 fw-bold text-info">@Model.LatestSeason.TotalCatches</div>
-                    <div class="text-muted">Catches in latest season</div>
-                </div>
-            </div>
-        </div>
-    }
-</div>
-
-<!-- Latest season info -->
-@if (Model.LatestSeason != null)
-{
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-primary text-white fw-semibold">
-            Latest Season – @Model.LatestSeason.Year
-        </div>
-        <div class="card-body">
-            <dl class="row mb-0">
-                <dt class="col-sm-3">Participants</dt>
-                <dd class="col-sm-9">@Model.LatestSeason.ParticipantCount</dd>
-                @if (Model.LatestSeason.FirstCatchDate.HasValue && Model.LatestSeason.LastCatchDate.HasValue)
-                {
-                    <dt class="col-sm-3">Recorded period</dt>
-                    <dd class="col-sm-9">@Model.LatestSeason.FirstCatchDate.Value.ToString("d MMM") – @Model.LatestSeason.LastCatchDate.Value.ToString("d MMM yyyy")</dd>
-                }
-            </dl>
-        </div>
-        <div class="card-footer">
-            <a asp-page="/Catches/Index" asp-route-year="@Model.LatestSeason.Year" class="btn btn-outline-primary btn-sm">
-                View all catches from @Model.LatestSeason.Year
-            </a>
-        </div>
-    </div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="" />
 }
 
-<!-- Recent catches table -->
-@if (Model.RecentCatches.Any())
-{
-    <h2 class="h5 mb-3">Recent Catches</h2>
-    <div class="table-responsive">
-        <table class="table table-hover table-striped align-middle">
-            <thead class="table-primary">
-                <tr>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Year</th>
-                    <th>Angler</th>
-                    <th>Type</th>
-                    <th class="text-end">Weight (kg)</th>
-                    <th>Location</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var c in Model.RecentCatches)
-                {
-                    <tr>
-                        <td>@c.CatchDate.ToString("d MMM yyyy")</td>
-                        <td>@c.CatchTime.ToString(@"hh\:mm")</td>
-                        <td>@c.SeasonYear</td>
-                        <td>@c.AnglerName</td>
-                        <td>@c.CatchType</td>
-                        <td class="text-end">@c.WeightKg.ToString("F2")</td>
-                        <td>@c.Location</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-    <a asp-page="/Catches/Index" class="btn btn-outline-secondary btn-sm">All catches &raquo;</a>
-}
-else
-{
-    <div class="alert alert-info">No catch data available yet.</div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+            integrity="sha256-oVuCfnMCHSQQHxJNqCN8TBBoSRUkHISkHQUlDMIXBYc="
+            crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <script>
+        window.laksDashboard = {
+            waterLevelSeries: @Html.Raw(Model.WaterLevelChartJson),
+            currentSeasonLocations: @Html.Raw(Model.CatchLocationsCurrentSeasonJson),
+            allTimeLocations: @Html.Raw(Model.CatchLocationsAllTimeJson),
+            trend: "@Model.CurrentWaterLevel?.Trend.ToString().ToLowerInvariant()"
+        };
+    </script>
+    <script src="~/js/water-level-chart.js" asp-append-version="true"></script>
+    <script src="~/js/catch-map.js" asp-append-version="true"></script>
 }

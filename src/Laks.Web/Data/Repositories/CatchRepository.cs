@@ -64,6 +64,156 @@ public class CatchRepository : ICatchRepository
         return await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM `Catch`");
     }
 
+    public async Task<IEnumerable<LeaderboardEntry>> GetLeaderboardAsync(int year, int? groupNumber = null)
+    {
+        const string sql = @"
+            SELECT p.`Id`                        AS AnglerId,
+                   p.`Name`                      AS AnglerName,
+                   COUNT(c.`Id`)                 AS FishCount,
+                   COALESCE(SUM(c.`Weight`), 0)  AS TotalWeightKg,
+                   COALESCE(MAX(c.`Weight`), 0)  AS BestWeightKg
+            FROM `Catch` c
+            JOIN `Person` p ON p.`Id` = c.`PersonId`
+            LEFT JOIN `season_config` sc
+                   ON sc.`Year` = @Year
+                  AND sc.`GroupNumber` = @GroupNumber
+            WHERE YEAR(c.`Date`) = @Year
+              AND (@GroupNumber IS NULL OR c.`Date` BETWEEN sc.`StartDate` AND sc.`EndDate`)
+            GROUP BY p.`Id`, p.`Name`
+            ORDER BY TotalWeightKg DESC, FishCount DESC, p.`Name`";
+
+        using var conn = _db.CreateConnection();
+        var rows = (await conn.QueryAsync<LeaderboardEntry>(sql, new { Year = year, GroupNumber = groupNumber })).ToList();
+
+        for (var i = 0; i < rows.Count; i++)
+        {
+            rows[i].Rank = i + 1;
+        }
+
+        return rows;
+    }
+
+    public async Task<GroupSummary?> GetGroupSummaryAsync(int year, int groupNumber)
+    {
+        const string sql = @"
+            SELECT sc.`Year`                     AS Year,
+                   sc.`GroupNumber`              AS GroupNumber,
+                   sc.`StartDate`                AS StartDate,
+                   sc.`EndDate`                  AS EndDate,
+                   COUNT(c.`Id`)                 AS FishCount,
+                   COALESCE(SUM(c.`Weight`), 0)  AS TotalWeightKg,
+                   COALESCE(MAX(c.`Weight`), 0)  AS BestWeightKg
+            FROM `season_config` sc
+            LEFT JOIN `Catch` c
+                   ON YEAR(c.`Date`) = sc.`Year`
+                  AND c.`Date` BETWEEN sc.`StartDate` AND sc.`EndDate`
+            WHERE sc.`Year` = @Year
+              AND sc.`GroupNumber` = @GroupNumber
+            GROUP BY sc.`Year`, sc.`GroupNumber`, sc.`StartDate`, sc.`EndDate`";
+
+        using var conn = _db.CreateConnection();
+        return await conn.QueryFirstOrDefaultAsync<GroupSummary>(sql, new { Year = year, GroupNumber = groupNumber });
+    }
+
+    public async Task<SeasonSummary?> GetSeasonSummaryAsync(int year)
+    {
+        const string sql = @"
+            SELECT COUNT(c.`Id`)                         AS TotalFish,
+                   COALESCE(SUM(c.`Weight`), 0)          AS TotalWeightKg,
+                   COALESCE(AVG(c.`Weight`), 0)          AS AvgWeightKg,
+                   COALESCE(MAX(c.`Weight`), 0)          AS BiggestFishKg,
+                   COALESCE(MAX(CASE WHEN c.`Weight` = mx.MaxWeight THEN p.`Name` END), '') AS BiggestFishAngler,
+                   COUNT(DISTINCT c.`PersonId`)          AS ActiveAnglers,
+                   (SELECT COUNT(DISTINCT pt.`PersonId`) FROM `Participant` pt WHERE pt.`Year` = @Year) AS TotalAnglers
+            FROM `Catch` c
+            JOIN `Person` p ON p.`Id` = c.`PersonId`
+            JOIN (
+                SELECT COALESCE(MAX(`Weight`), 0) AS MaxWeight
+                FROM `Catch`
+                WHERE YEAR(`Date`) = @Year
+            ) mx
+            WHERE YEAR(c.`Date`) = @Year";
+
+        using var conn = _db.CreateConnection();
+        return await conn.QueryFirstOrDefaultAsync<SeasonSummary>(sql, new { Year = year });
+    }
+
+    public async Task<AllTimeRecords?> GetAllTimeRecordsAsync()
+    {
+        const string biggestSql = @"
+            SELECT c.`Weight` AS BiggestFishKg,
+                   p.`Name`   AS BiggestFishAngler,
+                   YEAR(c.`Date`) AS BiggestFishYear
+            FROM `Catch` c
+            JOIN `Person` p ON p.`Id` = c.`PersonId`
+            ORDER BY c.`Weight` DESC
+            LIMIT 1";
+
+        const string prolificSql = @"
+            SELECT p.`Name` AS MostProlificAngler,
+                   COUNT(c.`Id`) AS MostProlificFishCount
+            FROM `Catch` c
+            JOIN `Person` p ON p.`Id` = c.`PersonId`
+            GROUP BY p.`Id`, p.`Name`
+            ORDER BY MostProlificFishCount DESC
+            LIMIT 1";
+
+        const string bestSeasonSql = @"
+            SELECT YEAR(c.`Date`) AS BestSeasonYear,
+                   COUNT(c.`Id`) AS BestSeasonFishCount,
+                   COALESCE(SUM(c.`Weight`), 0) AS BestSeasonTotalKg
+            FROM `Catch` c
+            GROUP BY YEAR(c.`Date`)
+            ORDER BY BestSeasonFishCount DESC
+            LIMIT 1";
+
+        using var conn = _db.CreateConnection();
+        var biggest = await conn.QueryFirstOrDefaultAsync<AllTimeRecords>(biggestSql);
+        var prolific = await conn.QueryFirstOrDefaultAsync<AllTimeRecords>(prolificSql);
+        var bestSeason = await conn.QueryFirstOrDefaultAsync<AllTimeRecords>(bestSeasonSql);
+
+        if (biggest is null && prolific is null && bestSeason is null)
+        {
+            return null;
+        }
+
+        return new AllTimeRecords
+        {
+            BiggestFishKg = biggest?.BiggestFishKg ?? 0,
+            BiggestFishAngler = biggest?.BiggestFishAngler ?? string.Empty,
+            BiggestFishYear = biggest?.BiggestFishYear ?? 0,
+            MostProlificAngler = prolific?.MostProlificAngler ?? string.Empty,
+            MostProlificFishCount = prolific?.MostProlificFishCount ?? 0,
+            BestSeasonYear = bestSeason?.BestSeasonYear ?? 0,
+            BestSeasonFishCount = bestSeason?.BestSeasonFishCount ?? 0,
+            BestSeasonTotalKg = bestSeason?.BestSeasonTotalKg ?? 0
+        };
+    }
+
+    public async Task<IEnumerable<CatchLocation>> GetCatchLocationsAsync(int? year = null)
+    {
+        const string sql = @"
+            SELECT c.`Id`         AS CatchId,
+                   c.`Latitude`   AS Latitude,
+                   c.`Longitude`  AS Longitude,
+                   c.`Weight`     AS WeightKg,
+                   p.`Name`       AS AnglerName,
+                   c.`Type`       AS CatchType,
+                   c.`Location`   AS Location,
+                   c.`Bait`       AS Bait,
+                   c.`Date`       AS CatchDate,
+                   YEAR(c.`Date`) AS SeasonYear
+            FROM `Catch` c
+            JOIN `Person` p ON p.`Id` = c.`PersonId`
+            WHERE (@Year IS NULL OR YEAR(c.`Date`) = @Year)
+              AND c.`Latitude` <> 0
+              AND c.`Longitude` <> 0
+            ORDER BY c.`Date` DESC, c.`Time` DESC";
+
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<CatchLocation>(sql, new { Year = year });
+    }
+
     public async Task<IEnumerable<CatchesPerYear>> GetCatchesPerYearAsync()
     {
         const string sql = @"

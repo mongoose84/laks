@@ -1,5 +1,6 @@
 using Laks.Web.Data;
 using Laks.Web.Data.Repositories;
+using Laks.Web.Services;
 using Serilog;
 using Serilog.Events;
 
@@ -40,6 +41,19 @@ try
     builder.Services.AddScoped<ICatchRepository, CatchRepository>();
     builder.Services.AddScoped<ISeasonRepository, SeasonRepository>();
     builder.Services.AddScoped<IAnglerRepository, AnglerRepository>();
+
+    builder.Services.AddMemoryCache();
+    builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
+    {
+        client.BaseAddress = new Uri("https://api.met.no/");
+        client.Timeout = TimeSpan.FromSeconds(5);
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("LaksDashboard/2.0 (contact@laks.local)");
+    });
+    builder.Services.AddHttpClient<IWaterLevelService, WaterLevelService>(client =>
+    {
+        client.BaseAddress = new Uri("https://hydapi.nve.no/");
+        client.Timeout = TimeSpan.FromSeconds(5);
+    });
 
     // ----------------------------------------------------------------
     // Razor Pages + response compression

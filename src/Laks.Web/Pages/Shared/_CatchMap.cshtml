@@ -1,0 +1,18 @@
+@model Laks.Web.Pages.IndexModel
+
+<section class="card shadow-sm mb-3" aria-labelledby="catch-map-title">
+    <header class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h2 id="catch-map-title" class="h5 mb-0">Catch Map</h2>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Map scope selector">
+            <button type="button" id="mapScopeSeason" class="btn btn-primary">This season</button>
+            <button type="button" id="mapScopeAll" class="btn btn-outline-primary">All time</button>
+        </div>
+    </header>
+    <div class="card-body">
+        <div id="catchMap"
+             class="catch-map"
+             role="application"
+             aria-label="Catch locations at Holmfoss on Numedalslagen"></div>
+        <div id="catchMapEmpty" class="small text-muted mt-2 d-none">No catch locations to display.</div>
+    </div>
+</section>

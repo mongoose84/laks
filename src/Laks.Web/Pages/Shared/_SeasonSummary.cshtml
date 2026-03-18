@@ -1,0 +1,39 @@
+@model Laks.Web.Pages.IndexModel
+
+<section class="card shadow-sm mb-3" aria-label="Season summary">
+    <div class="card-body">
+        @if (Model.CurrentSeasonSummary is null)
+        {
+            <div class="text-muted">Season summary unavailable.</div>
+        }
+        else
+        {
+            <div class="laks-season-strip">
+                <div class="summary-cell">
+                    <div class="summary-value">@Model.CurrentSeasonSummary.TotalFish</div>
+                    <div class="summary-label">Total Fish</div>
+                </div>
+                <div class="summary-cell">
+                    <div class="summary-value">@Model.CurrentSeasonSummary.TotalWeightKg.ToString("F1")</div>
+                    <div class="summary-label">Total kg</div>
+                </div>
+                <div class="summary-cell">
+                    <div class="summary-value">@Model.CurrentSeasonSummary.AvgWeightKg.ToString("F1")</div>
+                    <div class="summary-label">Avg kg</div>
+                </div>
+                <div class="summary-cell">
+                    <div class="summary-value">@Model.CurrentSeasonSummary.BiggestFishKg.ToString("F1")</div>
+                    <div class="summary-label">Biggest (@Model.CurrentSeasonSummary.BiggestFishAngler)</div>
+                </div>
+                <div class="summary-cell">
+                    <div class="summary-value">@Model.CurrentSeasonSummary.ActiveAnglers / @Model.CurrentSeasonSummary.TotalAnglers</div>
+                    <div class="summary-label">Active Anglers</div>
+                </div>
+                <div class="summary-cell">
+                    <div class="summary-value">@Model.SeasonDay.DisplayText</div>
+                    <div class="summary-label">Season Day</div>
+                </div>
+            </div>
+        }
+    </div>
+</section>

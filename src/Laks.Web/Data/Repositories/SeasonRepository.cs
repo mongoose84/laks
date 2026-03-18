@@ -54,4 +54,19 @@ public class SeasonRepository : ISeasonRepository
         using var conn = _db.CreateConnection();
         return await conn.QueryFirstOrDefaultAsync<FishingSeason>(sql);
     }
+
+    public async Task<IEnumerable<SeasonConfig>> GetSeasonConfigAsync(int year)
+    {
+        const string sql = @"
+            SELECT `Year` AS Year,
+                   `GroupNumber` AS GroupNumber,
+                   `StartDate` AS StartDate,
+                   `EndDate` AS EndDate
+            FROM `season_config`
+            WHERE `Year` = @Year
+            ORDER BY `GroupNumber`";
+
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<SeasonConfig>(sql, new { Year = year });
+    }
 }

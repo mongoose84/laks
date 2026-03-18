@@ -1,0 +1,42 @@
+@model Laks.Web.Pages.IndexModel
+@{
+    var displayedTime = "Unknown";
+    if (Model.CurrentWaterLevel?.MeasuredAt is DateTime measuredAt)
+    {
+        try
+        {
+            var osloZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+            displayedTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(measuredAt, DateTimeKind.Utc), osloZone).ToString("HH:mm");
+        }
+        catch
+        {
+            displayedTime = measuredAt.ToString("HH:mm");
+        }
+    }
+}
+
+<section class="card shadow-sm mb-3">
+    <header class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Vannstand - Holmfoss (15.61.0)</span>
+        <a href="https://sildre.nve.no/" target="_blank" rel="noopener">NVE source</a>
+    </header>
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-end mb-3">
+            <div>
+                <div class="small text-muted">Current level</div>
+                <div class="display-6 fw-bold">@(Model.CurrentWaterLevel?.LevelMeters?.ToString("F2") ?? "Unavailable") m</div>
+            </div>
+            <div class="small text-muted">Last updated: @displayedTime</div>
+        </div>
+        @if (Model.WaterLevelChartJson == "[]")
+        {
+            <div class="alert alert-secondary mb-0">No water level readings in the last 24 hours.</div>
+        }
+        else
+        {
+            <canvas id="waterLevelChart" height="120" role="img" aria-label="Water level chart for the last 24 hours, Holmfoss station 15.61.0">
+                <p class="visually-hidden">Water level chart data for the last 24 hours from NVE station 15.61.0.</p>
+            </canvas>
+        }
+    </div>
+</section>

@@ -1,0 +1,73 @@
+@model Laks.Web.Pages.IndexModel
+@{
+    var trend = Model.CurrentWaterLevel?.Trend ?? Laks.Web.Models.WaterLevelTrend.Stable;
+    var trendClass = trend switch
+    {
+        Laks.Web.Models.WaterLevelTrend.Rising => "condition-card--rising",
+        Laks.Web.Models.WaterLevelTrend.Falling => "condition-card--falling",
+        _ => "condition-card--stable"
+    };
+    var trendArrow = trend switch
+    {
+        Laks.Web.Models.WaterLevelTrend.Rising => "↑",
+        Laks.Web.Models.WaterLevelTrend.Falling => "↓",
+        _ => "→"
+    };
+    var trendText = trend switch
+    {
+        Laks.Web.Models.WaterLevelTrend.Rising => "Rising",
+        Laks.Web.Models.WaterLevelTrend.Falling => "Falling",
+        _ => "Stable"
+    };
+    var weatherIcon = Model.CurrentWeather?.WeatherSymbol?.Contains("rain", StringComparison.OrdinalIgnoreCase) == true
+        ? "☔"
+        : Model.CurrentWeather?.WeatherSymbol?.Contains("cloud", StringComparison.OrdinalIgnoreCase) == true
+            ? "☁"
+            : "☀";
+}
+
+<section class="mb-3" aria-label="Current conditions">
+    <div class="laks-conditions-strip">
+        <article class="card shadow-sm condition-card">
+            <div class="card-body">
+                <div class="laks-primary-value d-flex align-items-center gap-2">
+                    @(Model.CurrentWeather?.AirTemperatureC?.ToString("F1") ?? "-")°
+                    <span aria-hidden="true">@weatherIcon</span>
+                </div>
+                <div class="small text-muted">Air Temp</div>
+            </div>
+        </article>
+
+        <article class="card shadow-sm condition-card @trendClass">
+            <div class="card-body">
+                <div class="laks-primary-value d-flex align-items-center gap-2">
+                    @(Model.CurrentWaterLevel?.LevelMeters?.ToString("F2") ?? "-")m
+                    <span aria-hidden="true">@trendArrow</span>
+                    <span class="visually-hidden">@trendText</span>
+                </div>
+                <div class="small text-muted">Water Level</div>
+            </div>
+        </article>
+
+        <article class="card shadow-sm condition-card">
+            <div class="card-body">
+                <div class="laks-primary-value">@(Model.CurrentWaterLevel?.WaterTemperatureC?.ToString("F1") ?? "-")°</div>
+                <div class="small text-muted">Water Temp</div>
+            </div>
+        </article>
+
+        <article class="card shadow-sm condition-card">
+            <div class="card-body">
+                <div class="laks-primary-value">@(Model.CurrentWeather?.WindSpeedMs?.ToString("F1") ?? "-")</div>
+                <div class="small text-muted">Wind m/s @Model.CurrentWeather?.WindDirection</div>
+            </div>
+        </article>
+
+        <article class="card shadow-sm condition-card condition-card--season">
+            <div class="card-body">
+                <div class="laks-season-value">@Model.SeasonDay.DisplayText</div>
+                <div class="small text-muted">Season Day</div>
+            </div>
+        </article>
+    </div>
+</section>
