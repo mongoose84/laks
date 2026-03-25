@@ -15,8 +15,8 @@
     var empty = document.getElementById("catchMapEmpty");
 
     var map = L.map("catchMap").setView([59.186959, 9.993806], 13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors"
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
     }).addTo(map);
 
     var markersLayer = L.layerGroup().addTo(map);
@@ -30,18 +30,18 @@
 
     function markerColor(daysAgo) {
         if (daysAgo <= 1) {
-            return "#0c3f6f";
+            return "#60a5fa";
         }
 
         if (daysAgo <= 7) {
-            return "#2f6a9a";
+            return "#38bdf8";
         }
 
         if (daysAgo <= 30) {
-            return "#4f8dbf";
+            return "#7dd3fc";
         }
 
-        return "#9dc0de";
+        return "#64748b";
     }
 
     function esc(value) {

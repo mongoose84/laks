@@ -36,8 +36,8 @@
             labels: labels,
             datasets: [{
                 data: values,
-                borderColor: isRising ? "#1f7a3f" : "#bf5f00",
-                backgroundColor: isRising ? "rgba(31,122,63,0.15)" : "rgba(191,95,0,0.15)",
+                borderColor: isRising ? "#34d399" : "#fbbf24",
+                backgroundColor: isRising ? "rgba(52,211,153,0.15)" : "rgba(251,191,36,0.15)",
                 pointRadius: 0,
                 borderWidth: 2,
                 fill: true,
@@ -47,13 +47,26 @@
         options: {
             responsive: true,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: "#1c2a35",
+                    titleColor: "#e8edf2",
+                    bodyColor: "#8899a8",
+                    borderColor: "#243442",
+                    borderWidth: 1
+                }
             },
             scales: {
                 y: {
                     ticks: {
+                        color: "#8899a8",
                         callback: function (value) { return value + " m"; }
-                    }
+                    },
+                    grid: { color: "#243442" }
+                },
+                x: {
+                    ticks: { color: "#8899a8" },
+                    grid: { color: "#243442" }
                 }
             }
         }

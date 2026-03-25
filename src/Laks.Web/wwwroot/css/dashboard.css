@@ -29,18 +29,18 @@
 }
 
 .condition-card--rising {
-  background: #edf8f0;
-  border-left: 4px solid #1f7a3f;
+  background: var(--bg-rising);
+  border-left: 4px solid var(--status-rising);
 }
 
 .condition-card--stable {
-  background: #ecf3fb;
-  border-left: 4px solid #0c64b8;
+  background: var(--bg-stable);
+  border-left: 4px solid var(--status-stable);
 }
 
 .condition-card--falling {
-  background: #fff7ea;
-  border-left: 4px solid #bf5f00;
+  background: var(--bg-falling);
+  border-left: 4px solid var(--status-falling);
 }
 
 .leaderboard-table {
@@ -50,7 +50,7 @@
 .catch-map {
   height: 420px;
   border-radius: 0.5rem;
-  border: 1px solid #d0dae4;
+  border: 1px solid var(--border-subtle);
 }
 
 .recent-catch-list {
@@ -66,7 +66,7 @@
   align-items: center;
   padding: 0.5rem;
   border-radius: 0.5rem;
-  background: #f8fafc;
+  background: var(--bg-raised);
 }
 
 .initials-circle {
@@ -88,8 +88,8 @@
 }
 
 .summary-cell {
-  background: #f6f8fb;
-  border: 1px solid #d8e0ea;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
   border-radius: 0.5rem;
   padding: 0.65rem;
 }
@@ -102,7 +102,7 @@
 
 .summary-label {
   font-size: 0.75rem;
-  color: #617084;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -114,10 +114,10 @@
 }
 
 .record-card {
-  border: 1px solid #d8e0ea;
+  border: 1px solid var(--border-subtle);
   border-radius: 0.5rem;
   padding: 0.75rem;
-  background: #fbfdff;
+  background: var(--bg-raised);
 }
 
 .record-value {

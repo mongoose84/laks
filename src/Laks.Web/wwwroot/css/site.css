@@ -1,5 +1,37 @@
+/* ──────────────────────────────────────────────────
+   LAKS Dark Theme
+   ────────────────────────────────────────────────── */
+
+:root {
+  /* Surface hierarchy */
+  --bg-base: #0f1923;
+  --bg-surface: #162029;
+  --bg-raised: #1c2a35;
+  --border-subtle: #243442;
+  --border-strong: #2f4558;
+
+  /* Text hierarchy */
+  --text-primary: #e8edf2;
+  --text-secondary: #8899a8;
+  --text-muted: #5a6e80;
+
+  /* Semantic / status */
+  --status-rising: #34d399;
+  --status-stable: #60a5fa;
+  --status-falling: #fbbf24;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+
+  /* Status backgrounds */
+  --bg-rising: #0d2e1f;
+  --bg-stable: #0f1f36;
+  --bg-falling: #2a1f0a;
+}
+
 html {
   font-size: 14px;
+  position: relative;
+  min-height: 100%;
 }
 
 @media (min-width: 768px) {
@@ -8,27 +40,212 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
 body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   margin-bottom: 60px;
 }
 
-/* LAKS hero section */
-.laks-hero {
-  background: linear-gradient(135deg, #0a3d62 0%, #1e6091 60%, #2980b9 100%);
-  border: none;
+/* ── Focus rings ─────────────────────────────────── */
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem var(--bg-base), 0 0 0 0.25rem var(--accent);
 }
 
-/* Footer */
+/* ── Links ───────────────────────────────────────── */
+a {
+  color: var(--accent);
+}
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* ── Navbar ──────────────────────────────────────── */
+.laks-navbar {
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.laks-navbar .navbar-brand {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.laks-navbar .nav-link {
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.laks-navbar .nav-link:hover,
+.laks-navbar .nav-link:focus {
+  color: var(--text-primary);
+}
+.laks-navbar .nav-link.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Cards (Bootstrap override) ──────────────────── */
+.card {
+  background-color: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+.card.shadow-sm {
+  box-shadow: none;
+}
+.card-header {
+  background-color: var(--bg-raised);
+  border-bottom-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+.card-footer {
+  background-color: var(--bg-raised);
+  border-top-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+/* ── Tables (Bootstrap override) ─────────────────── */
+.table {
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+.table > thead {
+  background-color: var(--bg-raised);
+  color: var(--text-secondary);
+}
+.table > thead th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom-color: var(--border-subtle);
+}
+.table-primary,
+.table-primary > th,
+.table-primary > td {
+  background-color: var(--bg-raised);
+  color: var(--text-secondary);
+  border-color: var(--border-subtle);
+}
+thead.table-primary {
+  background-color: var(--bg-raised);
+  color: var(--text-secondary);
+}
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(255, 255, 255, 0.02);
+  color: var(--text-primary);
+}
+.table-hover > tbody > tr:hover > * {
+  background-color: var(--bg-raised);
+  color: var(--text-primary);
+}
+.table > :not(caption) > * > * {
+  border-bottom-color: var(--border-subtle);
+}
+caption {
+  color: var(--text-muted);
+}
+
+/* ── Alerts (Bootstrap override) ─────────────────── */
+.alert-info {
+  background-color: var(--bg-stable);
+  border-color: var(--border-subtle);
+  color: var(--status-stable);
+}
+.alert-warning {
+  background-color: var(--bg-falling);
+  border-color: var(--border-subtle);
+  color: var(--status-falling);
+}
+.alert-secondary {
+  background-color: var(--bg-raised);
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+/* ── Buttons (Bootstrap override) ────────────────── */
+.btn-primary {
+  color: #fff;
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: #fff;
+}
+.btn-outline-primary {
+  color: var(--text-secondary);
+  background-color: var(--bg-raised);
+  border-color: var(--border-subtle);
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+  color: var(--text-primary);
+  background-color: var(--bg-raised);
+  border-color: var(--border-strong);
+}
+
+/* ── Badge (Bootstrap override) ──────────────────── */
+.badge.bg-primary {
+  background-color: var(--accent) !important;
+}
+
+/* ── Forms (Bootstrap override) ──────────────────── */
+.form-select,
+.form-control {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+.form-select:focus,
+.form-control:focus {
+  background-color: var(--bg-raised);
+  color: var(--text-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+}
+.form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%238899a8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+}
+.form-select option {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+.form-label {
+  color: var(--text-secondary);
+}
+
+/* ── Text utilities override ─────────────────────── */
+.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* ── Border utilities override ───────────────────── */
+.border-top {
+  border-top-color: var(--border-subtle) !important;
+}
+.border-bottom {
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+/* ── Headings ────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  color: var(--text-primary);
+}
+
+/* ── Footer ──────────────────────────────────────── */
 .footer {
+  background-color: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-muted);
   position: absolute;
   bottom: 0;
   width: 100%;
