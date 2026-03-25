@@ -133,19 +133,41 @@ public class WaterLevelService : IWaterLevelService
 
     private async Task<List<WaterLevelReading>> GetObservationSeriesAsync(int parameter, CancellationToken cancellationToken)
     {
-        using var response = await _httpClient.GetAsync(
-            BuildObservationPath(parameter),
-            cancellationToken);
+        var path = BuildObservationPath(parameter);
+        _logger.LogInformation("Requesting NVE observations for parameter {Parameter} at {Path}", parameter, path);
+
+        using var response = await _httpClient.GetAsync(path, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogWarning(
+                "NVE observations request failed for parameter {Parameter}. Status {StatusCode}. Body: {Body}",
+                parameter,
+                (int)response.StatusCode,
+                errorBody);
+        }
+
         response.EnsureSuccessStatusCode();
 
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
-        return ParseObservationReadings(document.RootElement);
+        var readings = ParseObservationReadings(document.RootElement);
+        _logger.LogInformation(
+            "Parsed {Count} NVE observations for parameter {Parameter}",
+            readings.Count,
+            parameter);
+
+        return readings;
     }
 
     private static string BuildObservationPath(int parameter)
     {
-        return $"api/v1/Observations?StationId={StationId}&Parameter={parameter}&ResolutionTime=60&ReferenceTime=P1D/now";
+        var end = DateTime.UtcNow;
+        var start = end.AddDays(-1);
+        var referenceTime = $"{start:yyyy-MM-dd'T'HH':'mm':'ss'Z'}/{end:yyyy-MM-dd'T'HH':'mm':'ss'Z'}";
+
+        return $"api/v1/Observations?StationId={StationId}&Parameter={parameter}&ResolutionTime=60&ReferenceTime={referenceTime}";
     }
 
     private static List<WaterLevelReading> ParseObservationReadings(JsonElement root)
