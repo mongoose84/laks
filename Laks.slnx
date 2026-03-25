@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Laks.Web/Laks.Web.csproj" />
+    <Project Path="src/Laks.Importer/Laks.Importer.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Laks.Web.Tests/Laks.Web.Tests.csproj" />
