@@ -60,7 +60,7 @@
                 y: {
                     ticks: {
                         color: "#8899a8",
-                        callback: function (value) { return value + " m"; }
+                        callback: function (value) { return Number(value).toFixed(2) + " m"; }
                     },
                     grid: { color: "#243442" }
                 },

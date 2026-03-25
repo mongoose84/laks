@@ -55,6 +55,94 @@ public class DashboardPageModelTests
         Assert.NotEmpty(model.RecentCatches);
     }
 
+    [Fact]
+    public void BuildSeasonDay_ActiveGroup_ReturnsDayInfo()
+    {
+        var configs = ThreeGroupConfig(2026);
+        var result = IndexModel.BuildSeasonDay(configs, new DateTime(2026, 6, 23));
+
+        Assert.False(result.IsOffSeason);
+        Assert.False(result.IsBufferDay);
+        Assert.Equal(1, result.GroupNumber);
+        Assert.Equal(3, result.DayInGroup);
+        Assert.Equal(5, result.GroupLengthDays);
+        Assert.Equal(3, result.TotalGroups);
+    }
+
+    [Fact]
+    public void BuildSeasonDay_BufferDay_ShowsCountdown()
+    {
+        // Groups with buffer days: G1=Jun21-25, G2=Jun27-Jul1, G3=Jul3-7
+        var configs = new List<SeasonConfig>
+        {
+            new() { Year = 2026, GroupNumber = 1, StartDate = new DateTime(2026, 6, 21), EndDate = new DateTime(2026, 6, 25) },
+            new() { Year = 2026, GroupNumber = 2, StartDate = new DateTime(2026, 6, 27), EndDate = new DateTime(2026, 7, 1) },
+            new() { Year = 2026, GroupNumber = 3, StartDate = new DateTime(2026, 7, 3), EndDate = new DateTime(2026, 7, 7) }
+        };
+
+        var result = IndexModel.BuildSeasonDay(configs, new DateTime(2026, 6, 26));
+
+        Assert.False(result.IsOffSeason);
+        Assert.True(result.IsBufferDay);
+        Assert.Equal(new DateTime(2026, 6, 27), result.NextGroupStart);
+        Assert.Equal(3, result.TotalGroups);
+    }
+
+    [Fact]
+    public void BuildSeasonDay_BeforeSeason_ShowsCountdown()
+    {
+        var configs = ThreeGroupConfig(2026);
+        var result = IndexModel.BuildSeasonDay(configs, new DateTime(2026, 3, 15));
+
+        Assert.True(result.IsOffSeason);
+        Assert.False(result.IsBufferDay);
+        Assert.Equal(new DateTime(2026, 6, 21), result.NextGroupStart);
+    }
+
+    [Fact]
+    public void BuildSeasonDay_AfterSeason_ReturnsOffSeason()
+    {
+        var configs = ThreeGroupConfig(2026);
+        var result = IndexModel.BuildSeasonDay(configs, new DateTime(2026, 8, 1));
+
+        Assert.True(result.IsOffSeason);
+        Assert.False(result.IsBufferDay);
+        Assert.Null(result.NextGroupStart);
+    }
+
+    [Fact]
+    public void BuildSeasonDay_TwoGroups_WorksDynamically()
+    {
+        var configs = new List<SeasonConfig>
+        {
+            new() { Year = 2001, GroupNumber = 1, StartDate = new DateTime(2001, 6, 15), EndDate = new DateTime(2001, 6, 24) },
+            new() { Year = 2001, GroupNumber = 2, StartDate = new DateTime(2001, 6, 25), EndDate = new DateTime(2001, 7, 4) }
+        };
+
+        var result = IndexModel.BuildSeasonDay(configs, new DateTime(2001, 6, 28));
+
+        Assert.False(result.IsOffSeason);
+        Assert.Equal(2, result.GroupNumber);
+        Assert.Equal(4, result.DayInGroup);
+        Assert.Equal(10, result.GroupLengthDays);
+        Assert.Equal(2, result.TotalGroups);
+    }
+
+    [Fact]
+    public void BuildSeasonDay_NoConfig_ReturnsOffSeason()
+    {
+        var result = IndexModel.BuildSeasonDay([], new DateTime(2026, 6, 25));
+
+        Assert.True(result.IsOffSeason);
+    }
+
+    private static List<SeasonConfig> ThreeGroupConfig(int year) =>
+    [
+        new() { Year = year, GroupNumber = 1, StartDate = new DateTime(year, 6, 21), EndDate = new DateTime(year, 6, 25) },
+        new() { Year = year, GroupNumber = 2, StartDate = new DateTime(year, 6, 26), EndDate = new DateTime(year, 6, 30) },
+        new() { Year = year, GroupNumber = 3, StartDate = new DateTime(year, 7, 1), EndDate = new DateTime(year, 7, 5) }
+    ];
+
     private sealed class FakeSeasonRepository : ISeasonRepository
     {
         public Task<IEnumerable<FishingSeason>> GetAllAsync() =>
@@ -73,6 +161,9 @@ public class DashboardPageModelTests
                 new SeasonConfig { Year = year, GroupNumber = 2, StartDate = new DateTime(year, 6, 26), EndDate = new DateTime(year, 6, 30) },
                 new SeasonConfig { Year = year, GroupNumber = 3, StartDate = new DateTime(year, 7, 1), EndDate = new DateTime(year, 7, 5) }
             ]);
+
+        public Task<int?> GetAnglerGroupAsync(int year, int anglerId) =>
+            Task.FromResult<int?>(2);
     }
 
     private sealed class FakeCatchRepository : ICatchRepository

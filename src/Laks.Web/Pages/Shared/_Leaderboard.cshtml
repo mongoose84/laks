@@ -61,13 +61,18 @@
             </div>
         }
     </div>
-    @if (Model.CurrentGroupSummary is not null)
+    @if (Model.GroupSummaries.Count > 0)
     {
         <footer class="card-footer small">
-            Group @Model.CurrentGroupSummary.GroupNumber: @Model.CurrentGroupSummary.FishCount fish / @Model.CurrentGroupSummary.TotalWeightKg.ToString("F1") kg
-            @if (Model.PreviousGroupSummary is not null)
+            @foreach (var group in Model.GroupSummaries)
             {
-                <span>- Group @Model.PreviousGroupSummary.GroupNumber caught @Model.PreviousGroupSummary.FishCount fish / @Model.PreviousGroupSummary.TotalWeightKg.ToString("F1") kg</span>
+                <span class="@(group.GroupNumber == Model.SelectedGroup ? "fw-bold" : "")">
+                    Group @group.GroupNumber (@group.Label): @group.FishCount fish / @group.TotalWeightKg.ToString("F1") kg
+                </span>
+                if (group != Model.GroupSummaries.Last())
+                {
+                    <span class="mx-1">·</span>
+                }
             }
         </footer>
     }

@@ -8,4 +8,5 @@ public interface ISeasonRepository
     Task<FishingSeason?> GetByYearAsync(int year);
     Task<FishingSeason?> GetLatestAsync();
     Task<IEnumerable<SeasonConfig>> GetSeasonConfigAsync(int year);
+    Task<int?> GetAnglerGroupAsync(int year, int anglerId);
 }

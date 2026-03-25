@@ -10,5 +10,6 @@ public class GroupSummary
     public decimal TotalWeightKg { get; set; }
     public decimal BestWeightKg { get; set; }
 
+    public string GroupId => $"{Year}-{GroupNumber}";
     public string Label => $"{StartDate:dd MMM}-{EndDate:dd MMM}";
 }

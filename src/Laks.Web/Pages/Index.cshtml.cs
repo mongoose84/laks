@@ -20,14 +20,15 @@ public class IndexModel : PageModel
     public WaterLevelSnapshot? CurrentWaterLevel { get; private set; }
     public SeasonDay SeasonDay { get; private set; } = new();
     public IEnumerable<LeaderboardEntry> Leaderboard { get; private set; } = [];
-    public GroupSummary? CurrentGroupSummary { get; private set; }
-    public GroupSummary? PreviousGroupSummary { get; private set; }
+    public List<GroupSummary> GroupSummaries { get; private set; } = [];
+    public int? SelectedGroup { get; private set; }
     public IEnumerable<Catch> RecentCatches { get; private set; } = [];
     public SeasonSummary? CurrentSeasonSummary { get; private set; }
     public AllTimeRecords? Records { get; private set; }
     public string WaterLevelChartJson { get; private set; } = "[]";
     public string CatchLocationsCurrentSeasonJson { get; private set; } = "[]";
     public string CatchLocationsAllTimeJson { get; private set; } = "[]";
+    public List<SeasonConfig> AvailableGroups { get; private set; } = [];
 
     [BindProperty(SupportsGet = true)]
     public int? GroupNumber { get; set; }
@@ -82,9 +83,11 @@ public class IndexModel : PageModel
         Records = await recordsTask;
 
         var seasonConfig = (await seasonConfigTask)?.ToList() ?? [];
+        AvailableGroups = seasonConfig;
         SeasonDay = BuildSeasonDay(seasonConfig, DateTime.UtcNow.Date);
 
         var selectedGroup = ResolveSelectedGroup(seasonConfig, GroupNumber, SeasonDay.GroupNumber);
+        SelectedGroup = selectedGroup;
         var (leaderboardYear, leaderboardGroup) = ResolveLeaderboardScope(selectedGroup);
 
         Leaderboard = await SafeCallAsync(
@@ -92,19 +95,19 @@ public class IndexModel : PageModel
                           "load leaderboard")
                       ?? [];
 
-        if (selectedGroup.HasValue)
-        {
-            CurrentGroupSummary = await SafeCallAsync(
-                () => _catches.GetGroupSummaryAsync(CurrentYear, selectedGroup.Value),
-                "load current group summary");
+        var groupSummaryTasks = seasonConfig
+            .Select(g => SafeCallAsync(
+                () => _catches.GetGroupSummaryAsync(CurrentYear, g.GroupNumber),
+                $"load group {g.GroupNumber} summary"))
+            .ToList();
 
-            if (selectedGroup.Value > 1)
-            {
-                PreviousGroupSummary = await SafeCallAsync(
-                    () => _catches.GetGroupSummaryAsync(CurrentYear, selectedGroup.Value - 1),
-                    "load previous group summary");
-            }
-        }
+        await Task.WhenAll(groupSummaryTasks);
+
+        GroupSummaries = (await Task.WhenAll(groupSummaryTasks))
+            .Where(g => g is not null)
+            .Select(g => g!)
+            .OrderBy(g => g.GroupNumber)
+            .ToList();
 
         var waterReadings = await waterReadingsTask ?? [];
         WaterLevelChartJson = JsonSerializer.Serialize(
@@ -183,7 +186,7 @@ public class IndexModel : PageModel
         return groups[0];
     }
 
-    private static SeasonDay BuildSeasonDay(IEnumerable<SeasonConfig> configs, DateTime currentDate)
+    internal static SeasonDay BuildSeasonDay(IEnumerable<SeasonConfig> configs, DateTime currentDate)
     {
         var sorted = configs.OrderBy(c => c.StartDate).ToList();
         if (sorted.Count == 0)
@@ -191,6 +194,7 @@ public class IndexModel : PageModel
             return new SeasonDay { IsOffSeason = true };
         }
 
+        var totalGroups = sorted.Select(c => c.GroupNumber).Distinct().Count();
         var active = sorted.FirstOrDefault(c => currentDate >= c.StartDate.Date && currentDate <= c.EndDate.Date);
         if (active is not null)
         {
@@ -199,15 +203,23 @@ public class IndexModel : PageModel
                 IsOffSeason = false,
                 GroupNumber = active.GroupNumber,
                 GroupLengthDays = Math.Max(1, (active.EndDate.Date - active.StartDate.Date).Days + 1),
-                DayInGroup = Math.Max(1, (currentDate - active.StartDate.Date).Days + 1)
+                DayInGroup = Math.Max(1, (currentDate - active.StartDate.Date).Days + 1),
+                TotalGroups = totalGroups
             };
         }
 
         var next = sorted.FirstOrDefault(c => c.StartDate.Date > currentDate);
+        var last = sorted.Last();
+
+        // Buffer day: current date is between groups within the season span
+        var isBufferDay = currentDate > sorted.First().StartDate.Date && currentDate < last.EndDate.Date;
+
         return new SeasonDay
         {
-            IsOffSeason = true,
-            NextSeasonStart = next?.StartDate ?? sorted.Min(c => c.StartDate)
+            IsOffSeason = !isBufferDay,
+            IsBufferDay = isBufferDay,
+            NextGroupStart = next?.StartDate,
+            TotalGroups = totalGroups
         };
     }
 

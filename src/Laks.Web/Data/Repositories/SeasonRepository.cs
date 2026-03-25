@@ -69,4 +69,15 @@ public class SeasonRepository : ISeasonRepository
         using var conn = _db.CreateConnection();
         return await conn.QueryAsync<SeasonConfig>(sql, new { Year = year });
     }
+
+    public async Task<int?> GetAnglerGroupAsync(int year, int anglerId)
+    {
+        const string sql = @"
+            SELECT `GroupNumber`
+            FROM `Participant`
+            WHERE `Year` = @Year AND `PersonId` = @AnglerId";
+
+        using var conn = _db.CreateConnection();
+        return await conn.QueryFirstOrDefaultAsync<int?>(sql, new { Year = year, AnglerId = anglerId });
+    }
 }
