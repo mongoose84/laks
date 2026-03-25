@@ -9,6 +9,7 @@
 #   FTP_PASSWORD         – FTP password
 #   FTP_PATH             – Remote deploy folder path
 #   DB_CONNECTION_STRING – Full MySQL connection string for production
+#   NVE_HYD_API          – Production API value for NveHydApi
 ################################################################################
 
 name: CI/CD – Build, Test, Deploy
@@ -92,12 +93,14 @@ jobs:
         shell: pwsh
         env:
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+          NVE_HYD_API: ${{ secrets.NVE_HYD_API }}
         run: |
           $appSettingsPath = Join-Path "${{ env.PUBLISH_DIR }}" "appsettings.Production.json"
           $cfg = @{
             ConnectionStrings = @{
               Laks = $env:DB_CONNECTION_STRING
             }
+            NveHydApi = $env:NVE_HYD_API
           } | ConvertTo-Json -Depth 5
           Set-Content -Path $appSettingsPath -Value $cfg
 
