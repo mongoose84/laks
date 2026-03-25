@@ -100,7 +100,9 @@ jobs:
             ConnectionStrings = @{
               Laks = $env:DB_CONNECTION_STRING
             }
-            NveHydApi = $env:NVE_HYD_API
+            NveHydApi = @{
+              ApiKey = $env:NVE_HYD_API
+            }
           } | ConvertTo-Json -Depth 5
           Set-Content -Path $appSettingsPath -Value $cfg
 
