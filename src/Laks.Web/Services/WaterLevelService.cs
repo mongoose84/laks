@@ -1,7 +1,6 @@
 using System.Globalization;
+using System.Net.Http.Headers;
 using System.Text.Json;
-using Dapper;
-using Laks.Web.Data;
 using Laks.Web.Models;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -12,21 +11,20 @@ public class WaterLevelService : IWaterLevelService
     private const string SnapshotCacheKey = "dashboard-water-snapshot";
     private const string ReadingsCacheKey = "dashboard-water-24h";
     private const string TemperatureCacheKey = "dashboard-water-temperature";
-    private const string LevelCacheKey = "dashboard-water-level-live";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+    private const string StationId = "15.61.0";
+    private const int WaterLevelParameter = 1000;
+    private const int WaterTemperatureParameter = 1003;
 
-    private readonly IDbConnectionFactory _db;
     private readonly HttpClient _httpClient;
     private readonly IMemoryCache _cache;
     private readonly ILogger<WaterLevelService> _logger;
 
     public WaterLevelService(
-        IDbConnectionFactory db,
         HttpClient httpClient,
         IMemoryCache cache,
         ILogger<WaterLevelService> logger)
     {
-        _db = db;
         _httpClient = httpClient;
         _cache = cache;
         _logger = logger;
@@ -41,46 +39,23 @@ public class WaterLevelService : IWaterLevelService
 
         try
         {
-            const string latestSql = @"
-                SELECT `MeasuredTime` AS Time, `MeasuredLevel` AS LevelMeters
-                FROM `WaterLevel`
-                ORDER BY `MeasuredTime` DESC
-                LIMIT 1";
-
-            const string priorSql = @"
-                SELECT `MeasuredLevel`
-                FROM `WaterLevel`
-                WHERE `MeasuredTime` <= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 3 HOUR)
-                ORDER BY `MeasuredTime` DESC
-                LIMIT 1";
-
-            WaterLevelReading? latest = null;
-            decimal? priorLevel = null;
-
-            using (var conn = _db.CreateConnection())
-            {
-                latest = await conn.QueryFirstOrDefaultAsync<WaterLevelReading>(latestSql);
-                priorLevel = await conn.QueryFirstOrDefaultAsync<decimal?>(priorSql);
-            }
-
-            var nveLevel = await GetObservationValueAsync(1000, LevelCacheKey, cancellationToken);
-            var waterTemp = await GetObservationValueAsync(1003, TemperatureCacheKey, cancellationToken);
-
-            if (latest is null && !nveLevel.HasValue)
+            var readings = await GetLast24HoursAsync(cancellationToken);
+            var latest = readings.LastOrDefault();
+            if (latest is null)
             {
                 return null;
             }
 
-            var effectiveLevel = nveLevel ?? latest?.LevelMeters;
-            var measuredAt = latest?.Time ?? DateTime.UtcNow;
+            var priorLevel = FindComparisonLevel(readings, latest.Time.AddHours(-3));
+            var waterTemp = await GetLatestObservationValueAsync(WaterTemperatureParameter, TemperatureCacheKey, cancellationToken);
 
             var snapshot = new WaterLevelSnapshot
             {
-                LevelMeters = effectiveLevel,
-                Trend = effectiveLevel.HasValue ? CalculateTrend(effectiveLevel.Value, priorLevel) : WaterLevelTrend.Stable,
+                LevelMeters = latest.LevelMeters,
+                Trend = CalculateTrend(latest.LevelMeters, priorLevel),
                 WaterTemperatureC = waterTemp,
-                MeasuredAt = measuredAt,
-                LastKnownAt = measuredAt
+                MeasuredAt = latest.Time,
+                LastKnownAt = latest.Time
             };
 
             _cache.Set(SnapshotCacheKey, snapshot, CacheDuration);
@@ -102,14 +77,7 @@ public class WaterLevelService : IWaterLevelService
 
         try
         {
-            const string sql = @"
-                SELECT `MeasuredTime` AS Time, `MeasuredLevel` AS LevelMeters
-                FROM `WaterLevel`
-                WHERE `MeasuredTime` >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 24 HOUR)
-                ORDER BY `MeasuredTime` ASC";
-
-            using var conn = _db.CreateConnection();
-            var rows = (await conn.QueryAsync<WaterLevelReading>(sql)).ToList();
+            var rows = await GetObservationSeriesAsync(WaterLevelParameter, cancellationToken);
             _cache.Set(ReadingsCacheKey, rows, CacheDuration);
             return rows;
         }
@@ -141,7 +109,7 @@ public class WaterLevelService : IWaterLevelService
         return WaterLevelTrend.Stable;
     }
 
-    private async Task<decimal?> GetObservationValueAsync(int parameter, string cacheKey, CancellationToken cancellationToken)
+    private async Task<decimal?> GetLatestObservationValueAsync(int parameter, string cacheKey, CancellationToken cancellationToken)
     {
         if (_cache.TryGetValue<decimal?>(cacheKey, out var cachedValue))
         {
@@ -150,15 +118,8 @@ public class WaterLevelService : IWaterLevelService
 
         try
         {
-            using var response = await _httpClient.GetAsync(
-                $"api/v1/Observations?StationId=15.61.0&Parameter={parameter}&ResolutionTime=60",
-                cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
-
-            var value = FindFirstNumericValue(document.RootElement);
+            var readings = await GetObservationSeriesAsync(parameter, cancellationToken);
+            var value = readings.LastOrDefault()?.LevelMeters;
             _cache.Set(cacheKey, value, CacheDuration);
             return value;
         }
@@ -170,44 +131,137 @@ public class WaterLevelService : IWaterLevelService
         }
     }
 
-    private static decimal? FindFirstNumericValue(JsonElement element)
+    private async Task<List<WaterLevelReading>> GetObservationSeriesAsync(int parameter, CancellationToken cancellationToken)
     {
-        if (element.ValueKind == JsonValueKind.Object)
-        {
-            foreach (var property in element.EnumerateObject())
-            {
-                if ((property.Name.Equals("value", StringComparison.OrdinalIgnoreCase)
-                    || property.Name.Equals("Value", StringComparison.OrdinalIgnoreCase))
-                    && TryReadDecimal(property.Value, out var directValue))
-                {
-                    return directValue;
-                }
+        using var response = await _httpClient.GetAsync(
+            BuildObservationPath(parameter),
+            cancellationToken);
+        response.EnsureSuccessStatusCode();
 
-                var nested = FindFirstNumericValue(property.Value);
-                if (nested.HasValue)
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+        return ParseObservationReadings(document.RootElement);
+    }
+
+    private static string BuildObservationPath(int parameter)
+    {
+        return $"api/v1/Observations?StationId={StationId}&Parameter={parameter}&ResolutionTime=60&ReferenceTime=P1D/now";
+    }
+
+    private static List<WaterLevelReading> ParseObservationReadings(JsonElement root)
+    {
+        var readings = new List<WaterLevelReading>();
+
+        foreach (var observation in EnumerateObservationNodes(root))
+        {
+            if (!TryGetTimestamp(observation, out var time)
+                || !TryGetObservationValue(observation, out var value))
+            {
+                continue;
+            }
+
+            readings.Add(new WaterLevelReading
+            {
+                Time = time,
+                LevelMeters = value
+            });
+        }
+
+        return readings
+            .OrderBy(reading => reading.Time)
+            .ToList();
+    }
+
+    private static IEnumerable<JsonElement> EnumerateObservationNodes(JsonElement root)
+    {
+        if (root.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in root.EnumerateArray())
+            {
+                foreach (var nested in EnumerateObservationNodes(item))
                 {
-                    return nested;
+                    yield return nested;
                 }
             }
 
-            return null;
+            yield break;
         }
 
-        if (element.ValueKind == JsonValueKind.Array)
+        if (root.ValueKind != JsonValueKind.Object)
         {
-            foreach (var item in element.EnumerateArray())
+            yield break;
+        }
+
+        if (root.TryGetProperty("observations", out var observations)
+            && observations.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in observations.EnumerateArray())
             {
-                var nested = FindFirstNumericValue(item);
-                if (nested.HasValue)
-                {
-                    return nested;
-                }
+                yield return item;
             }
 
-            return null;
+            yield break;
         }
 
-        return TryReadDecimal(element, out var primitiveValue) ? primitiveValue : null;
+        if (root.TryGetProperty("data", out var data))
+        {
+            foreach (var nested in EnumerateObservationNodes(data))
+            {
+                yield return nested;
+            }
+        }
+    }
+
+    private static bool TryGetTimestamp(JsonElement observation, out DateTime time)
+    {
+        foreach (var propertyName in new[] { "time", "Time", "timestamp", "Timestamp" })
+        {
+            if (observation.TryGetProperty(propertyName, out var value)
+                && value.ValueKind == JsonValueKind.String
+                && DateTime.TryParse(
+                    value.GetString(),
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal,
+                    out time))
+            {
+                return true;
+            }
+        }
+
+        time = default;
+        return false;
+    }
+
+    private static bool TryGetObservationValue(JsonElement observation, out decimal value)
+    {
+        if (TryReadDecimalProperty(observation, "value", out value)
+            || TryReadDecimalProperty(observation, "Value", out value))
+        {
+            return true;
+        }
+
+        if (observation.TryGetProperty("parameter", out var parameter)
+            && parameter.ValueKind == JsonValueKind.Object
+            && (TryReadDecimalProperty(parameter, "value", out value)
+                || TryReadDecimalProperty(parameter, "Value", out value)))
+        {
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private static bool TryReadDecimalProperty(JsonElement element, string propertyName, out decimal value)
+    {
+        if (element.TryGetProperty(propertyName, out var propertyValue)
+            && TryReadDecimal(propertyValue, out value))
+        {
+            return true;
+        }
+
+        value = default;
+        return false;
     }
 
     private static bool TryReadDecimal(JsonElement value, out decimal parsed)
@@ -225,5 +279,18 @@ public class WaterLevelService : IWaterLevelService
 
         parsed = default;
         return false;
+    }
+
+    private static decimal? FindComparisonLevel(IReadOnlyList<WaterLevelReading> readings, DateTime targetTime)
+    {
+        for (var index = readings.Count - 1; index >= 0; index--)
+        {
+            if (readings[index].Time <= targetTime)
+            {
+                return readings[index].LevelMeters;
+            }
+        }
+
+        return readings.FirstOrDefault()?.LevelMeters;
     }
 }

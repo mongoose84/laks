@@ -1,6 +1,7 @@
 using Laks.Web.Data;
 using Laks.Web.Data.Repositories;
 using Laks.Web.Services;
+using System.Net.Http.Headers;
 using Serilog;
 using Serilog.Events;
 
@@ -53,6 +54,11 @@ try
     {
         client.BaseAddress = new Uri("https://hydapi.nve.no/");
         client.Timeout = TimeSpan.FromSeconds(5);
+        var apiKey = builder.Configuration["NveHydApi:ApiKey"];
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        }
     });
 
     // ----------------------------------------------------------------
