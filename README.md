@@ -1,6 +1,6 @@
 # 🎣 LAKS – Norwegian Fishing Trip Records
 
-A production-ready web application for tracking yearly salmon fishing results on the Gaula river in Trøndelag, Norway.
+A production-ready web application for tracking yearly salmon fishing results on the Numedalslågen river in Holmfoss, Norway.
 
 ## Recommended Stack (5 lines)
 
