@@ -17,33 +17,43 @@ public class FishDatabase(string connectionString)
         Console.WriteLine($"Added person: {name}");
     }
 
-    public async Task<int> AddCatchesAsync(IList<CatchModel> catches)
+    public async Task<(int Added, int Updated)> UpsertCatchesAsync(IList<CatchModel> catches)
     {
         var added = 0;
+        var updated = 0;
         foreach (var catchModel in catches)
         {
-            try
-            {
-                await AddCatchAsync(catchModel);
+            var result = await UpsertCatchAsync(catchModel);
+            if (result > 1)
+                updated++;
+            else if (result == 1)
                 added++;
-            }
-            catch (MySqlException)
-            {
-                // Duplicate or constraint violation — skip
-            }
         }
-        return added;
+        return (added, updated);
     }
 
-    private async Task AddCatchAsync(CatchModel catchModel)
+    private async Task<int> UpsertCatchAsync(CatchModel catchModel)
     {
         const string sql = """
             INSERT INTO `Catch`
                 (`PersonId`, `Date`, `Time`, `Weight`, `Location`, `Weather`,
-                 `WaterLevel`, `Bait`, `Latitude`, `Longitude`, `Comment`, `Type`)
+                 `WaterLevel`, `Bait`, `Latitude`, `Longitude`, `Comment`, `Type`,
+                 `Team`, `TeamName`)
             VALUES
                 (@PersonId, @Date, @Time, @Weight, @Location, @Weather,
-                 @WaterLevel, @Bait, @Latitude, @Longitude, @Comment, @Type)
+                 @WaterLevel, @Bait, @Latitude, @Longitude, @Comment, @Type,
+                 @Team, @TeamName)
+            ON DUPLICATE KEY UPDATE
+                `Location`   = VALUES(`Location`),
+                `Weather`    = VALUES(`Weather`),
+                `WaterLevel` = VALUES(`WaterLevel`),
+                `Bait`       = VALUES(`Bait`),
+                `Latitude`   = VALUES(`Latitude`),
+                `Longitude`  = VALUES(`Longitude`),
+                `Comment`    = VALUES(`Comment`),
+                `Type`       = VALUES(`Type`),
+                `Team`       = VALUES(`Team`),
+                `TeamName`   = VALUES(`TeamName`)
             """;
 
         await using var conn = new MySqlConnection(connectionString);
@@ -61,7 +71,9 @@ public class FishDatabase(string connectionString)
         cmd.Parameters.AddWithValue("@Longitude", catchModel.Longitude);
         cmd.Parameters.AddWithValue("@Comment", catchModel.Comment);
         cmd.Parameters.AddWithValue("@Type", catchModel.Type);
-        await cmd.ExecuteNonQueryAsync();
+        cmd.Parameters.AddWithValue("@Team", string.IsNullOrEmpty(catchModel.Team) ? DBNull.Value : catchModel.Team);
+        cmd.Parameters.AddWithValue("@TeamName", string.IsNullOrEmpty(catchModel.TeamName) ? DBNull.Value : catchModel.TeamName);
+        return await cmd.ExecuteNonQueryAsync();
     }
 
     public async Task<Dictionary<string, int>> GetAllNamesAsync()

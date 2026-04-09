@@ -1,0 +1,3 @@
+ALTER TABLE `Catch`
+  ADD COLUMN `Team` TEXT NULL AFTER `Type`,
+  ADD COLUMN `TeamName` TEXT NULL AFTER `Team`;

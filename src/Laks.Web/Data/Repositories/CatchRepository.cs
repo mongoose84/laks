@@ -22,6 +22,8 @@ public class CatchRepository : ICatchRepository
                    c.`Longitude`  AS Longitude,
                    c.`Comment`    AS Notes,
                    c.`Type`       AS CatchType,
+                   c.`Team`       AS Team,
+                   c.`TeamName`   AS TeamName,
                    p.`Name`       AS AnglerName
             FROM   `Catch` c
             JOIN   `Person` p ON p.`Id` = c.`PersonId`";

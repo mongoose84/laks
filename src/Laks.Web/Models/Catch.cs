@@ -16,6 +16,8 @@ public class Catch
     public double Longitude { get; set; }
     public string Notes { get; set; } = string.Empty;
     public string CatchType { get; set; } = string.Empty;
+    public string? Team { get; set; }
+    public string? TeamName { get; set; }
 
     public string? AnglerName { get; set; }
 }

@@ -485,3 +485,5 @@ $RECYCLE.BIN/
 src/Laks.Web/appsettings.Development.json
 
 src/Laks.Importer/credentials.json
+
+src/Laks.Importer/tokens.json
