@@ -1,4 +1,4 @@
-using Laks.Web.Data.Repositories;
+﻿using Laks.Web.Data.Repositories;
 using Laks.Web.Models;
 using Laks.Web.Pages;
 using Laks.Web.Services;
@@ -244,6 +244,7 @@ public class DashboardPageModelTests
         public Task<IEnumerable<CatchesPerYear>> GetCatchesPerYearAsync() => Task.FromResult<IEnumerable<CatchesPerYear>>([]);
         public Task<IEnumerable<CatchesPerAngler>> GetCatchesPerAnglerAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesPerAngler>>([]);
         public Task<IEnumerable<CatchesByType>> GetCatchesByTypeAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByType>>([]);
+        public Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null) => Task.FromResult<IEnumerable<BiggestSalmonPerTeam>>([]);
     }
 
     private sealed class FakeWeatherService : IWeatherService

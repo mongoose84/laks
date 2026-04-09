@@ -25,3 +25,13 @@ public class CatchesByType
     public int TotalCatches { get; set; }
     public decimal Percentage { get; set; }
 }
+
+/// <summary>Biggest salmon per team – used for the team statistics bar chart.</summary>
+public class BiggestSalmonPerTeam
+{
+    public string TeamName { get; set; } = string.Empty;
+    public decimal BiggestSalmonKg { get; set; }
+    public string AnglerName { get; set; } = string.Empty;
+    public int TotalSalmonCount { get; set; }
+    public decimal AvgSalmonWeightKg { get; set; }
+}

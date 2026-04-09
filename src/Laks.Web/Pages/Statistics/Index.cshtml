@@ -66,6 +66,61 @@
         </div>
     </div>
 
+    <!-- ④ Team statistics: biggest salmons per team -->
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">
+                🏆 Biggest Salmons by Team
+                @if (Model.SelectedYear.HasValue) { <span class="badge bg-primary ms-1">@Model.SelectedYear</span> }
+            </div>
+            <div class="card-body">
+                @if (Model.TeamStats.Any())
+                {
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <canvas id="teamChart" height="100"></canvas>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="table-responsive mt-3 mt-lg-0">
+                                <table class="table table-striped table-hover align-middle mb-0" aria-label="Team salmon statistics">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Team</th>
+                                            <th scope="col" class="text-end">Biggest (kg)</th>
+                                            <th scope="col">Caught by</th>
+                                            <th scope="col" class="text-end">Salmon</th>
+                                            <th scope="col" class="text-end">Avg (kg)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{ var rank = 0; }
+                                        @foreach (var team in Model.TeamStats)
+                                        {
+                                            rank++;
+                                            <tr>
+                                                <td>@rank</td>
+                                                <td class="fw-semibold">@team.TeamName</td>
+                                                <td class="text-end">@team.BiggestSalmonKg.ToString("N1")</td>
+                                                <td>@team.AnglerName</td>
+                                                <td class="text-end">@team.TotalSalmonCount</td>
+                                                <td class="text-end">@team.AvgSalmonWeightKg.ToString("N1")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No team salmon data available.</p>
+                }
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @section Scripts {
@@ -205,6 +260,50 @@
             }
         }
     });
+
+    // ④ Team bar: biggest salmons per team --------------------------------
+    const teamLabels      = @Html.Raw(Model.TeamLabelsJson);
+    const teamBiggest     = @Html.Raw(Model.TeamBiggestJson);
+    const teamAvgWeight = @Html.Raw(Model.TeamAvgWeightJson);
+
+    if (teamLabels.length > 0) {
+        new Chart(document.getElementById('teamChart'), {
+            type: 'bar',
+            data: {
+                labels: teamLabels,
+                datasets: [
+                    {
+                        label: 'Biggest salmon (kg)',
+                        data: teamBiggest,
+                        backgroundColor: '#0d6efd',
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Avg salmon weight (kg)',
+                        data: teamAvgWeight,
+                        backgroundColor: 'rgba(25,135,84,.45)',
+                        borderRadius: 4,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} kg`
+                    }}
+                },
+                scales: {
+                    y:  { title: { display: true, text: 'Biggest (kg)' }, beginAtZero: true },
+                    y1: { position: 'right', title: { display: true, text: 'Avg (kg)' },
+                          grid: { drawOnChartArea: false }, beginAtZero: true }
+                }
+            }
+        });
+    }
 }());
 </script>
 }

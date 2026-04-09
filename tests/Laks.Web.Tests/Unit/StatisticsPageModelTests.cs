@@ -61,4 +61,46 @@ public class StatisticsPageModelTests
         Assert.Equal("Lars",  ordered[1].AnglerName);
         Assert.Equal("Bjørn", ordered[2].AnglerName);
     }
+
+    [Fact]
+    public void BiggestSalmonPerTeam_Serializes_To_ValidJsonArrays()
+    {
+        var data = new List<BiggestSalmonPerTeam>
+        {
+            new() { TeamName = "Team Alpha", BiggestSalmonKg = 12.5m, AnglerName = "Lars", TotalSalmonCount = 5, AvgSalmonWeightKg = 8.0m },
+            new() { TeamName = "Team Beta",  BiggestSalmonKg = 9.8m,  AnglerName = "Erik", TotalSalmonCount = 3, AvgSalmonWeightKg = 8.5m }
+        };
+
+        var labelsJson  = JsonSerializer.Serialize(data.Select(x => x.TeamName));
+        var biggestJson = JsonSerializer.Serialize(data.Select(x => x.BiggestSalmonKg));
+
+        var labels  = JsonSerializer.Deserialize<string[]>(labelsJson);
+        var biggest = JsonSerializer.Deserialize<decimal[]>(biggestJson);
+
+        Assert.NotNull(labels);
+        Assert.Equal(2, labels.Length);
+        Assert.Equal("Team Alpha", labels[0]);
+        Assert.Equal("Team Beta", labels[1]);
+
+        Assert.NotNull(biggest);
+        Assert.Equal(12.5m, biggest[0]);
+        Assert.Equal(9.8m, biggest[1]);
+    }
+
+    [Fact]
+    public void BiggestSalmonPerTeam_OrderedByDescendingBiggestSalmon()
+    {
+        var data = new List<BiggestSalmonPerTeam>
+        {
+            new() { TeamName = "Team C", BiggestSalmonKg = 5.0m },
+            new() { TeamName = "Team A", BiggestSalmonKg = 15.0m },
+            new() { TeamName = "Team B", BiggestSalmonKg = 10.0m }
+        };
+
+        var ordered = data.OrderByDescending(t => t.BiggestSalmonKg).ToList();
+
+        Assert.Equal("Team A", ordered[0].TeamName);
+        Assert.Equal("Team B", ordered[1].TeamName);
+        Assert.Equal("Team C", ordered[2].TeamName);
+    }
 }

@@ -23,6 +23,11 @@ public class IndexModel : PageModel
     public string PieLabelsJson { get; private set; } = "[]";
     public string PieDataJson   { get; private set; } = "[]";
 
+    public string TeamLabelsJson      { get; private set; } = "[]";
+    public string TeamBiggestJson     { get; private set; } = "[]";
+    public string TeamAvgWeightJson { get; private set; } = "[]";
+    public IEnumerable<BiggestSalmonPerTeam> TeamStats { get; private set; } = [];
+
     public IEnumerable<FishingSeason> Seasons { get; private set; } = [];
     public int? SelectedYear { get; private set; }
 
@@ -44,8 +49,9 @@ public class IndexModel : PageModel
             var trendTask   = _catches.GetCatchesPerYearAsync();
             var anglerTask  = _catches.GetCatchesPerAnglerAsync(year);
             var typeTask    = _catches.GetCatchesByTypeAsync(year);
+            var teamTask    = _catches.GetBiggestSalmonPerTeamAsync(year);
 
-            await Task.WhenAll(trendTask, anglerTask, typeTask);
+            await Task.WhenAll(trendTask, anglerTask, typeTask, teamTask);
 
             // Trend line – all years
             var trend = (await trendTask).ToList();
@@ -63,6 +69,13 @@ public class IndexModel : PageModel
             var types = (await typeTask).ToList();
             PieLabelsJson = Serialize(types.Select(x => x.TypeName));
             PieDataJson   = Serialize(types.Select(x => x.TotalCatches));
+
+            // Team – biggest salmons per team
+            var teams = (await teamTask).ToList();
+            TeamStats          = teams;
+            TeamLabelsJson     = Serialize(teams.Select(x => x.TeamName));
+            TeamBiggestJson    = Serialize(teams.Select(x => x.BiggestSalmonKg));
+            TeamAvgWeightJson = Serialize(teams.Select(x => x.AvgSalmonWeightKg));
         }
         catch (Exception ex)
         {

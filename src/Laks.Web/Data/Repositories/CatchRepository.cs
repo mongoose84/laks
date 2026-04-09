@@ -262,4 +262,31 @@ public class CatchRepository : ICatchRepository
         using var conn = _db.CreateConnection();
         return await conn.QueryAsync<CatchesByType>(sql, new { Year = year });
     }
+
+    public async Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null)
+    {
+        const string sql = @"
+            SELECT c.`TeamName`                      AS TeamName,
+                   MAX(c.`Weight`)                   AS BiggestSalmonKg,
+                   (SELECT p2.`Name`
+                    FROM `Catch` c2
+                    JOIN `Person` p2 ON p2.`Id` = c2.`PersonId`
+                    WHERE c2.`TeamName` = c.`TeamName`
+                      AND c2.`Type` = 'Laks'
+                      AND (@Year IS NULL OR YEAR(c2.`Date`) = @Year)
+                    ORDER BY c2.`Weight` DESC
+                    LIMIT 1)                         AS AnglerName,
+                   COUNT(c.`Id`)                     AS TotalSalmonCount,
+                   COALESCE(AVG(c.`Weight`), 0)      AS AvgSalmonWeightKg
+            FROM   `Catch` c
+            WHERE  c.`TeamName` IS NOT NULL
+              AND  c.`TeamName` <> ''
+              AND  c.`Type` = 'Laks'
+              AND  (@Year IS NULL OR YEAR(c.`Date`) = @Year)
+            GROUP  BY c.`TeamName`
+            ORDER  BY BiggestSalmonKg DESC";
+
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<BiggestSalmonPerTeam>(sql, new { Year = year });
+    }
 }
