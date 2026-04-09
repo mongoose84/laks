@@ -38,6 +38,8 @@ public class DataConverter(IDictionary<string, int> names)
         var waterLevel = float.Parse(row[7].ToString()!, DanishCulture);
         var bait = row[8].ToString()!;
         var comment = row.Count > 9 ? row[9].ToString()! : string.Empty;
+        var team = row.Count > 10 ? row[10].ToString()! : string.Empty;
+        var teamName = row.Count > 11 ? row[11].ToString()! : string.Empty;
 
         var (lat, lon) = GetLocation(locationValue);
 
@@ -54,7 +56,9 @@ public class DataConverter(IDictionary<string, int> names)
             Comment = comment,
             Location = locationValue,
             Latitude = lat,
-            Longitude = lon
+            Longitude = lon,
+            Team = team,
+            TeamName = teamName
         };
     }
 

@@ -1,10 +1,10 @@
+using System.Text.Json;
 using Laks.Importer;
 
-var connectionString = args.Length > 0
-    ? args[0]
-    : Environment.GetEnvironmentVariable("LAKS_CONNECTION_STRING")
-      ?? throw new InvalidOperationException(
-          "Provide a connection string as the first argument or set the LAKS_CONNECTION_STRING environment variable.");
+var credentialsJson = await File.ReadAllTextAsync("credentials.json");
+var credentials = JsonDocument.Parse(credentialsJson);
+var connectionString = credentials.RootElement.GetProperty("databaseString").GetString()
+    ?? throw new InvalidOperationException("databaseString not found in credentials.json");
 
 var db = new FishDatabase(connectionString);
 
@@ -19,8 +19,23 @@ if (rows is null)
 }
 Console.WriteLine($"Sheet received: {rows.Count} rows");
 
+// Add any new person names from the sheet
+var sheetNames = rows
+    .Where(r => r.Count > 1 && !string.IsNullOrWhiteSpace(r[1].ToString()))
+    .Select(r => r[1].ToString()!)
+    .Distinct()
+    .ToList();
+
+var existingNames = await db.GetAllNamesAsync();
+var newNames = sheetNames.Where(n => !existingNames.ContainsKey(n)).ToList();
+foreach (var name in newNames)
+    await db.AddPersonAsync(name);
+
+if (newNames.Count > 0)
+    Console.WriteLine($"Added {newNames.Count} new anglers");
+
 // Resolve person names → IDs
-var names = await db.GetAllNamesAsync();
+var names = newNames.Count > 0 ? await db.GetAllNamesAsync() : existingNames;
 Console.WriteLine($"Loaded {names.Count} known anglers");
 
 // Convert rows to catch models
@@ -29,7 +44,7 @@ var converter = new DataConverter(names);
 var catches = converter.GetCatches(rows);
 Console.WriteLine($"Created {catches.Count} catches");
 
-// Insert into database
-Console.WriteLine("Adding catches to the database...");
-var added = await db.AddCatchesAsync(catches);
-Console.WriteLine($"Done — {added} new catches added ({catches.Count - added} skipped as duplicates)");
+// Upsert into database
+Console.WriteLine("Syncing catches to the database...");
+var (added, updated) = await db.UpsertCatchesAsync(catches);
+Console.WriteLine($"Done — {added} new catches added, {updated} existing catches updated");

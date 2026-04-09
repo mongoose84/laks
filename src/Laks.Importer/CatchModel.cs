@@ -14,6 +14,8 @@ public class CatchModel
     public double Latitude { get; set; }
     public string Comment { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
+    public string Team { get; set; } = string.Empty;
+    public string TeamName { get; set; } = string.Empty;
 
     public override string ToString() => Bait;
 }

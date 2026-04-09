@@ -11,7 +11,7 @@ public class SheetsConnector
     private const string ApplicationName = "Laks Importer";
     private const string SpreadsheetId = "1-52UHYkyix78jPkDsXV5ilOAjAlRksCjHxmPFwpZlEc";
 
-    public async Task<IList<IList<object>>?> GetRowsAsync(string range = "A1:J427")
+    public async Task<IList<IList<object>>?> GetRowsAsync(string range = "A:L")
     {
         await using var stream = new FileStream("credentials.json", FileMode.Open, FileAccess.Read);
         var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
