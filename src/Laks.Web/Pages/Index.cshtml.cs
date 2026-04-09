@@ -52,8 +52,7 @@ public class IndexModel : PageModel
 
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
-        var latestSeason = await SafeCallAsync(() => _seasons.GetLatestAsync(), "load latest season");
-        CurrentYear = latestSeason?.Year ?? DateTime.UtcNow.Year;
+        CurrentYear = DateTime.UtcNow.Year;
 
         var weatherTask = SafeCallAsync(() => _weatherService.GetCurrentAsync(cancellationToken), "load weather");
         var waterSnapshotTask = SafeCallAsync(() => _waterLevelService.GetCurrentAsync(cancellationToken), "load current water level");
@@ -219,6 +218,7 @@ public class IndexModel : PageModel
             IsOffSeason = !isBufferDay,
             IsBufferDay = isBufferDay,
             NextGroupStart = next?.StartDate,
+            NextGroupTeamName = next?.TeamName,
             TotalGroups = totalGroups
         };
     }

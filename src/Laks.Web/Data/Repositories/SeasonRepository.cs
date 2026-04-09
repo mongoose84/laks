@@ -61,7 +61,8 @@ public class SeasonRepository : ISeasonRepository
             SELECT `Year` AS Year,
                    `GroupNumber` AS GroupNumber,
                    `StartDate` AS StartDate,
-                   `EndDate` AS EndDate
+                   `EndDate` AS EndDate,
+                   `TeamName` AS TeamName
             FROM `season_config`
             WHERE `Year` = @Year
             ORDER BY `GroupNumber`";

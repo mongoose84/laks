@@ -8,6 +8,7 @@ public class SeasonDay
     public int? DayInGroup { get; set; }
     public int GroupLengthDays { get; set; }
     public DateTime? NextGroupStart { get; set; }
+    public string? NextGroupTeamName { get; set; }
     public int TotalGroups { get; set; }
 
     public string DisplayText
@@ -20,11 +21,14 @@ public class SeasonDay
             if (NextGroupStart.HasValue)
             {
                 var days = (NextGroupStart.Value.Date - DateTime.UtcNow.Date).Days;
+                var teamSuffix = !string.IsNullOrWhiteSpace(NextGroupTeamName)
+                    ? $" · {NextGroupTeamName}"
+                    : "";
                 return days switch
                 {
-                    <= 0 => "Fishing starts today",
-                    1 => "Fishing starts tomorrow",
-                    _ => $"Fishing starts in {days} days"
+                    <= 0 => $"Fishing starts today{teamSuffix}",
+                    1 => $"Fishing starts tomorrow{teamSuffix}",
+                    _ => $"Fishing starts in {days} days{teamSuffix}"
                 };
             }
 
