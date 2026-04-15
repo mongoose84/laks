@@ -64,6 +64,8 @@ Replace all hardcoded English user-facing text strings with Danish equivalents a
 | Column header | `Best kg` | `Bedste kg` |
 | Footer text | `Group {n} ({label}): {n} fish / {n} kg` | `Gruppe {n} ({label}): {n} fisk / {n} kg` |
 
+> **Implementation note**: `Group` and `fish` appear as bare Razor text tokens mixed with `@` expressions (not inside a C# string). Replace the literal word `Group` with `Gruppe` and `fish` with `fisk` directly in the markup, being careful not to disturb the surrounding Razor expressions.
+
 ### 5. Recent Catches (`Pages/Shared/_RecentCatches.cshtml`)
 
 | Location | Current English | Danish |
@@ -107,6 +109,7 @@ Replace all hardcoded English user-facing text strings with Danish equivalents a
 | Heading | `Catch Map` | `Fangstkort` |
 | Button | `This season` | `Denne sæson` |
 | Button | `All time` | `Alle tider` |
+| aria-label (button group) | `Map scope selector` | `Vælg kortoversigt` |
 | aria-label (map) | `Catch locations at Holmfoss on Numedalslagen` | `Fangststeder ved Holmfoss på Numedalslågen` |
 | Empty state | `No catch locations to display.` | `Ingen fangststeder at vise.` |
 
@@ -166,6 +169,7 @@ Replace all hardcoded English user-facing text strings with Danish equivalents a
 | Table header | `Caught by` | `Fanget af` |
 | Table header | `Salmon` | `Laks` |
 | Table header | `Avg (kg)` | `Gns. (kg)` |
+| Table aria-label | `Team salmon statistics` | `Holdstatistik for laks` |
 | Empty state | `No team salmon data available.` | `Ingen holddata for laks tilgængelig.` |
 
 ### 12. Statistics Page – JavaScript Chart Labels (inline `<script>`)
@@ -231,6 +235,7 @@ Replace all hardcoded English user-facing text strings with Danish equivalents a
 
 **Components**:
 - [ ] Models: `src/Laks.Web/Models/SeasonDay.cs` — translate `DisplayText` strings
+- [ ] Date culture: `src/Laks.Web/Pages/Catches/Index.cshtml` — `ToString("d MMM yyyy")` and `ToString("d MMM")` calls render English month names. Pass `CultureInfo.GetCultureInfo("da-DK")` to each `ToString()` call (or set the thread culture globally in `Program.cs`) so month names appear in Danish.
 
 ### Frontend
 **Stack**: ASP.NET Core Razor Pages (.cshtml + PageModel)
@@ -251,7 +256,8 @@ Replace all hardcoded English user-facing text strings with Danish equivalents a
   - `src/Laks.Web/Pages/Statistics/Index.cshtml`
   - `src/Laks.Web/Pages/Privacy.cshtml`
   - `src/Laks.Web/Pages/Error.cshtml`
-- [ ] JavaScript: `src/Laks.Web/wwwroot/js/catch-map.js` — popup label "Bait:"
+- [ ] JavaScript: `src/Laks.Web/wwwroot/js/catch-map.js` — popup label "Bait:" and `toLocaleDateString("nb-NO")` locale
+- [ ] JavaScript: `src/Laks.Web/wwwroot/js/water-level-chart.js` — `toLocaleTimeString("nb-NO", …)` locale
 
 ### Not in Scope
 - Database column names / stored values (e.g. catch types, location names, angler names)
@@ -266,7 +272,7 @@ Replace all hardcoded English user-facing text strings with Danish equivalents a
 - [ ] Verify `SeasonDay.DisplayText` returns Danish for all three code paths (active day, buffer day, off-season)
 - [ ] Verify date formatting still uses `nb-NO` or switch to `da-DK` in JS `toLocaleDateString` / `toLocaleTimeString` calls
 - [ ] Screen reader check for Danish aria-labels
-- [ ] Existing unit tests in `tests/Laks.Web.Tests/` still pass (update any string assertions that reference English text)
+- [ ] Add unit tests to `tests/Laks.Web.Tests/Unit/ModelTests.cs` (or a dedicated `SeasonDayTests.cs`) asserting Danish output for all `SeasonDay.DisplayText` code paths: active day, buffer day (today/tomorrow/N days), and off-season. No existing assertions reference these English strings — they must be written from scratch.
 
 ## Acceptance Criteria
 - [ ] Zero English user-facing text remains on any page (nav, headings, labels, buttons, tooltips, empty states, footer)
@@ -283,6 +289,7 @@ Replace all hardcoded English user-facing text strings with Danish equivalents a
 
 ## Notes
 - The water level chart header already uses Norwegian ("Vannstand") — update to Danish spelling ("Vandstand") for consistency.
-- Date/time locale in JS files currently uses `nb-NO` (Norwegian Bokmål). Consider switching to `da-DK` for Danish formatting, though the formats are nearly identical.
+- Date/time locale in JS files (`catch-map.js` line 79, `water-level-chart.js` line 28) currently uses `nb-NO` (Norwegian Bokmål). Switch to `da-DK` for Danish formatting; the formats are nearly identical but the locale should match the page language.
+- Server-side C# date formatting in `Catches/Index.cshtml` uses `ToString("d MMM yyyy")` which renders English month names by default. Must explicitly pass `da-DK` culture or configure it globally.
 - The Error page "Development Mode" section can remain in English since it is only visible to developers and never shown in production.
-- Total count: approximately **90+ individual text strings** across 16 files.
+- Total count: approximately **95+ individual text strings** across 17 files (16 original + `water-level-chart.js`).
