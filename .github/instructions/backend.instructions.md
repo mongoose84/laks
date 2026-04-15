@@ -13,6 +13,7 @@ Review [project dependencies](../../) and
 ## Deterministic Requirements
 - Follow c# best practices and idioms
 - Follow .NET patterns and conventions
+- All user-facing strings in C# models and services must be in Danish
 - Implement structured logging with appropriate levels
 - Use proper HTTP status codes and error responses
 - RESTful API design
