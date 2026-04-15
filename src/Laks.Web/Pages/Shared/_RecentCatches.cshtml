@@ -7,34 +7,34 @@
         if (diff.TotalHours < 1)
         {
             var minutes = Math.Max(1, (int)Math.Round(diff.TotalMinutes));
-            return $"{minutes} min ago";
+            return $"{minutes} min siden";
         }
 
         if (diff.TotalHours < 24)
         {
             var hours = Math.Max(1, (int)Math.Round(diff.TotalHours));
-            return $"{hours} hours ago";
+            return $"{hours} timer siden";
         }
 
         if (diff.TotalDays < 2)
         {
-            return "Yesterday";
+            return "I går";
         }
 
         var days = Math.Max(1, (int)Math.Round(diff.TotalDays));
-        return $"{days} days ago";
+        return $"{days} dage siden";
     }
 }
 
 <section class="card shadow-sm mb-3" aria-labelledby="recent-catches-title">
     <header class="card-header d-flex justify-content-between align-items-center">
-        <h2 id="recent-catches-title" class="h5 mb-0">Recent Catches</h2>
-        <a asp-page="/Catches/Index">View all catches</a>
+        <h2 id="recent-catches-title" class="h5 mb-0">Seneste fangster</h2>
+        <a asp-page="/Catches/Index">Se alle fangster</a>
     </header>
     <div class="card-body">
         @if (!Model.RecentCatches.Any())
         {
-            <div class="text-muted">No catches yet this season.</div>
+            <div class="text-muted">Ingen fangster i denne sæson endnu.</div>
         }
         else
         {

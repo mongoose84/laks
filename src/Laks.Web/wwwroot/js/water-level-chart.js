@@ -25,7 +25,7 @@
         if (index % 6 !== 0 && index !== points.length - 1) {
             return "";
         }
-        return new Date(p.t).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" });
+        return new Date(p.t).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
     });
 
     var values = points.map(function (p) { return p.v; });

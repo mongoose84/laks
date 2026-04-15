@@ -76,8 +76,8 @@
             var popup = "<strong>" + esc(point.angler) + "</strong><br/>"
                 + esc(point.w) + " kg " + esc(point.type) + "<br/>"
                 + esc(point.location) + "<br/>"
-                + esc(new Date(point.date).toLocaleDateString("nb-NO")) + "<br/>"
-                + "Bait: " + esc(point.bait || "-");
+                + esc(new Date(point.date).toLocaleDateString("da-DK")) + "<br/>"
+                + "Agn: " + esc(point.bait || "-");
 
             marker.bindPopup(popup);
         });

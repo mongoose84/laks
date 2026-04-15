@@ -17,25 +17,25 @@
 
 <section class="card shadow-sm mb-3">
     <header class="card-header d-flex justify-content-between align-items-center">
-        <span class="fw-semibold">Vannstand - Holmfoss (15.61.0)</span>
+        <span class="fw-semibold">Vandstand – Holmfoss (15.61.0)</span>
         <a href="https://sildre.nve.no/" target="_blank" rel="noopener">NVE source</a>
     </header>
     <div class="card-body">
         <div class="d-flex flex-wrap justify-content-between align-items-end mb-3">
             <div>
-                <div class="small text-muted">Current level</div>
-                <div class="display-6 fw-bold">@(Model.CurrentWaterLevel?.LevelMeters?.ToString("F2") ?? "Unavailable") m</div>
+                <div class="small text-muted">Aktuel vandstand</div>
+                <div class="display-6 fw-bold">@(Model.CurrentWaterLevel?.LevelMeters?.ToString("F2") ?? "Ikke tilgængelig") m</div>
             </div>
-            <div class="small text-muted">Last updated: @displayedTime</div>
+            <div class="small text-muted">Sidst opdateret: @displayedTime</div>
         </div>
         @if (Model.WaterLevelChartJson == "[]")
         {
-            <div class="alert alert-secondary mb-0">No water level readings in the last 24 hours.</div>
+            <div class="alert alert-secondary mb-0">Ingen vandstandsmålinger de seneste 24 timer.</div>
         }
         else
         {
-            <canvas id="waterLevelChart" height="120" role="img" aria-label="Water level chart for the last 24 hours, Holmfoss station 15.61.0">
-                <p class="visually-hidden">Water level chart data for the last 24 hours from NVE station 15.61.0.</p>
+            <canvas id="waterLevelChart" height="120" role="img" aria-label="Vandstandsgraf for de seneste 24 timer, Holmfoss station 15.61.0">
+                <p class="visually-hidden">Vandstandsdata for de seneste 24 timer fra NVE station 15.61.0.</p>
             </canvas>
         }
     </div>
