@@ -16,7 +16,7 @@ public class SeasonDay
         get
         {
             if (!IsOffSeason && !IsBufferDay)
-                return $"Day {DayInGroup} of {GroupLengthDays} · Group {GroupNumber}";
+                return $"Dag {DayInGroup} af {GroupLengthDays} · Hold {GroupNumber}";
 
             if (NextGroupStart.HasValue)
             {
@@ -26,13 +26,13 @@ public class SeasonDay
                     : "";
                 return days switch
                 {
-                    <= 0 => $"Fishing starts today{teamSuffix}",
-                    1 => $"Fishing starts tomorrow{teamSuffix}",
-                    _ => $"Fishing starts in {days} days{teamSuffix}"
+                    <= 0 => $"Fiskeriet starter i dag{teamSuffix}",
+                    1 => $"Fiskeriet starter i morgen{teamSuffix}",
+                    _ => $"Fiskeriet starter om {days} dage{teamSuffix}"
                 };
             }
 
-            return "Season not configured";
+            return "Sæson ikke konfigureret";
         }
     }
 }

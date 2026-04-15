@@ -2,30 +2,30 @@
 
 <section class="card shadow-sm mb-3" aria-labelledby="records-title">
     <header class="card-header">
-        <h2 id="records-title" class="h5 mb-0">All-Time Records</h2>
+        <h2 id="records-title" class="h5 mb-0">Alle tiders rekorder</h2>
     </header>
     <div class="card-body">
         @if (Model.Records is null)
         {
-            <div class="text-muted">No all-time records available.</div>
+            <div class="text-muted">Ingen rekorder tilgængelige.</div>
         }
         else
         {
             <div class="laks-records-grid">
                 <article class="record-card">
-                    <div class="small text-muted">Biggest Fish Ever</div>
+                    <div class="small text-muted">Største fisk nogensinde</div>
                     <div class="record-value">@Model.Records.BiggestFishKg.ToString("F1") kg</div>
                     <div>@Model.Records.BiggestFishAngler, @Model.Records.BiggestFishYear</div>
                 </article>
                 <article class="record-card">
-                    <div class="small text-muted">Most Prolific Angler</div>
-                    <div class="record-value">@Model.Records.MostProlificFishCount fish</div>
+                    <div class="small text-muted">Mest produktive fisker</div>
+                    <div class="record-value">@Model.Records.MostProlificFishCount fisk</div>
                     <div>@Model.Records.MostProlificAngler</div>
                 </article>
                 <article class="record-card">
-                    <div class="small text-muted">Best Season</div>
+                    <div class="small text-muted">Bedste sæson</div>
                     <div class="record-value">@Model.Records.BestSeasonYear</div>
-                    <div>@Model.Records.BestSeasonFishCount fish, @Model.Records.BestSeasonTotalKg.ToString("F1") kg</div>
+                    <div>@Model.Records.BestSeasonFishCount fisk, @Model.Records.BestSeasonTotalKg.ToString("F1") kg</div>
                 </article>
             </div>
         }

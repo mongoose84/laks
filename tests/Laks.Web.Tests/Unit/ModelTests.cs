@@ -47,4 +47,87 @@ public class ModelTests
         Assert.Equal(20, c.TotalCatches);
         Assert.Equal(80.5m, c.TotalWeightKg);
     }
+
+    // SeasonDay.DisplayText – Danish strings
+
+    [Fact]
+    public void SeasonDay_DisplayText_ActiveDay_ReturnsDanish()
+    {
+        var day = new SeasonDay
+        {
+            IsOffSeason = false,
+            IsBufferDay = false,
+            DayInGroup = 3,
+            GroupLengthDays = 7,
+            GroupNumber = 2
+        };
+
+        Assert.Equal("Dag 3 af 7 · Hold 2", day.DisplayText);
+    }
+
+    [Fact]
+    public void SeasonDay_DisplayText_FishingStartsToday_ReturnsDanish()
+    {
+        var day = new SeasonDay
+        {
+            IsOffSeason = true,
+            IsBufferDay = true,
+            NextGroupStart = DateTime.UtcNow.Date
+        };
+
+        Assert.Equal("Fiskeriet starter i dag", day.DisplayText);
+    }
+
+    [Fact]
+    public void SeasonDay_DisplayText_FishingStartsTomorrow_ReturnsDanish()
+    {
+        var day = new SeasonDay
+        {
+            IsOffSeason = true,
+            IsBufferDay = true,
+            NextGroupStart = DateTime.UtcNow.Date.AddDays(1)
+        };
+
+        Assert.Equal("Fiskeriet starter i morgen", day.DisplayText);
+    }
+
+    [Fact]
+    public void SeasonDay_DisplayText_FishingStartsInNDays_ReturnsDanish()
+    {
+        var day = new SeasonDay
+        {
+            IsOffSeason = true,
+            IsBufferDay = true,
+            NextGroupStart = DateTime.UtcNow.Date.AddDays(5)
+        };
+
+        Assert.Equal("Fiskeriet starter om 5 dage", day.DisplayText);
+    }
+
+    [Fact]
+    public void SeasonDay_DisplayText_FishingStartsToday_WithTeamName_ReturnsDanish()
+    {
+        var day = new SeasonDay
+        {
+            IsOffSeason = true,
+            IsBufferDay = true,
+            NextGroupStart = DateTime.UtcNow.Date,
+            NextGroupTeamName = "Hold Rød"
+        };
+
+        Assert.Equal("Fiskeriet starter i dag · Hold Rød", day.DisplayText);
+    }
+
+    [Fact]
+    public void SeasonDay_DisplayText_NoNextGroupStart_ReturnsOffSeasonDanish()
+    {
+        var day = new SeasonDay
+        {
+            IsOffSeason = true,
+            IsBufferDay = false,
+            NextGroupStart = null
+        };
+
+        Assert.Equal("Sæson ikke konfigureret", day.DisplayText);
+    }
 }

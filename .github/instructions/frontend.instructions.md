@@ -12,6 +12,7 @@ Review [project conventions](../../README.md) and
 
 ## Deterministic Requirements
 - Follow .cshtml best practices and conventions
+- All user-facing text must be in Danish (labels, headings, buttons, aria-labels, empty states, tooltips)
 - Ensure accessibility (WCAG guidelines, semantic HTML)
 - Apply responsive design principles
 - Follow standard formatting

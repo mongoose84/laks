@@ -11,6 +11,9 @@ Holmfoss salmon fishing tracker - version 2 of this site: https://fisk.krunk.dk/
 ## Code Style
 Follow standard formatting
 
+## Language
+All user-facing text must be in Danish. There is no multi-language support — the site is Danish-only. This applies to labels, headings, buttons, navigation, empty states, aria-labels, tooltips, and error messages visible to end users.
+
 ## API Guidelines
 RESTful API design
 
