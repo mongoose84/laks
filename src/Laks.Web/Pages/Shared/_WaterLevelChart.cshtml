@@ -1,6 +1,6 @@
 @model Laks.Web.Pages.IndexModel
 @{
-    var displayedTime = "Unknown";
+    var displayedTime = "–";
     if (Model.CurrentWaterLevel?.MeasuredAt is DateTime measuredAt)
     {
         try
@@ -18,7 +18,7 @@
 <section class="card shadow-sm mb-3">
     <header class="card-header d-flex justify-content-between align-items-center">
         <span class="fw-semibold">Vandstand – Holmfoss (15.61.0)</span>
-        <a href="https://sildre.nve.no/" target="_blank" rel="noopener">NVE source</a>
+        <a href="https://sildre.nve.no/" target="_blank" rel="noopener">NVE kilde</a>
     </header>
     <div class="card-body">
         <div class="d-flex flex-wrap justify-content-between align-items-end mb-3">
