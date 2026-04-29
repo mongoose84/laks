@@ -30,18 +30,18 @@
 
     function markerColor(daysAgo) {
         if (daysAgo <= 1) {
-            return "#60a5fa";
+            return "#d97757";
         }
 
         if (daysAgo <= 7) {
-            return "#38bdf8";
+            return "#e8a989";
         }
 
         if (daysAgo <= 30) {
-            return "#7dd3fc";
+            return "#b35d3f";
         }
 
-        return "#64748b";
+        return "#7a6f60";
     }
 
     function esc(value) {
@@ -85,17 +85,17 @@
 
     function setMode(mode) {
         if (mode === "all") {
-            seasonButton.classList.remove("btn-primary");
+            seasonButton.classList.remove("btn-primary", "is-active");
             seasonButton.classList.add("btn-outline-primary");
-            allButton.classList.add("btn-primary");
+            allButton.classList.add("btn-primary", "is-active");
             allButton.classList.remove("btn-outline-primary");
             renderLocations(allData);
             return;
         }
 
-        allButton.classList.remove("btn-primary");
+        allButton.classList.remove("btn-primary", "is-active");
         allButton.classList.add("btn-outline-primary");
-        seasonButton.classList.add("btn-primary");
+        seasonButton.classList.add("btn-primary", "is-active");
         seasonButton.classList.remove("btn-outline-primary");
         renderLocations(seasonData);
     }

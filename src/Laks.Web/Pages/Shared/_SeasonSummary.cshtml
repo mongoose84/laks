@@ -1,39 +1,36 @@
-@model Laks.Web.Pages.IndexModel
-
-<section class="card shadow-sm mb-3" aria-label="Sæsonoversigt">
-    <div class="card-body">
-        @if (Model.CurrentSeasonSummary is null)
-        {
-            <div class="text-muted">Sæsonoversigt ikke tilgængelig.</div>
-        }
-        else
-        {
-            <div class="laks-season-strip">
-                <div class="summary-cell">
-                    <div class="summary-value">@Model.CurrentSeasonSummary.TotalFish</div>
-                    <div class="summary-label">Fisk i alt</div>
-                </div>
-                <div class="summary-cell">
-                    <div class="summary-value">@Model.CurrentSeasonSummary.TotalWeightKg.ToString("F1")</div>
-                    <div class="summary-label">Total kg</div>
-                </div>
-                <div class="summary-cell">
-                    <div class="summary-value">@Model.CurrentSeasonSummary.AvgWeightKg.ToString("F1")</div>
-                    <div class="summary-label">Gns. kg</div>
-                </div>
-                <div class="summary-cell">
-                    <div class="summary-value">@Model.CurrentSeasonSummary.BiggestFishKg.ToString("F1")</div>
-                    <div class="summary-label">Største (@Model.CurrentSeasonSummary.BiggestFishAngler)</div>
-                </div>
-                <div class="summary-cell">
-                    <div class="summary-value">@Model.CurrentSeasonSummary.ActiveAnglers / @Model.CurrentSeasonSummary.TotalAnglers</div>
-                    <div class="summary-label">Aktive fiskere</div>
-                </div>
-                <div class="summary-cell">
-                    <div class="summary-value">@Model.SeasonDay.DisplayText</div>
-                    <div class="summary-label">Sæsondag</div>
-                </div>
-            </div>
-        }
-    </div>
+﻿@model Laks.Web.Pages.IndexModel
+@{
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+}
+<section class="ed-section" aria-labelledby="season-summary-title">
+    <h2 id="season-summary-title" class="ed-section-title">Sæsonen i tal <span class="ed-kicker">Oversigt</span></h2>
+    @if (Model.CurrentSeasonSummary is null)
+    {
+        <div class="ed-catch-empty">Sæsonoversigt ikke tilgængelig.</div>
+    }
+    else
+    {
+        <div class="ed-conditions-grid">
+            <article class="ed-condition-card">
+                <div class="ed-condition-label">Fisk i alt</div>
+                <div class="ed-condition-value">@Model.CurrentSeasonSummary.TotalFish</div>
+            </article>
+            <article class="ed-condition-card">
+                <div class="ed-condition-label">Total kg</div>
+                <div class="ed-condition-value">@Model.CurrentSeasonSummary.TotalWeightKg.ToString("F1", da)</div>
+            </article>
+            <article class="ed-condition-card">
+                <div class="ed-condition-label">Gns. kg</div>
+                <div class="ed-condition-value">@Model.CurrentSeasonSummary.AvgWeightKg.ToString("F1", da)</div>
+            </article>
+            <article class="ed-condition-card">
+                <div class="ed-condition-label">Største (@Model.CurrentSeasonSummary.BiggestFishAngler)</div>
+                <div class="ed-condition-value">@Model.CurrentSeasonSummary.BiggestFishKg.ToString("F1", da)</div>
+            </article>
+            <article class="ed-condition-card">
+                <div class="ed-condition-label">Aktive fiskere</div>
+                <div class="ed-condition-value">@Model.CurrentSeasonSummary.ActiveAnglers / @Model.CurrentSeasonSummary.TotalAnglers</div>
+            </article>
+        </div>
+    }
 </section>

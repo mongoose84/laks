@@ -1,18 +1,17 @@
-@model Laks.Web.Pages.IndexModel
-
-<section class="card shadow-sm mb-3" aria-labelledby="catch-map-title">
-    <header class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h2 id="catch-map-title" class="h5 mb-0">Fangstkort</h2>
-        <div class="btn-group btn-group-sm" role="group" aria-label="Vælg kortoversigt">
-            <button type="button" id="mapScopeSeason" class="btn btn-primary">Denne sæson</button>
-            <button type="button" id="mapScopeAll" class="btn btn-outline-primary">Alle tider</button>
-        </div>
-    </header>
-    <div class="card-body">
+﻿@model Laks.Web.Pages.IndexModel
+<section class="ed-section" aria-labelledby="catch-map-title">
+    <h2 id="catch-map-title" class="ed-section-title">
+        Fangstkort
+        <span class="ed-lb-controls" role="group" aria-label="Vælg kortoversigt">
+            <button type="button" id="mapScopeSeason" class="ed-pill is-active">Denne sæson</button>
+            <button type="button" id="mapScopeAll" class="ed-pill">Alle tider</button>
+        </span>
+    </h2>
+    <div class="ed-map-frame">
         <div id="catchMap"
-             class="catch-map"
+             class="ed-catch-map"
              role="application"
              aria-label="Fangststeder ved Holmfoss på Numedalslågen"></div>
-        <div id="catchMapEmpty" class="small text-muted mt-2 d-none">Ingen fangststeder at vise.</div>
+        <div id="catchMapEmpty" class="ed-map-empty d-none">Ingen fangststeder at vise.</div>
     </div>
 </section>

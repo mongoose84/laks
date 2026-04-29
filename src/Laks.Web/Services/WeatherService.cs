@@ -55,6 +55,7 @@ public class WeatherService : IWeatherService
                 WindSpeedMs = TryGetDecimal(instantDetails, "wind_speed"),
                 WindDirection = ToCardinal(TryGetDecimal(instantDetails, "wind_from_direction")),
                 WeatherSymbol = ExtractWeatherSymbol(series),
+                PrecipitationMm = ExtractPrecipitation(series),
                 MeasuredAt = series.TryGetProperty("time", out var time)
                     ? time.GetDateTime()
                     : DateTime.UtcNow
@@ -109,6 +110,25 @@ public class WeatherService : IWeatherService
         }
 
         return string.Empty;
+    }
+
+    private static decimal? ExtractPrecipitation(JsonElement timeseriesEntry)
+    {
+        if (!timeseriesEntry.TryGetProperty("data", out var data))
+        {
+            return null;
+        }
+
+        if (data.TryGetProperty("next_1_hours", out var next1)
+            && next1.TryGetProperty("details", out var details)
+            && details.TryGetProperty("precipitation_amount", out var amount)
+            && amount.ValueKind == JsonValueKind.Number
+            && amount.TryGetDecimal(out var value))
+        {
+            return value;
+        }
+
+        return null;
     }
 
     private static string ToCardinal(decimal? degrees)

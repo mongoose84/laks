@@ -39,6 +39,79 @@ public class DashboardPageModelTests
     }
 
     [Fact]
+    public async Task OnGetAsync_PopulatesEditorialLabels()
+    {
+        var model = new IndexModel(
+            new FakeSeasonRepository(),
+            new FakeCatchRepository(),
+            new FakeWeatherService(),
+            new FakeWaterLevelService(),
+            NullLogger<IndexModel>.Instance);
+
+        await model.OnGetAsync(CancellationToken.None);
+
+        Assert.False(string.IsNullOrWhiteSpace(model.IssueDateLabel));
+        Assert.StartsWith("Sidste opdatering", model.LastUpdatedLabel);
+        Assert.False(string.IsNullOrWhiteSpace(model.LedeText));
+    }
+
+    [Fact]
+    public void BuildIssueDateLabel_FormatsInDanish()
+    {
+        var label = IndexModel.BuildIssueDateLabel(new DateTime(2026, 4, 29, 10, 0, 0, DateTimeKind.Utc));
+
+        Assert.Contains("april", label);
+        Assert.Contains("2026", label);
+        Assert.Contains("29", label);
+    }
+
+    [Fact]
+    public void BuildLastUpdatedLabel_NoData_ReturnsUnknown()
+    {
+        var label = IndexModel.BuildLastUpdatedLabel(null, null);
+
+        Assert.Equal("Sidste opdatering · ukendt", label);
+    }
+
+    [Fact]
+    public void BuildLastUpdatedLabel_PicksLatestTimestamp()
+    {
+        var label = IndexModel.BuildLastUpdatedLabel(
+            new DateTime(2026, 6, 26, 5, 30, 0, DateTimeKind.Utc),
+            new DateTime(2026, 6, 26, 6, 42, 0, DateTimeKind.Utc));
+
+        Assert.StartsWith("Sidste opdatering ·", label);
+        Assert.Matches(@"\d{2}[:.]\d{2}$", label);
+    }
+
+    [Fact]
+    public void BuildLedeText_OffSeason_ReturnsResting()
+    {
+        var text = IndexModel.BuildLedeText(null, null, new SeasonDay { IsOffSeason = true });
+
+        Assert.Contains("Sæsonen", text);
+    }
+
+    [Fact]
+    public void BuildLedeText_NoData_ReturnsFallback()
+    {
+        var text = IndexModel.BuildLedeText(null, null, new SeasonDay { IsOffSeason = false });
+
+        Assert.Contains("Ingen aktuelle målinger", text);
+    }
+
+    [Fact]
+    public void BuildLedeText_RisingTrend_MentionsRising()
+    {
+        var water = new WaterLevelSnapshot { LevelMeters = 1.8m, Trend = WaterLevelTrend.Rising };
+        var weather = new WeatherData { WeatherSymbol = "clearsky_day" };
+
+        var text = IndexModel.BuildLedeText(water, weather, new SeasonDay { IsOffSeason = false });
+
+        Assert.Contains("stiger", text);
+    }
+
+    [Fact]
     public async Task OnGetAsync_HandlesServiceFailureGracefully()
     {
         var model = new IndexModel(

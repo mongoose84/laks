@@ -1,63 +1,42 @@
-@model Laks.Web.Pages.IndexModel
+﻿@model Laks.Web.Pages.IndexModel
 @{
-    static string RelativeTime(DateTime date)
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+    static string DateLabel(DateTime date)
     {
-        var now = DateTime.UtcNow;
-        var diff = now - date.ToUniversalTime();
-        if (diff.TotalHours < 1)
-        {
-            var minutes = Math.Max(1, (int)Math.Round(diff.TotalMinutes));
-            return $"{minutes} min siden";
-        }
-
-        if (diff.TotalHours < 24)
-        {
-            var hours = Math.Max(1, (int)Math.Round(diff.TotalHours));
-            return $"{hours} timer siden";
-        }
-
-        if (diff.TotalDays < 2)
-        {
-            return "I går";
-        }
-
-        var days = Math.Max(1, (int)Math.Round(diff.TotalDays));
-        return $"{days} dage siden";
+        var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+        return date.ToString("d. MMM", da).ToLower(da);
+    }
+    static string Emphasis(Laks.Web.Models.Catch c)
+    {
+        if (!string.IsNullOrWhiteSpace(c.Bait)) return $"på {c.Bait.ToLowerInvariant()}";
+        if (c.CatchTime.Hours < 10) return "i morgentimerne";
+        if (c.CatchTime.Hours >= 18) return "ved aftenstid";
+        return "midt på dagen";
     }
 }
-
-<section class="card shadow-sm mb-3" aria-labelledby="recent-catches-title">
-    <header class="card-header d-flex justify-content-between align-items-center">
-        <h2 id="recent-catches-title" class="h5 mb-0">Seneste fangster</h2>
-        <a asp-page="/Catches/Index">Se alle fangster</a>
-    </header>
-    <div class="card-body">
-        @if (!Model.RecentCatches.Any())
+<section class="ed-section" aria-labelledby="recent-catches-title">
+    <h2 id="recent-catches-title" class="ed-section-title">
+        Seneste fangster
+        <a asp-page="/Catches/Index">Se alle</a>
+    </h2>
+    @if (!Model.RecentCatches.Any())
+    {
+        <div class="ed-catch-empty">Ingen fangster i denne sæson endnu.</div>
+    }
+    else
+    {
+        @foreach (var c in Model.RecentCatches)
         {
-            <div class="text-muted">Ingen fangster i denne sæson endnu.</div>
+            <article class="ed-catch-article">
+                <div>
+                    <div class="ed-catch-byline">@DateLabel(c.CatchDate) · @c.Location</div>
+                    <div class="ed-catch-headline">@c.AnglerName landede en @(c.CatchType?.ToLowerInvariant()) <em>@Emphasis(c)</em></div>
+                </div>
+                <div class="ed-catch-weight">
+                    @c.WeightKg.ToString("F1", da)
+                    <small>kg</small>
+                </div>
+            </article>
         }
-        else
-        {
-            <div class="recent-catch-list">
-                @foreach (var c in Model.RecentCatches)
-                {
-                    var initials = string.Join(string.Empty, (c.AnglerName ?? string.Empty)
-                        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(n => n[0])
-                        .Take(2))
-                        .ToUpperInvariant();
-
-                    <article class="recent-catch-item">
-                        <div class="initials-circle">@initials</div>
-                        <div>
-                            <div class="fw-semibold">
-                                @c.AnglerName · <strong>@c.WeightKg.ToString("F1") kg</strong> @c.CatchType
-                            </div>
-                            <div class="small text-muted">@c.Location · @RelativeTime(c.CatchDate)</div>
-                        </div>
-                    </article>
-                }
-            </div>
-        }
-    </div>
+    }
 </section>

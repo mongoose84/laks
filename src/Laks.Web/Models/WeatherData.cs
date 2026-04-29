@@ -6,5 +6,6 @@ public class WeatherData
     public decimal? WindSpeedMs { get; set; }
     public string WindDirection { get; set; } = string.Empty;
     public string WeatherSymbol { get; set; } = string.Empty;
+    public decimal? PrecipitationMm { get; set; }
     public DateTime? MeasuredAt { get; set; }
 }

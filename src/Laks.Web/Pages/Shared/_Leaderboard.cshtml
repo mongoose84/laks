@@ -1,79 +1,71 @@
-@model Laks.Web.Pages.IndexModel
+﻿@model Laks.Web.Pages.IndexModel
+@{
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+}
+<section class="ed-section" aria-labelledby="leaderboard-title">
+    <h2 id="leaderboard-title" class="ed-section-title">Sæsontavlen <span class="ed-kicker">Top</span></h2>
 
-<section class="card shadow-sm mb-3" aria-labelledby="leaderboard-title">
-    <header class="card-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <h2 id="leaderboard-title" class="h5 mb-0">Sæson-rangliste</h2>
-            <div class="btn-group" role="group" aria-label="Rangliste-omfang">
-                <a class="btn btn-sm @(Model.LeaderboardScope == "my-group" ? "btn-primary" : "btn-outline-primary")"
+    <div class="ed-lb-controls" role="group" aria-label="Rangliste-omfang">
+        <a class="ed-pill @(Model.LeaderboardScope == "my-group" ? "is-active" : "")"
+           asp-page="/Index"
+           asp-route-leaderboardScope="my-group"
+           asp-route-groupNumber="@Model.GroupNumber">Mit hold</a>
+        <a class="ed-pill @(Model.LeaderboardScope == "all-groups" ? "is-active" : "")"
+           asp-page="/Index"
+           asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>
+        <a class="ed-pill @(Model.LeaderboardScope == "last-year" ? "is-active" : "")"
+           asp-page="/Index"
+           asp-route-leaderboardScope="last-year">Sidste år</a>
+    </div>
+
+    @if (Model.AvailableGroups.Count > 1 && Model.LeaderboardScope == "my-group")
+    {
+        <div class="ed-lb-controls" role="group" aria-label="Vælg hold">
+            <span class="ed-lb-group-label">Hold</span>
+            @foreach (var g in Model.AvailableGroups)
+            {
+                <a class="ed-pill @(g.GroupNumber == Model.SelectedGroup ? "is-active" : "")"
                    asp-page="/Index"
                    asp-route-leaderboardScope="my-group"
-                   asp-route-groupNumber="@Model.GroupNumber">Mit hold</a>
-                <a class="btn btn-sm @(Model.LeaderboardScope == "all-groups" ? "btn-primary" : "btn-outline-primary")"
-                   asp-page="/Index"
-                   asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>
-                <a class="btn btn-sm @(Model.LeaderboardScope == "last-year" ? "btn-primary" : "btn-outline-primary")"
-                   asp-page="/Index"
-                   asp-route-leaderboardScope="last-year">Sidste år</a>
-            </div>
+                   asp-route-groupNumber="@g.GroupNumber">@g.GroupNumber</a>
+            }
         </div>
-    </header>
-    <div class="card-body p-0">
-        @if (!Model.Leaderboard.Any())
-        {
-            <div class="p-3 text-muted">Ingen rangliste-data tilgængelig.</div>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table table-sm align-middle mb-0 leaderboard-table">
-                    <caption class="visually-hidden">Rangliste for valgt periode</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Fisker</th>
-                            <th scope="col" class="text-end">Fisk</th>
-                            <th scope="col" class="text-end">Total kg</th>
-                            <th scope="col" class="text-end">Bedste kg</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.Leaderboard)
-                        {
-                            var medal = item.Rank switch
-                            {
-                                1 => "🥇",
-                                2 => "🥈",
-                                3 => "🥉",
-                                _ => item.Rank.ToString()
-                            };
+    }
 
-                            <tr>
-                                <td>@medal</td>
-                                <td>@item.AnglerName</td>
-                                <td class="text-end">@item.FishCount</td>
-                                <td class="text-end">@item.TotalWeightKg.ToString("F1")</td>
-                                <td class="text-end">@item.BestWeightKg.ToString("F1")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-    </div>
+    @if (!Model.Leaderboard.Any())
+    {
+        <div class="ed-lb-empty">Ingen rangliste-data tilgængelig.</div>
+    }
+    else
+    {
+        <div>
+            @foreach (var item in Model.Leaderboard)
+            {
+                <div class="ed-lb-row">
+                    <span class="ed-lb-rank">@item.Rank</span>
+                    <span class="ed-lb-name">@item.AnglerName</span>
+                    <div class="ed-lb-stats">
+                        <span class="ed-lb-weight">@item.TotalWeightKg.ToString("F1", da) kg</span>
+                        @item.FishCount fisk · bedste @item.BestWeightKg.ToString("F1", da) kg
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
     @if (Model.GroupSummaries.Count > 0)
     {
-        <footer class="card-footer small">
-            @foreach (var group in Model.GroupSummaries)
+        <div class="ed-lb-groups">
+            @for (var i = 0; i < Model.GroupSummaries.Count; i++)
             {
-                <span class="@(group.GroupNumber == Model.SelectedGroup ? "fw-bold" : "")">
-                    Hold @group.GroupNumber (@group.Label): @group.FishCount fisk / @group.TotalWeightKg.ToString("F1") kg
-                </span>
-                if (group != Model.GroupSummaries.Last())
+                var group = Model.GroupSummaries[i];
+                var isSel = group.GroupNumber == Model.SelectedGroup;
+                <span class="@(isSel ? "is-selected" : "")">Hold @group.GroupNumber (@group.Label): @group.FishCount fisk / @group.TotalWeightKg.ToString("F1", da) kg</span>
+                if (i < Model.GroupSummaries.Count - 1)
                 {
-                    <span class="mx-1">·</span>
+                    <span> · </span>
                 }
             }
-        </footer>
+        </div>
     }
 </section>

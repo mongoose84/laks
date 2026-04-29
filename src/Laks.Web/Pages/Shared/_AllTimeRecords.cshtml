@@ -1,33 +1,37 @@
-@model Laks.Web.Pages.IndexModel
-
-<section class="card shadow-sm mb-3" aria-labelledby="records-title">
-    <header class="card-header">
-        <h2 id="records-title" class="h5 mb-0">Alle tiders rekorder</h2>
-    </header>
-    <div class="card-body">
-        @if (Model.Records is null)
-        {
-            <div class="text-muted">Ingen rekorder tilgængelige.</div>
-        }
-        else
-        {
-            <div class="laks-records-grid">
-                <article class="record-card">
-                    <div class="small text-muted">Største fisk nogensinde</div>
-                    <div class="record-value">@Model.Records.BiggestFishKg.ToString("F1") kg</div>
-                    <div>@Model.Records.BiggestFishAngler, @Model.Records.BiggestFishYear</div>
-                </article>
-                <article class="record-card">
-                    <div class="small text-muted">Mest produktive fisker</div>
-                    <div class="record-value">@Model.Records.MostProlificFishCount fisk</div>
-                    <div>@Model.Records.MostProlificAngler</div>
-                </article>
-                <article class="record-card">
-                    <div class="small text-muted">Bedste sæson</div>
-                    <div class="record-value">@Model.Records.BestSeasonYear</div>
-                    <div>@Model.Records.BestSeasonFishCount fisk, @Model.Records.BestSeasonTotalKg.ToString("F1") kg</div>
-                </article>
-            </div>
-        }
-    </div>
+﻿@model Laks.Web.Pages.IndexModel
+@{
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+}
+<section class="ed-section" aria-labelledby="records-title">
+    <h2 id="records-title" class="ed-section-title">Alle tiders rekorder <span class="ed-kicker">Krønike</span></h2>
+    @if (Model.Records is null)
+    {
+        <div class="ed-catch-empty">Ingen rekorder tilgængelige.</div>
+    }
+    else
+    {
+        <div class="ed-conditions-grid" style="grid-template-columns: repeat(1, 1fr);">
+            <article class="ed-catch-article">
+                <div>
+                    <div class="ed-catch-byline">Største fisk nogensinde</div>
+                    <div class="ed-catch-headline">@Model.Records.BiggestFishAngler, <em>@Model.Records.BiggestFishYear</em></div>
+                </div>
+                <div class="ed-catch-weight">@Model.Records.BiggestFishKg.ToString("F1", da)<small>kg</small></div>
+            </article>
+            <article class="ed-catch-article">
+                <div>
+                    <div class="ed-catch-byline">Mest produktive fisker</div>
+                    <div class="ed-catch-headline">@Model.Records.MostProlificAngler <em>gennem årene</em></div>
+                </div>
+                <div class="ed-catch-weight">@Model.Records.MostProlificFishCount<small>fisk</small></div>
+            </article>
+            <article class="ed-catch-article">
+                <div>
+                    <div class="ed-catch-byline">Bedste sæson</div>
+                    <div class="ed-catch-headline">Sæson <em>@Model.Records.BestSeasonYear</em> · @Model.Records.BestSeasonFishCount fisk</div>
+                </div>
+                <div class="ed-catch-weight">@Model.Records.BestSeasonTotalKg.ToString("F0", da)<small>kg</small></div>
+            </article>
+        </div>
+    }
 </section>

@@ -2,20 +2,43 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Forside";
+    ViewData["HideChrome"] = true;
+    ViewData["BodyClass"] = "ed-page";
 }
 
-<div class="laks-dashboard-page">
+<partial name="_TopBar" model="Model" />
+<partial name="_Masthead" model="Model" />
+<partial name="_Hero" model="Model" />
+
+<main class="ed-container">
+
+    @if (Model.SeasonDay.IsOffSeason || Model.SeasonDay.IsBufferDay)
+    {
+        <div class="ed-offseason" role="status">
+            <div class="ed-offseason-kicker">@(Model.SeasonDay.IsBufferDay ? "Pause mellem hold" : "Uden for sæson")</div>
+            <p class="ed-offseason-title">@Model.SeasonDay.DisplayText</p>
+        </div>
+    }
+
     <partial name="_ConditionsStrip" model="Model" />
-    <partial name="_WaterLevelChart" model="Model" />
-    <partial name="_Leaderboard" model="Model" />
+
+    <div class="ed-feature-grid">
+        <partial name="_WaterLevelChart" model="Model" />
+        <partial name="_Leaderboard" model="Model" />
+    </div>
+
     <partial name="_CatchMap" model="Model" />
     <partial name="_RecentCatches" model="Model" />
     <partial name="_SeasonSummary" model="Model" />
     <partial name="_AllTimeRecords" model="Model" />
-</div>
+</main>
+
+<footer class="ed-footer">
+    <p>&copy; @DateTime.UtcNow.Year LAKS — Laksefiskeri i Holmfoss · Hver fisk fortæller en historie</p>
+</footer>
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/editorial.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin="" />

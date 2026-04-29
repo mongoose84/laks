@@ -19,7 +19,6 @@
     }
 
     var trend = window.laksDashboard.trend || "stable";
-    var isRising = trend === "rising";
 
     var labels = points.map(function (p, index) {
         if (index % 6 !== 0 && index !== points.length - 1) {
@@ -36,37 +35,50 @@
             labels: labels,
             datasets: [{
                 data: values,
-                borderColor: isRising ? "#34d399" : "#fbbf24",
-                backgroundColor: isRising ? "rgba(52,211,153,0.15)" : "rgba(251,191,36,0.15)",
+                borderColor: "#d97757",
+                backgroundColor: "rgba(217,119,87,0.12)",
                 pointRadius: 0,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: "#d97757",
                 borderWidth: 2,
                 fill: true,
-                tension: 0.25
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: "#1c2a35",
-                    titleColor: "#e8edf2",
-                    bodyColor: "#8899a8",
-                    borderColor: "#243442",
-                    borderWidth: 1
+                    backgroundColor: "#1c1814",
+                    titleColor: "#d97757",
+                    bodyColor: "#f5ede0",
+                    borderColor: "#3a3128",
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function (ctx) {
+                            return Number(ctx.parsed.y).toFixed(2).replace(".", ",") + " m";
+                        }
+                    }
                 }
             },
             scales: {
                 y: {
                     ticks: {
-                        color: "#8899a8",
-                        callback: function (value) { return Number(value).toFixed(2) + " m"; }
+                        color: "#7a6f60",
+                        font: { size: 10 },
+                        callback: function (value) {
+                            return Number(value).toFixed(2).replace(".", ",") + " m";
+                        }
                     },
-                    grid: { color: "#243442" }
+                    grid: { color: "rgba(217,119,87,0.04)" },
+                    border: { color: "#3a3128" }
                 },
                 x: {
-                    ticks: { color: "#8899a8" },
-                    grid: { color: "#243442" }
+                    ticks: { color: "#7a6f60", font: { size: 10 }, maxTicksLimit: 8 },
+                    grid: { color: "rgba(217,119,87,0.04)" },
+                    border: { color: "#3a3128" }
                 }
             }
         }
