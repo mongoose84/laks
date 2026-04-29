@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LAKS — Alt D: Aurora Glass</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base:        #0a0a14;
+      --bg-surface:     rgba(20,22,40,0.55);
+      --bg-raised:      rgba(28,30,52,0.72);
+      --accent-pink:    #ff7ad9;
+      --accent-purple:  #a06bff;
+      --accent-cyan:    #5ce4ff;
+      --accent-line:    rgba(160,107,255,0.55);
+      --text-primary:   #f4f1ff;
+      --text-secondary: #b6b3d9;
+      --text-muted:     #6c6a8c;
+      --border:         rgba(255,255,255,0.08);
+      --radius:         14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Manrope', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Aurora background blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      width: 60vw;
+      height: 60vw;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.45;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      background: radial-gradient(circle, var(--accent-purple) 0%, transparent 60%);
+      top: -20vw; left: -15vw;
+    }
+    body::after {
+      background: radial-gradient(circle, var(--accent-pink) 0%, transparent 60%);
+      top: 30vw; right: -20vw;
+    }
+
+    .glow-cyan {
+      content: '';
+      position: fixed;
+      width: 50vw;
+      height: 50vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-cyan) 0%, transparent 60%);
+      filter: blur(140px);
+      opacity: 0.25;
+      bottom: -20vw;
+      left: 20vw;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .layout { position: relative; z-index: 1; }
+
+    /* ── Header ── */
+    .site-header {
+      padding: 3rem 1.25rem 2rem;
+      text-align: center;
+    }
+
+    .site-title {
+      font-size: clamp(3.5rem, 12vw, 7rem);
+      font-weight: 800;
+      line-height: 1;
+      background: linear-gradient(120deg, var(--accent-pink) 0%, var(--accent-purple) 50%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.04em;
+    }
+
+    .site-subtitle {
+      margin-top: 0.5rem;
+      font-size: clamp(0.9rem, 2.4vw, 1.1rem);
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.06em;
+    }
+
+    .site-season {
+      display: inline-block;
+      margin-top: 0.9rem;
+      padding: 0.3rem 0.95rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      font-size: 0.78rem;
+      color: var(--text-primary);
+      letter-spacing: 0.08em;
+    }
+
+    .site-desc {
+      max-width: 540px;
+      margin: 1.25rem auto 0;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    /* ── Nav (floating pill) ── */
+    .site-nav {
+      display: flex;
+      justify-content: center;
+      margin: 0 1rem 1.5rem;
+    }
+
+    .nav-pill {
+      display: inline-flex;
+      gap: 0.25rem;
+      padding: 0.35rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .nav-pill a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      transition: all 0.2s;
+    }
+
+    .nav-pill a:hover { color: var(--text-primary); }
+
+    .nav-pill a.active {
+      background: linear-gradient(120deg, var(--accent-purple), var(--accent-pink));
+      color: #fff;
+    }
+
+    /* ── Layout ── */
+    .page-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.25rem 3rem;
+    }
+
+    section { margin-bottom: 1.75rem; }
+
+    .section-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.85rem;
+      padding-left: 0.25rem;
+    }
+
+    /* ── Glass card ── */
+    .glass {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+      box-shadow:
+        0 8px 32px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    /* ── Conditions ── */
+    .conditions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.7rem;
+    }
+    @media (min-width: 480px) { .conditions-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 768px) { .conditions-grid { grid-template-columns: repeat(5, 1fr); } }
+
+    .condition-card {
+      padding: 1rem 0.85rem;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .condition-card:hover { transform: translateY(-2px); }
+
+    .condition-value {
+      font-size: 1.7rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .condition-rising .condition-value {
+      background: linear-gradient(120deg, var(--accent-cyan), var(--accent-purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .condition-label {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-top: 0.4rem;
+    }
+
+    /* ── Two-column ── */
+    @media (min-width: 900px) {
+      .two-col {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 1.5rem;
+        align-items: start;
+      }
+    }
+
+    .glass-pad { padding: 1.25rem; }
+
+    .chart-wrap { position: relative; height: 200px; }
+    @media (min-width: 768px) { .chart-wrap { height: 270px; } }
+
+    /* ── Leaderboard ── */
+    .lb-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .lb-row:last-child { border-bottom: none; }
+
+    .lb-rank {
+      width: 1.8rem; height: 1.8rem;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+      flex-shrink: 0;
+    }
+    .lb-row:first-child .lb-rank {
+      background: linear-gradient(120deg, var(--accent-pink), var(--accent-purple));
+      color: #fff;
+    }
+
+    .lb-name { flex: 1; font-weight: 600; color: var(--text-primary); }
+    .lb-stats { text-align: right; font-size: 0.72rem; color: var(--text-muted); }
+    .lb-weight { display: block; font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+
+    /* ── Catches ── */
+    .catch-card {
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      transition: transform 0.2s;
+    }
+    .catch-card:hover { transform: translateY(-2px); }
+
+    .catch-name   { font-weight: 600; color: var(--text-primary); }
+    .catch-meta   { font-size: 0.74rem; color: var(--text-muted); margin-top: 0.15rem; }
+    .catch-weight {
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: linear-gradient(120deg, var(--accent-pink), var(--accent-cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-cyan"></div>
+  <div class="layout">
+
+  <header class="site-header">
+    <div class="site-title">LAKS</div>
+    <div class="site-subtitle">Laksefiskeri i Holmfoss</div>
+    <div class="site-season">Sæson 2026</div>
+    <p class="site-desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.</p>
+  </header>
+
+  <nav class="site-nav" aria-label="Sidenavigation">
+    <div class="nav-pill">
+      <a href="#" class="active">Forside</a>
+      <a href="#">Fangster</a>
+      <a href="#">Statistik</a>
+    </div>
+  </nav>
+
+  <main class="page-container">
+
+    <section aria-label="Aktuelle forhold">
+      <h2 class="section-title">Aktuelle forhold</h2>
+      <div class="conditions-grid">
+        <article class="condition-card glass">
+          <div class="condition-value">12,4°</div>
+          <div class="condition-label">Lufttemperatur</div>
+        </article>
+        <article class="condition-card glass condition-rising">
+          <div class="condition-value">1,83 ↑</div>
+          <div class="condition-label">Vandstand m</div>
+        </article>
+        <article class="condition-card glass">
+          <div class="condition-value">9,1°</div>
+          <div class="condition-label">Vandtemperatur</div>
+        </article>
+        <article class="condition-card glass">
+          <div class="condition-value">3 m/s</div>
+          <div class="condition-label">Vind NV</div>
+        </article>
+        <article class="condition-card glass">
+          <div class="condition-value">0,2 mm</div>
+          <div class="condition-label">Nedbør</div>
+        </article>
+      </div>
+    </section>
+
+    <div class="two-col">
+      <section aria-label="Vandstandsgraf">
+        <h2 class="section-title">Vandstand — seneste 24 timer</h2>
+        <div class="glass glass-pad">
+          <div class="chart-wrap">
+            <canvas id="waterChart" aria-label="Vandstandsgraf seneste 24 timer"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="Sæsontavle">
+        <h2 class="section-title">Sæsontavle 2026</h2>
+        <div class="glass glass-pad">
+          <div class="lb-row">
+            <span class="lb-rank">1</span>
+            <span class="lb-name">Lars H.</span>
+            <div class="lb-stats"><span class="lb-weight">34,2 kg</span>4 fisk</div>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">2</span>
+            <span class="lb-name">Morten K.</span>
+            <div class="lb-stats"><span class="lb-weight">28,7 kg</span>3 fisk</div>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">3</span>
+            <span class="lb-name">Søren B.</span>
+            <div class="lb-stats"><span class="lb-weight">25,1 kg</span>3 fisk</div>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">4</span>
+            <span class="lb-name">Jan M.</span>
+            <div class="lb-stats"><span class="lb-weight">19,4 kg</span>2 fisk</div>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">5</span>
+            <span class="lb-name">Niels P.</span>
+            <div class="lb-stats"><span class="lb-weight">11,2 kg</span>1 fisk</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section aria-label="Seneste fangster">
+      <h2 class="section-title">Seneste fangster</h2>
+      <article class="catch-card glass">
+        <div>
+          <div class="catch-name">Lars H.</div>
+          <div class="catch-meta">28. april 2026 &middot; Holmfoss Øvre</div>
+        </div>
+        <div class="catch-weight">9,4 kg</div>
+      </article>
+      <article class="catch-card glass">
+        <div>
+          <div class="catch-name">Morten K.</div>
+          <div class="catch-meta">27. april 2026 &middot; Mellempolen</div>
+        </div>
+        <div class="catch-weight">8,7 kg</div>
+      </article>
+      <article class="catch-card glass">
+        <div>
+          <div class="catch-name">Søren B.</div>
+          <div class="catch-meta">27. april 2026 &middot; Nedre Hul</div>
+        </div>
+        <div class="catch-weight">7,2 kg</div>
+      </article>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2026 LAKS &ndash; Laksefiskeri i Holmfoss</p>
+  </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" integrity="sha256-1G2Xof0CLF+yn6L0Xry8MiAtc67r8HbOX3JI9UmPx9c=" crossorigin="anonymous"></script>
+  <script>
+    const hours  = ['00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'];
+    const levels = [1.62,1.59,1.57,1.55,1.54,1.56,1.58,1.61,1.65,1.70,1.75,1.79,1.83,1.87,1.91,1.94,1.97,1.99,2.01,2.03,2.04,2.05,2.06,2.07];
+
+    const ctx = document.getElementById('waterChart').getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 300);
+    grad.addColorStop(0,   'rgba(255,122,217,0.35)');
+    grad.addColorStop(0.5, 'rgba(160,107,255,0.18)');
+    grad.addColorStop(1,   'rgba(92,228,255,0.0)');
+
+    const lineGrad = ctx.createLinearGradient(0, 0, 600, 0);
+    lineGrad.addColorStop(0, '#ff7ad9');
+    lineGrad.addColorStop(0.5, '#a06bff');
+    lineGrad.addColorStop(1, '#5ce4ff');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: hours,
+        datasets: [{
+          label: 'Vandstand (m)',
+          data: levels,
+          borderColor: lineGrad,
+          backgroundColor: grad,
+          borderWidth: 3,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#ff7ad9',
+          fill: true,
+          tension: 0.45
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(20,22,40,0.92)',
+            borderColor: 'rgba(160,107,255,0.4)',
+            borderWidth: 1,
+            titleColor: '#ff7ad9',
+            bodyColor: '#f4f1ff',
+            callbacks: { label: ctx => ctx.parsed.y.toFixed(2) + ' m' }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#6c6a8c', font: { size: 10 }, maxTicksLimit: 8 },
+            grid:  { color: 'rgba(255,255,255,0.04)' },
+            border:{ color: 'rgba(255,255,255,0.08)' }
+          },
+          y: {
+            min: 1.4, max: 2.2,
+            ticks: { color: '#6c6a8c', font: { size: 10 }, callback: v => v.toFixed(1) + ' m' },
+            grid:  { color: 'rgba(255,255,255,0.04)' },
+            border:{ color: 'rgba(255,255,255,0.08)' }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LAKS — Alt J: Bloomberg Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base:        #0a0a0a;
+      --bg-surface:     #121212;
+      --bg-raised:      #1a1a1a;
+      --bg-header:      #ff8800;
+      --accent-up:      #00d97e;
+      --accent-down:    #ff5757;
+      --accent-amber:   #ff8800;
+      --accent-cyan:    #00b8d4;
+      --text-primary:   #f0f0f0;
+      --text-secondary: #b0b0b0;
+      --text-muted:     #6a6a6a;
+      --border:         #232323;
+      --border-strong:  #383838;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ── Top status bar ── */
+    .ticker-bar {
+      background: var(--bg-header);
+      color: #000;
+      padding: 0.3rem 0.75rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .ticker-bar .group { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+    .ticker-bar .live { display: inline-flex; align-items: center; gap: 0.4rem; }
+    .ticker-bar .live::before {
+      content: '';
+      width: 7px; height: 7px;
+      background: #c50000;
+      border-radius: 50%;
+      animation: blink 1.5s infinite;
+    }
+    @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.3; } }
+
+    /* ── Header ── */
+    .site-header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0.75rem;
+    }
+
+    .header-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @media (min-width: 768px) { .header-grid { grid-template-columns: auto 1fr auto; gap: 1.5rem; } }
+
+    .site-title {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .site-title .accent { color: var(--accent-amber); }
+
+    .site-subtitle {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+
+    .header-summary {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+    }
+    .summary-item .label { color: var(--text-muted); display: block; font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; }
+    .summary-item .val   { color: var(--text-primary); font-weight: 600; font-size: 0.95rem; }
+    .summary-item .val.up   { color: var(--accent-up); }
+    .summary-item .val.down { color: var(--accent-down); }
+
+    .site-desc {
+      grid-column: 1 / -1;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 0.4rem;
+      max-width: 720px;
+    }
+
+    /* ── Nav ── */
+    .site-nav {
+      background: var(--bg-base);
+      border-bottom: 1px solid var(--border);
+      padding: 0 0.75rem;
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .site-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.55rem 0.9rem;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .site-nav a:hover { color: var(--text-primary); background: var(--bg-surface); }
+    .site-nav a.active { color: var(--accent-amber); border-bottom-color: var(--accent-amber); background: var(--bg-surface); }
+
+    /* ── Layout ── */
+    .page-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0.75rem;
+    }
+
+    .grid-main {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+    @media (min-width: 900px) {
+      .grid-main {
+        grid-template-columns: 2fr 1.4fr 1.2fr;
+        grid-template-rows: auto auto;
+      }
+      .panel-conditions { grid-column: 1 / -1; }
+    }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-raised);
+      border-bottom: 1px solid var(--border-strong);
+      padding: 0.4rem 0.65rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-amber);
+    }
+    .panel-header .meta { color: var(--text-muted); }
+
+    .panel-body { padding: 0.75rem; }
+
+    /* ── Conditions ── */
+    .conditions-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0;
+    }
+    @media (min-width: 480px) { .conditions-row { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 768px) { .conditions-row { grid-template-columns: repeat(5, 1fr); } }
+
+    .condition-card {
+      padding: 0.6rem 0.7rem;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .condition-card:last-child { border-right: none; }
+    @media (min-width: 768px) { .condition-card { border-bottom: none; } }
+
+    .condition-label {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+
+    .condition-value {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1;
+      letter-spacing: -0.01em;
+    }
+
+    .condition-delta {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+    .condition-delta.up   { color: var(--accent-up); }
+    .condition-delta.down { color: var(--accent-down); }
+
+    /* ── Chart ── */
+    .chart-wrap { position: relative; height: 230px; }
+    @media (min-width: 768px) { .chart-wrap { height: 280px; } }
+
+    /* ── Leaderboard table ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .data-table thead th {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid var(--border-strong);
+      background: var(--bg-raised);
+    }
+    .data-table thead th.right { text-align: right; }
+
+    .data-table tbody td {
+      padding: 0.45rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 0.82rem;
+    }
+    .data-table tbody td.right  { text-align: right; }
+    .data-table tbody td.muted  { color: var(--text-muted); font-size: 0.72rem; }
+    .data-table tbody td.weight { color: var(--accent-amber); font-weight: 600; }
+    .data-table tbody tr:hover  { background: var(--bg-raised); }
+
+    /* ── Recent catches as ticker rows ── */
+    .ticker-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 0.6rem;
+      align-items: baseline;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+    }
+    .ticker-row:last-child { border-bottom: none; }
+
+    .ticker-time     { color: var(--text-muted); font-size: 0.68rem; }
+    .ticker-symbol   { color: var(--text-primary); font-weight: 600; }
+    .ticker-location { color: var(--text-secondary); font-size: 0.68rem; }
+    .ticker-weight   { color: var(--accent-up); font-weight: 600; }
+
+    /* ── Footer ── */
+    footer {
+      max-width: 1400px;
+      margin: 0.75rem auto 0;
+      padding: 0.5rem 0.75rem;
+      border-top: 1px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ticker-bar">
+    <div class="group">
+      <span>SÆS 2026</span>
+      <span>HOLMFOSS</span>
+      <span>29.04.2026 06:42 CEST</span>
+    </div>
+    <div class="group">
+      <span class="live">LIVE FEED</span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="header-grid">
+      <div>
+        <div class="site-title">LAKS<span class="accent">.</span></div>
+        <div class="site-subtitle">LAKSEFISKERI · HOLMFOSS</div>
+      </div>
+      <div></div>
+      <div class="header-summary">
+        <div class="summary-item">
+          <span class="label">Fisk total</span>
+          <span class="val up">13 ▲</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Vandstand</span>
+          <span class="val up">1,83 m</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Snitvægt</span>
+          <span class="val">8,9 kg</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Dag</span>
+          <span class="val">03 / 05</span>
+        </div>
+      </div>
+      <p class="site-desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</p>
+    </div>
+  </header>
+
+  <nav class="site-nav" aria-label="Sidenavigation">
+    <a href="#" class="active">Forside</a>
+    <a href="#">Fangster</a>
+    <a href="#">Statistik</a>
+  </nav>
+
+  <main class="page-container">
+    <div class="grid-main">
+
+      <section class="panel panel-conditions" aria-label="Aktuelle forhold">
+        <div class="panel-header">
+          <span>→ Aktuelle forhold</span>
+          <span class="meta">opd. 06:42</span>
+        </div>
+        <div class="conditions-row">
+          <article class="condition-card">
+            <div class="condition-label">Lufttemp</div>
+            <div class="condition-value">12,4°</div>
+            <div class="condition-delta up">+1,2° / 24t</div>
+          </article>
+          <article class="condition-card">
+            <div class="condition-label">Vandstand</div>
+            <div class="condition-value">1,83 m</div>
+            <div class="condition-delta up">+0,21 m / 24t</div>
+          </article>
+          <article class="condition-card">
+            <div class="condition-label">Vandtemp</div>
+            <div class="condition-value">9,1°</div>
+            <div class="condition-delta down">-0,3° / 24t</div>
+          </article>
+          <article class="condition-card">
+            <div class="condition-label">Vind NV</div>
+            <div class="condition-value">3 m/s</div>
+            <div class="condition-delta">stabil</div>
+          </article>
+          <article class="condition-card">
+            <div class="condition-label">Nedbør</div>
+            <div class="condition-value">0,2 mm</div>
+            <div class="condition-delta">sidste time</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Vandstandsgraf">
+        <div class="panel-header">
+          <span>→ Vandstand 24t</span>
+          <span class="meta">m</span>
+        </div>
+        <div class="panel-body">
+          <div class="chart-wrap">
+            <canvas id="waterChart" aria-label="Vandstandsgraf seneste 24 timer"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Sæsontavle">
+        <div class="panel-header">
+          <span>→ Sæsontavle</span>
+          <span class="meta">top 5</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Navn</th>
+              <th class="right">Fisk</th>
+              <th class="right">Vægt</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="muted">01</td><td>Lars H.</td><td class="right muted">4</td><td class="right weight">34,2</td></tr>
+            <tr><td class="muted">02</td><td>Morten K.</td><td class="right muted">3</td><td class="right weight">28,7</td></tr>
+            <tr><td class="muted">03</td><td>Søren B.</td><td class="right muted">3</td><td class="right weight">25,1</td></tr>
+            <tr><td class="muted">04</td><td>Jan M.</td><td class="right muted">2</td><td class="right weight">19,4</td></tr>
+            <tr><td class="muted">05</td><td>Niels P.</td><td class="right muted">1</td><td class="right weight">11,2</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel" aria-label="Seneste fangster" style="grid-column: 1 / -1;">
+        <div class="panel-header">
+          <span>→ Seneste fangster</span>
+          <span class="meta">live feed</span>
+        </div>
+        <div class="panel-body">
+          <div class="ticker-row">
+            <span class="ticker-time">28.04 07:14</span>
+            <span class="ticker-symbol">LARS H.</span>
+            <span class="ticker-location">Holmfoss Øvre</span>
+            <span class="ticker-weight">+9,4 kg</span>
+          </div>
+          <div class="ticker-row">
+            <span class="ticker-time">27.04 18:51</span>
+            <span class="ticker-symbol">MORTEN K.</span>
+            <span class="ticker-location">Mellempolen</span>
+            <span class="ticker-weight">+8,7 kg</span>
+          </div>
+          <div class="ticker-row">
+            <span class="ticker-time">27.04 14:22</span>
+            <span class="ticker-symbol">SØREN B.</span>
+            <span class="ticker-location">Nedre Hul</span>
+            <span class="ticker-weight">+7,2 kg</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer>
+    <span>&copy; 2026 LAKS · LAKSEFISKERI I HOLMFOSS</span>
+    <span>STATUS: ONLINE</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" integrity="sha256-1G2Xof0CLF+yn6L0Xry8MiAtc67r8HbOX3JI9UmPx9c=" crossorigin="anonymous"></script>
+  <script>
+    const hours  = ['00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'];
+    const levels = [1.62,1.59,1.57,1.55,1.54,1.56,1.58,1.61,1.65,1.70,1.75,1.79,1.83,1.87,1.91,1.94,1.97,1.99,2.01,2.03,2.04,2.05,2.06,2.07];
+
+    new Chart(document.getElementById('waterChart'), {
+      type: 'line',
+      data: {
+        labels: hours,
+        datasets: [{
+          label: 'Vandstand (m)',
+          data: levels,
+          borderColor: '#00d97e',
+          backgroundColor: 'rgba(0,217,126,0.08)',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          pointHoverBackgroundColor: '#ff8800',
+          fill: true,
+          tension: 0.2,
+          stepped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0a0a0a',
+            borderColor: '#ff8800',
+            borderWidth: 1,
+            titleColor: '#ff8800',
+            bodyColor: '#f0f0f0',
+            titleFont: { family: 'IBM Plex Mono' },
+            bodyFont:  { family: 'IBM Plex Mono' },
+            displayColors: false,
+            callbacks: { label: ctx => ctx.parsed.y.toFixed(2) + ' m' }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#6a6a6a', font: { size: 9, family: 'IBM Plex Mono' }, maxTicksLimit: 8 },
+            grid:  { color: '#1a1a1a' },
+            border:{ color: '#232323' }
+          },
+          y: {
+            min: 1.4, max: 2.2,
+            ticks: { color: '#6a6a6a', font: { size: 9, family: 'IBM Plex Mono' }, callback: v => v.toFixed(2) },
+            grid:  { color: '#1a1a1a' },
+            border:{ color: '#232323' }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
