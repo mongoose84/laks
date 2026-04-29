@@ -20,10 +20,19 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel superseded PR runs; let push-to-main runs finish (deploy job has its
+# own concurrency group to serialize production deployments).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
-  DOTNET_VERSION: '9.0.x'
+  DOTNET_VERSION: '10.0.x'
   PROJECT_PATH: 'src/Laks.Web/Laks.Web.csproj'
   PUBLISH_DIR: '${{ github.workspace }}/publish'
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
 
 jobs:
   # ── Build & Test ───────────────────────────────────────────────────────────
@@ -39,6 +48,15 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-quality: 'preview'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.slnx', '**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Restore
         run: dotnet restore Laks.slnx
@@ -47,7 +65,13 @@ jobs:
         run: dotnet build Laks.slnx --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test Laks.slnx --no-build --configuration Release --verbosity normal --results-directory ./test-results --logger "trx;LogFileName=test-results.trx"
+        run: >
+          dotnet test Laks.slnx
+          --no-build
+          --configuration Release
+          --verbosity normal
+          --results-directory ./test-results
+          --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
         if: always()
@@ -64,7 +88,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     concurrency:
       group: laks-prod-deploy
-      cancel-in-progress: true
+      cancel-in-progress: false
 
     steps:
       - name: Checkout
@@ -74,15 +98,21 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-quality: 'preview'
 
-      - name: Restore
-        run: dotnet restore Laks.slnx --runtime win-x86
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-winx86-${{ hashFiles('**/*.csproj', '**/*.slnx', '**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-winx86-
+            ${{ runner.os }}-nuget-
 
       - name: Publish
         run: >
           dotnet publish ${{ env.PROJECT_PATH }}
           --configuration Release
-          --no-restore
           --runtime win-x86
           --self-contained true
           --output ${{ env.PUBLISH_DIR }}

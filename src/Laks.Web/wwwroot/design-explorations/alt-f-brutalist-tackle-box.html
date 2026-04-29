@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LAKS — Alt F: Brutalist Tackle Box</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base:        #111111;
+      --bg-surface:     #1a1a1a;
+      --bg-raised:      #222222;
+      --accent:         #ffd60a;
+      --accent-2:       #ff5a36;
+      --text-primary:   #f5f5f5;
+      --text-secondary: #b3b3b3;
+      --text-muted:     #6e6e6e;
+      --border:         #2a2a2a;
+      --border-strong:  #f5f5f5;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Archivo', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    /* ── Header band ── */
+    .site-header {
+      background: var(--accent);
+      color: #111;
+      padding: 1.5rem 1.25rem;
+      border-bottom: 4px solid var(--text-primary);
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .site-title {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(3.5rem, 13vw, 7rem);
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      text-transform: uppercase;
+    }
+
+    .site-subtitle {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(0.95rem, 2.4vw, 1.2rem);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 0.4rem;
+    }
+
+    .header-meta {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-align: right;
+      line-height: 1.4;
+    }
+
+    .header-desc {
+      max-width: 1200px;
+      margin: 1.25rem auto 0;
+      font-size: 0.92rem;
+      color: #1a1a1a;
+      font-weight: 500;
+      max-width: 600px;
+    }
+
+    /* ── Nav strip ── */
+    .site-nav {
+      background: var(--text-primary);
+      color: #111;
+      border-bottom: 4px solid var(--text-primary);
+    }
+
+    .nav-row {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+    }
+
+    .site-nav a {
+      color: #111;
+      text-decoration: none;
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 0.85rem 1.25rem;
+      border-right: 2px solid #111;
+    }
+
+    .site-nav a:hover { background: var(--accent); }
+    .site-nav a.active { background: #111; color: var(--accent); }
+
+    /* ── Layout ── */
+    .page-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    section { margin-bottom: 1.5rem; }
+
+    .section-title {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: var(--text-primary);
+      color: #111;
+      padding: 0.4rem 0.75rem;
+      display: inline-block;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title.alt {
+      background: var(--accent);
+      color: #111;
+    }
+
+    /* ── Block ── */
+    .block {
+      background: var(--bg-surface);
+      border: 2px solid var(--text-primary);
+      padding: 1rem;
+    }
+
+    /* ── Conditions ── */
+    .conditions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    @media (min-width: 480px) { .conditions-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 768px) { .conditions-grid { grid-template-columns: repeat(5, 1fr); } }
+
+    .condition-card {
+      background: var(--bg-surface);
+      border: 2px solid var(--text-primary);
+      padding: 0.85rem 0.75rem;
+    }
+
+    .condition-card.highlight {
+      background: var(--accent);
+      color: #111;
+    }
+    .condition-card.highlight .condition-label { color: #111; }
+
+    .condition-label {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid currentColor;
+      padding-bottom: 0.3rem;
+    }
+
+    .condition-value {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 1.7rem;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    /* ── Two-col ── */
+    @media (min-width: 900px) {
+      .two-col {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 1.5rem;
+        align-items: start;
+      }
+    }
+
+    .chart-wrap { position: relative; height: 220px; }
+    @media (min-width: 768px) { .chart-wrap { height: 280px; } }
+
+    /* ── Leaderboard ── */
+    .lb-row {
+      display: grid;
+      grid-template-columns: 2.5rem 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.65rem 0.5rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-row:first-child { background: var(--accent); color: #111; }
+    .lb-row:first-child .lb-rank { background: #111; color: var(--accent); }
+    .lb-row:first-child .lb-stats { color: #111; }
+
+    .lb-rank {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 1rem;
+      background: var(--text-primary);
+      color: #111;
+      width: 2.2rem;
+      height: 2.2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: -0.02em;
+    }
+
+    .lb-name {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .lb-stats {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.95rem;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+    .lb-stats .small { display: block; font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.16em; text-align: right; }
+    .lb-row:first-child .lb-stats .small { color: #111; }
+
+    /* ── Recent catches ── */
+    .catch-card {
+      background: var(--bg-surface);
+      border: 2px solid var(--text-primary);
+      padding: 0.9rem 1rem;
+      margin-bottom: 0.75rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .catch-name {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .catch-meta {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-top: 0.3rem;
+    }
+
+    .catch-weight {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 1.6rem;
+      background: var(--accent);
+      color: #111;
+      padding: 0.4rem 0.7rem;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--text-primary);
+      color: #111;
+      padding: 1rem 1.25rem;
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-align: center;
+      border-top: 4px solid #111;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-row">
+      <div>
+        <div class="site-title">LAKS</div>
+        <div class="site-subtitle">Laksefiskeri / Holmfoss</div>
+      </div>
+      <div class="header-meta">
+        SÆSON 2026<br/>
+        STATION HOLMFOSS<br/>
+        29.04.2026
+      </div>
+    </div>
+    <p class="header-desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+  </header>
+
+  <nav class="site-nav" aria-label="Sidenavigation">
+    <div class="nav-row">
+      <a href="#" class="active">Forside</a>
+      <a href="#">Fangster</a>
+      <a href="#">Statistik</a>
+    </div>
+  </nav>
+
+  <main class="page-container">
+
+    <section aria-label="Aktuelle forhold">
+      <h2 class="section-title">Aktuelle forhold</h2>
+      <div class="conditions-grid">
+        <article class="condition-card">
+          <div class="condition-label">Lufttemp</div>
+          <div class="condition-value">12,4°</div>
+        </article>
+        <article class="condition-card highlight">
+          <div class="condition-label">Vandstand</div>
+          <div class="condition-value">1,83↑</div>
+        </article>
+        <article class="condition-card">
+          <div class="condition-label">Vandtemp</div>
+          <div class="condition-value">9,1°</div>
+        </article>
+        <article class="condition-card">
+          <div class="condition-label">Vind NV</div>
+          <div class="condition-value">3 m/s</div>
+        </article>
+        <article class="condition-card">
+          <div class="condition-label">Nedbør</div>
+          <div class="condition-value">0,2 mm</div>
+        </article>
+      </div>
+    </section>
+
+    <div class="two-col">
+
+      <section aria-label="Vandstandsgraf">
+        <h2 class="section-title alt">Vandstand 24t</h2>
+        <div class="block">
+          <div class="chart-wrap">
+            <canvas id="waterChart" aria-label="Vandstandsgraf seneste 24 timer"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="Sæsontavle">
+        <h2 class="section-title">Sæsontavle</h2>
+        <div class="block" style="padding:0.5rem 0.75rem;">
+          <div class="lb-row">
+            <span class="lb-rank">01</span>
+            <span class="lb-name">Lars H.</span>
+            <span class="lb-stats">34,2 KG <span class="small">4 fisk</span></span>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">02</span>
+            <span class="lb-name">Morten K.</span>
+            <span class="lb-stats">28,7 KG <span class="small">3 fisk</span></span>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">03</span>
+            <span class="lb-name">Søren B.</span>
+            <span class="lb-stats">25,1 KG <span class="small">3 fisk</span></span>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">04</span>
+            <span class="lb-name">Jan M.</span>
+            <span class="lb-stats">19,4 KG <span class="small">2 fisk</span></span>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">05</span>
+            <span class="lb-name">Niels P.</span>
+            <span class="lb-stats">11,2 KG <span class="small">1 fisk</span></span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <section aria-label="Seneste fangster">
+      <h2 class="section-title alt">Seneste fangster</h2>
+      <article class="catch-card">
+        <div>
+          <div class="catch-name">Lars H.</div>
+          <div class="catch-meta">28. APR &middot; HOLMFOSS ØVRE</div>
+        </div>
+        <div class="catch-weight">9,4 KG</div>
+      </article>
+      <article class="catch-card">
+        <div>
+          <div class="catch-name">Morten K.</div>
+          <div class="catch-meta">27. APR &middot; MELLEMPOLEN</div>
+        </div>
+        <div class="catch-weight">8,7 KG</div>
+      </article>
+      <article class="catch-card">
+        <div>
+          <div class="catch-name">Søren B.</div>
+          <div class="catch-meta">27. APR &middot; NEDRE HUL</div>
+        </div>
+        <div class="catch-weight">7,2 KG</div>
+      </article>
+    </section>
+
+  </main>
+
+  <footer>
+    &copy; 2026 LAKS &mdash; Laksefiskeri i Holmfoss
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" integrity="sha256-1G2Xof0CLF+yn6L0Xry8MiAtc67r8HbOX3JI9UmPx9c=" crossorigin="anonymous"></script>
+  <script>
+    const hours  = ['00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'];
+    const levels = [1.62,1.59,1.57,1.55,1.54,1.56,1.58,1.61,1.65,1.70,1.75,1.79,1.83,1.87,1.91,1.94,1.97,1.99,2.01,2.03,2.04,2.05,2.06,2.07];
+
+    new Chart(document.getElementById('waterChart'), {
+      type: 'bar',
+      data: {
+        labels: hours,
+        datasets: [{
+          label: 'Vandstand (m)',
+          data: levels,
+          backgroundColor: levels.map((_, i) => i > 11 ? '#ffd60a' : '#f5f5f5'),
+          borderColor: '#111',
+          borderWidth: 1,
+          borderRadius: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#ffd60a',
+            borderColor: '#111',
+            borderWidth: 2,
+            titleColor: '#111',
+            bodyColor: '#111',
+            titleFont: { family: 'Archivo Black' },
+            bodyFont: { family: 'Archivo Black' },
+            displayColors: false,
+            callbacks: { label: ctx => ctx.parsed.y.toFixed(2) + ' m' }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#6e6e6e', font: { size: 9, family: 'Archivo Black' }, maxTicksLimit: 8 },
+            grid:  { display: false },
+            border:{ color: '#2a2a2a' }
+          },
+          y: {
+            min: 1.4, max: 2.2,
+            ticks: { color: '#6e6e6e', font: { size: 9, family: 'Archivo Black' }, callback: v => v.toFixed(1) + 'M' },
+            grid:  { color: '#2a2a2a' },
+            border:{ color: '#2a2a2a' }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

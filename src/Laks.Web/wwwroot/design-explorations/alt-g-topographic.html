@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LAKS — Alt G: Topographic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base:        #0c1410;
+      --bg-surface:     #131c17;
+      --bg-raised:      #18241d;
+      --accent:         #7fb069;
+      --accent-warm:    #e8b76b;
+      --contour:        rgba(127,176,105,0.10);
+      --text-primary:   #e8efe5;
+      --text-secondary: #a3b5a0;
+      --text-muted:     #5a6e58;
+      --border:         #1f2e25;
+      --radius:         3px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-base);
+      background-image:
+        radial-gradient(ellipse 80% 60% at 30% 20%, rgba(127,176,105,0.06) 0%, transparent 60%),
+        repeating-radial-gradient(circle at 70% 40%, transparent 0, transparent 22px, var(--contour) 22px, var(--contour) 23px),
+        repeating-radial-gradient(circle at 20% 80%, transparent 0, transparent 30px, var(--contour) 30px, var(--contour) 31px);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      padding: 2.5rem 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 768px) {
+      .header-inner { grid-template-columns: auto 1fr auto; align-items: end; }
+    }
+
+    .site-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: clamp(2.8rem, 9vw, 4.5rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .site-subtitle {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.74rem;
+      color: var(--accent);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-top: 0.4rem;
+    }
+
+    .coords {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      line-height: 1.7;
+      text-align: right;
+    }
+    .coords .label { color: var(--text-muted); }
+    .coords .val { color: var(--text-secondary); }
+
+    .site-desc {
+      grid-column: 1 / -1;
+      max-width: 600px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+    }
+
+    /* ── Nav ── */
+    .site-nav {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      display: flex;
+      gap: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .site-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      padding: 0.85rem 0;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .site-nav a:hover { color: var(--text-secondary); }
+    .site-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── Layout ── */
+    .page-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.75rem 1.25rem 3rem;
+    }
+
+    section { margin-bottom: 1.75rem; }
+
+    .section-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 0.7rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 0.5rem; height: 0.5rem;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+
+    /* ── Conditions ── */
+    .conditions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.6rem;
+    }
+    @media (min-width: 480px) { .conditions-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 768px) { .conditions-grid { grid-template-columns: repeat(5, 1fr); } }
+
+    .condition-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.9rem 0.75rem;
+      position: relative;
+    }
+
+    .condition-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--text-muted);
+    }
+    .condition-rising::before { background: var(--accent); }
+
+    .condition-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+
+    .condition-value {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    .condition-rising .condition-value { color: var(--accent); }
+
+    /* ── Two-col ── */
+    @media (min-width: 900px) {
+      .two-col {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 1.2rem;
+        align-items: start;
+      }
+    }
+
+    .chart-wrap { position: relative; height: 210px; }
+    @media (min-width: 768px) { .chart-wrap { height: 260px; } }
+
+    /* ── Leaderboard ── */
+    .lb-row {
+      display: grid;
+      grid-template-columns: 2rem 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .lb-row:last-child { border-bottom: none; }
+
+    .lb-rank {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .lb-row:first-child .lb-rank { color: var(--accent-warm); }
+
+    .lb-name { color: var(--text-primary); font-weight: 500; }
+
+    .lb-stats {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--accent);
+      text-align: right;
+    }
+    .lb-stats .small { display: block; color: var(--text-muted); font-size: 0.65rem; }
+
+    /* ── Catches ── */
+    .catch-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .catch-card::after {
+      content: '';
+      position: absolute;
+      right: -30px; top: -30px;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: repeating-radial-gradient(circle, transparent 0, transparent 9px, var(--contour) 9px, var(--contour) 10px);
+      pointer-events: none;
+    }
+
+    .catch-name { font-weight: 600; }
+    .catch-meta { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; letter-spacing: 0.04em; }
+    .catch-weight {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: var(--accent);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Footer ── */
+    footer {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.25rem;
+      border-top: 1px solid var(--border);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div>
+        <div class="site-title">Laks.</div>
+        <div class="site-subtitle">Holmfoss · Numedalslågen</div>
+      </div>
+      <div></div>
+      <div class="coords">
+        <span class="label">59.5°N · 9.7°Ø</span><br/>
+        <span class="val">86 m.o.h.</span><br/>
+        <span class="val">SÆS 2026 · DAG 03</span>
+      </div>
+      <p class="site-desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</p>
+    </div>
+  </header>
+
+  <nav class="site-nav" aria-label="Sidenavigation">
+    <a href="#" class="active">Forside</a>
+    <a href="#">Fangster</a>
+    <a href="#">Statistik</a>
+  </nav>
+
+  <main class="page-container">
+
+    <section aria-label="Aktuelle forhold">
+      <h2 class="section-title">Aktuelle forhold</h2>
+      <div class="conditions-grid">
+        <article class="condition-card">
+          <div class="condition-label">Lufttemp</div>
+          <div class="condition-value">12,4°</div>
+        </article>
+        <article class="condition-card condition-rising">
+          <div class="condition-label">Vandstand</div>
+          <div class="condition-value">1,83↑</div>
+        </article>
+        <article class="condition-card">
+          <div class="condition-label">Vandtemp</div>
+          <div class="condition-value">9,1°</div>
+        </article>
+        <article class="condition-card">
+          <div class="condition-label">Vind NV</div>
+          <div class="condition-value">3 m/s</div>
+        </article>
+        <article class="condition-card">
+          <div class="condition-label">Nedbør</div>
+          <div class="condition-value">0,2 mm</div>
+        </article>
+      </div>
+    </section>
+
+    <div class="two-col">
+
+      <section aria-label="Vandstandsgraf">
+        <h2 class="section-title">Vandstand · 24 timer</h2>
+        <div class="card">
+          <div class="chart-wrap">
+            <canvas id="waterChart" aria-label="Vandstandsgraf seneste 24 timer"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="Sæsontavle">
+        <h2 class="section-title">Sæsontavle 2026</h2>
+        <div class="card">
+          <div class="lb-row">
+            <span class="lb-rank">01</span>
+            <span class="lb-name">Lars H.</span>
+            <div class="lb-stats">34,2 kg <span class="small">4 fisk</span></div>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">02</span>
+            <span class="lb-name">Morten K.</span>
+            <div class="lb-stats">28,7 kg <span class="small">3 fisk</span></div>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">03</span>
+            <span class="lb-name">Søren B.</span>
+            <div class="lb-stats">25,1 kg <span class="small">3 fisk</span></div>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">04</span>
+            <span class="lb-name">Jan M.</span>
+            <div class="lb-stats">19,4 kg <span class="small">2 fisk</span></div>
+          </div>
+          <div class="lb-row">
+            <span class="lb-rank">05</span>
+            <span class="lb-name">Niels P.</span>
+            <div class="lb-stats">11,2 kg <span class="small">1 fisk</span></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <section aria-label="Seneste fangster">
+      <h2 class="section-title">Seneste fangster</h2>
+      <article class="catch-card">
+        <div>
+          <div class="catch-name">Lars H.</div>
+          <div class="catch-meta">28.04 · HOLMFOSS ØVRE</div>
+        </div>
+        <div class="catch-weight">9,4 kg</div>
+      </article>
+      <article class="catch-card">
+        <div>
+          <div class="catch-name">Morten K.</div>
+          <div class="catch-meta">27.04 · MELLEMPOLEN</div>
+        </div>
+        <div class="catch-weight">8,7 kg</div>
+      </article>
+      <article class="catch-card">
+        <div>
+          <div class="catch-name">Søren B.</div>
+          <div class="catch-meta">27.04 · NEDRE HUL</div>
+        </div>
+        <div class="catch-weight">7,2 kg</div>
+      </article>
+    </section>
+
+  </main>
+
+  <footer>&copy; 2026 LAKS · Laksefiskeri i Holmfoss</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" integrity="sha256-1G2Xof0CLF+yn6L0Xry8MiAtc67r8HbOX3JI9UmPx9c=" crossorigin="anonymous"></script>
+  <script>
+    const hours  = ['00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'];
+    const levels = [1.62,1.59,1.57,1.55,1.54,1.56,1.58,1.61,1.65,1.70,1.75,1.79,1.83,1.87,1.91,1.94,1.97,1.99,2.01,2.03,2.04,2.05,2.06,2.07];
+
+    new Chart(document.getElementById('waterChart'), {
+      type: 'line',
+      data: {
+        labels: hours,
+        datasets: [{
+          label: 'Vandstand (m)',
+          data: levels,
+          borderColor: '#7fb069',
+          backgroundColor: 'rgba(127,176,105,0.08)',
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#e8b76b',
+          fill: true,
+          tension: 0.4,
+          stepped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#131c17',
+            borderColor: 'rgba(127,176,105,0.4)',
+            borderWidth: 1,
+            titleColor: '#7fb069',
+            bodyColor: '#e8efe5',
+            callbacks: { label: ctx => ctx.parsed.y.toFixed(2) + ' m' }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#5a6e58', font: { size: 10, family: 'DM Mono' }, maxTicksLimit: 8 },
+            grid:  { color: 'rgba(127,176,105,0.05)' },
+            border:{ color: '#1f2e25' }
+          },
+          y: {
+            min: 1.4, max: 2.2,
+            ticks: { color: '#5a6e58', font: { size: 10, family: 'DM Mono' }, callback: v => v.toFixed(1) + ' m' },
+            grid:  { color: 'rgba(127,176,105,0.05)' },
+            border:{ color: '#1f2e25' }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
