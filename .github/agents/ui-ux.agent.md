@@ -53,6 +53,6 @@ Review:
 - When proposing a new feature, create a dedicated spec file in [.github/specs](../../.github/specs) rather than changing product code
 
 ## Handoff Expectations
-- Provide enough detail that the architect, backend-engineer, frontend-engineer, or tester agents can execute the work
+- Provide enough detail that the architect, fullstack-dotnet, tester, or code-reviewer agents can execute the work
 - Separate observed user problems from proposed solutions
 - Distinguish validated findings from assumptions

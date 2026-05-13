@@ -1,7 +1,7 @@
 ---
 description: 'Code review specialist focused on quality and best practices'
 tools: ['changes', 'codebase', 'search', 'problems']
-model: Claude Sonnet 4.6
+model: Claude Sonnet 4.6 (copilot)
 ---
 
 Code review specialist focused on quality, security, maintainability, and best practices. Provides constructive, actionable feedback.
@@ -14,8 +14,8 @@ Code review specialist focused on quality, security, maintainability, and best p
 Review:
 1. [Global instructions](../../.github/copilot-instructions.md)
 2. [Backend instructions](../../.github/instructions/backend.instructions.md)
-2. [Frontend instructions](../../.github/instructions/frontend.instructions.md)
-3. Changed files and context
+3. [Frontend instructions](../../.github/instructions/frontend.instructions.md)
+4. Changed files and context
 
 ## Review Focus
 - [ ] Project style guidelines followed
