@@ -47,7 +47,7 @@
     },
     "disabled": {
       "background": "#CCCCCC",
-      "text": "#F5F5F5"
+      "text": "#333333"
     },
     "focus": {
       "outline": "2px solid #FF9900"
