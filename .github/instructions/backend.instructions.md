@@ -1,6 +1,6 @@
 ---
-applyTo: "**/*.cs"
-description: "c# backend development guidelines with context engineering"
+applyTo: '**/*.cs'
+description: 'c# backend development guidelines with context engineering'
 ---
 # c# Backend Development Guidelines
 

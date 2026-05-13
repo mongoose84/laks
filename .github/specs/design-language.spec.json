@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "title": "Holmfoss Laks Design Language",
+    "purpose": "Beskriver visuelle og funktionelle designprincipper for UI-udvikling på Holmfoss lakseside.",
+    "lastUpdated": "2026-05-13"
+  },
+  "colors": {
+    "primary": { "hex": "#1A4D7A", "usage": "Primær knap, links, vigtige elementer" },
+    "secondary": { "hex": "#E6F0FA", "usage": "Baggrunde, paneler, hover-effekter" },
+    "accent": { "hex": "#FF9900", "usage": "Fremhævning, advarsler, CTA" },
+    "neutral": [
+      { "hex": "#FFFFFF", "usage": "Baggrund" },
+      { "hex": "#F5F5F5", "usage": "Baggrund, borders" },
+      { "hex": "#CCCCCC", "usage": "Borders, disabled" },
+      { "hex": "#333333", "usage": "Tekst" }
+    ],
+    "error": { "hex": "#D32F2F", "usage": "Fejlmeddelelser" }
+  },
+  "typography": {
+    "primaryFont": "Segoe UI, Arial, sans-serif",
+    "heading": { "weight": "bold", "transform": "uppercase", "spacing": "tydelig" },
+    "body": { "weight": "normal", "minSizePx": 16 },
+    "numbers": { "font": "monospace", "usage": "Tabeller, statistik" }
+  },
+  "icons": {
+    "style": "Flade, enkle, uden skygger",
+    "requirement": "Skal være entydige og forståelige uden tekst"
+  },
+  "images": {
+    "quality": "Høj opløsning, optimeret til web",
+    "relevance": "Kun relevante billeder"
+  },
+  "buttons": {
+    "primary": {
+      "background": "#1A4D7A",
+      "text": "#FFFFFF",
+      "borderRadiusPx": 4
+    },
+    "secondary": {
+      "background": "#FFFFFF",
+      "text": "#1A4D7A",
+      "border": "1px solid #1A4D7A"
+    },
+    "hover": {
+      "background": "#E6F0FA",
+      "text": "#1A4D7A"
+    },
+    "disabled": {
+      "background": "#CCCCCC",
+      "text": "#F5F5F5"
+    },
+    "focus": {
+      "outline": "2px solid #FF9900"
+    }
+  },
+  "forms": {
+    "labelLanguage": "Dansk",
+    "placeholder": "Vejledende, ikke erstatte label",
+    "error": {
+      "color": "#D32F2F",
+      "placement": "Under feltet"
+    },
+    "fieldSize": "Store klikbare områder, tydelige borders"
+  },
+  "layout": {
+    "grid": "8px",
+    "maxWidthPx": 1200,
+    "sectionSpacingPx": 24,
+    "grouping": "Cards/paneler til relateret indhold"
+  },
+  "navigation": {
+    "type": "Topnavigation",
+    "logoPosition": "venstre",
+    "menuPosition": "højre",
+    "activeIndicator": "Blå underline",
+    "responsive": true
+  },
+  "accessibility": {
+    "keyboard": true,
+    "contrast": "WCAG AA",
+    "ariaLabels": true,
+    "scalableText": true
+  },
+  "language": {
+    "uiLanguage": "Dansk",
+    "tone": "Kort, venlig, informativ",
+    "labels": "Altid danske labels, tooltips og fejlbeskeder"
+  },
+  "animation": {
+    "type": ["fade", "slide"],
+    "loadingIndicator": "Tydelig, ikke forstyrrende",
+    "feedback": "Toast eller inline besked"
+  },
+  "instructions": [
+    "Reference denne fil ved UI-udvikling.",
+    "Ved tvivl: vælg altid den løsning, der bedst matcher ovenstående principper.",
+    "Opdater denne fil, hvis designprincipper ændres.",
+    "Overhold altid dansk sprog og tilgængelighed."
+  ],
+  "examples": {
+    "primaryButton": {
+      "background": "#1A4D7A",
+      "text": "#FFFFFF",
+      "hover": "#E6F0FA"
+    },
+    "errorMessage": {
+      "text": "Dette felt er påkrævet.",
+      "color": "#D32F2F"
+    }
+  }
+}

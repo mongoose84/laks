@@ -1,6 +1,6 @@
 ---
-applyTo: "**/{test,tests}/**"
-description: "Testing guidelines with context engineering"
+applyTo: 'Laks.Web.Tests/**'
+description: 'Testing guidelines with context engineering'
 ---
 # Testing Guidelines
 

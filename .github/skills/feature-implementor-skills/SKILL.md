@@ -1,6 +1,6 @@
 ---
 name: feature-implementor-skills
-description: "Use when implementing a feature from a completed spec in this ASP.NET Core Razor Pages project. Orchestrates architect, backend-engineer, frontend-engineer, tester, and code-reviewer with quality gates and fix loops."
+description: 'Use when implementing a feature from a completed spec in this ASP.NET Core Razor Pages project. Orchestrates architect, fullstack-dotnet, tester, and code-reviewer with quality gates and fix loops.'
 ---
 
 # Feature Implementor Skill
@@ -13,7 +13,7 @@ It coordinates subagents in a deterministic sequence so work is planned, impleme
 - Stack: ASP.NET Core Razor Pages (.cshtml + .cshtml.cs)
 - Backend: C# on .NET with repository pattern
 - Data: MySQL with parameterized queries
-- Tests: tests/Laks.Web.Tests
+- Tests: Laks.Web.Tests
 
 ## Inputs Required
 - Feature spec path under .github/specs
@@ -53,48 +53,36 @@ Contract freeze output (required before implementation):
 - Validation and error-state contract.
 - File ownership map (which agent edits which files).
 
-### Step 2: Parallel Implementation Phase
-Agents: backend-engineer and frontend-engineer (in parallel)
+### Step 2: Implementation
+Agent: fullstack-dotnet
 
-Parallel preconditions:
+Preconditions:
 - Architect contract freeze is complete.
-- File ownership map avoids overlapping edits.
-- Any shared model contract is explicitly versioned or documented.
-
-#### Step 2A: Backend Implementation
-Agent: backend-engineer
+- File ownership map is defined.
+- Shared model contract is explicitly versioned or documented.
 
 Goals:
-- Implement domain, repository, service/API, and validation changes.
+- Implement backend and frontend changes required by the spec.
 - Keep SQL access parameterized and aligned with OWASP practices.
-- Add or update backend tests.
-
-Required deliverable:
-- Backend code changes plus test updates and implementation notes.
-
-#### Step 2B: Frontend Implementation
-Agent: frontend-engineer
-
-Goals:
-- Implement Razor page and PageModel changes required by spec.
 - Keep server-rendered-first approach and minimal JavaScript.
-- Ensure accessibility and clear error/empty states.
+- Ensure accessibility and clear error and empty states.
+- Add or update tests in Laks.Web.Tests.
 
 Required deliverable:
-- Frontend code changes plus relevant tests and UX notes.
+- Implementation changes plus updated tests and implementation notes.
 
-### Step 3: Sync Gate (Post-Parallel)
+### Step 3: Sync Gate
 Owner: orchestrating skill execution
 
 Goals:
-- Reconcile integration points after parallel work.
+- Validate integration points before verification.
 - Confirm contracts still match implementation.
-- Resolve any cross-agent conflicts before verification.
+- Resolve any cross-area conflicts.
 
 Required checks:
 - Route and handler names match contract.
 - Payload and validation behavior match contract.
-- Error and empty states are consistent across backend/frontend.
+- Error and empty states are consistent across backend and frontend.
 
 ### Step 4: Verification
 Agent: tester
@@ -119,13 +107,11 @@ Required deliverable:
 
 ## Fix Loop Policy
 If verification or review finds issues:
-1. Route backend issues to backend-engineer.
-2. Route Razor UI or PageModel issues to frontend-engineer.
-3. Route cross-cutting design issues to architect.
-4. If backend and frontend are both impacted, run fixes in parallel with a mini contract freeze.
-5. Re-run sync gate checks.
-6. Re-run tester after fixes.
-7. Re-run code-reviewer for final sign-off.
+1. Route implementation issues to fullstack-dotnet.
+2. Route cross-cutting design issues to architect.
+3. Re-run sync gate checks.
+4. Re-run tester after fixes.
+5. Re-run code-reviewer for final sign-off.
 
 Repeat until:
 - Acceptance criteria are met.
@@ -136,7 +122,7 @@ Repeat until:
 - Do not start implementation without a feature spec.
 - Keep changes scoped to approved feature boundaries.
 - Avoid unrelated refactors unless required for correctness.
-- Keep commits/review units small and traceable.
+- Keep commits and review units small and traceable.
 
 ## Suggested Invocation Prompt
 Use this skill when you say:
