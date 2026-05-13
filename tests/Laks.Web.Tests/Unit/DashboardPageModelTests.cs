@@ -52,7 +52,6 @@ public class DashboardPageModelTests
 
         Assert.False(string.IsNullOrWhiteSpace(model.IssueDateLabel));
         Assert.StartsWith("Sidste opdatering", model.LastUpdatedLabel);
-        Assert.False(string.IsNullOrWhiteSpace(model.LedeText));
     }
 
     [Fact]
@@ -82,33 +81,6 @@ public class DashboardPageModelTests
 
         Assert.StartsWith("Sidste opdatering ·", label);
         Assert.Matches(@"\d{2}[:.]\d{2}$", label);
-    }
-
-    [Fact]
-    public void BuildLedeText_OffSeason_ReturnsResting()
-    {
-        var text = IndexModel.BuildLedeText(null, null, new SeasonDay { IsOffSeason = true });
-
-        Assert.Contains("Sæsonen", text);
-    }
-
-    [Fact]
-    public void BuildLedeText_NoData_ReturnsFallback()
-    {
-        var text = IndexModel.BuildLedeText(null, null, new SeasonDay { IsOffSeason = false });
-
-        Assert.Contains("Ingen aktuelle målinger", text);
-    }
-
-    [Fact]
-    public void BuildLedeText_RisingTrend_MentionsRising()
-    {
-        var water = new WaterLevelSnapshot { LevelMeters = 1.8m, Trend = WaterLevelTrend.Rising };
-        var weather = new WeatherData { WeatherSymbol = "clearsky_day" };
-
-        var text = IndexModel.BuildLedeText(water, weather, new SeasonDay { IsOffSeason = false });
-
-        Assert.Contains("stiger", text);
     }
 
     [Fact]

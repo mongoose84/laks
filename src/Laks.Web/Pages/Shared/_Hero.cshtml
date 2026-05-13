@@ -1,15 +1,14 @@
 ﻿@model Laks.Web.Pages.IndexModel
 @{
     var headline = Model.SeasonDay.IsOffSeason
-        ? "Sæsonen hviler — vi venter på næste sommer"
+        ? "Sæsonen hviler — vi venter på sommeren"
         : (Model.CurrentWaterLevel?.Trend == Laks.Web.Models.WaterLevelTrend.Rising
             ? "Vandet stiger, og dagen lover godt"
             : Model.CurrentWaterLevel?.Trend == Laks.Web.Models.WaterLevelTrend.Falling
-                ? "Vandet falder, og elven klarner op"
+                ? "Vandet falder, og elven klarer op"
                 : "Elven holder sin rytme over Holmfoss");
 }
 <section class="ed-hero" aria-label="Dagens forhold">
     <div class="ed-hero-kicker">@Model.LastUpdatedLabel</div>
     <h2 class="ed-hero-headline">@headline</h2>
-    <p class="ed-hero-lede">@Model.LedeText</p>
 </section>
