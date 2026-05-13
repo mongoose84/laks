@@ -28,7 +28,7 @@ concurrency:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  PROJECT_PATH: 'src/Laks.Web/Laks.Web.csproj'
+  PROJECT_PATH: 'Laks.Web/Laks.Web.csproj'
   PUBLISH_DIR: '${{ github.workspace }}/publish'
   DOTNET_NOLOGO: 'true'
   DOTNET_CLI_TELEMETRY_OPTOUT: 'true'

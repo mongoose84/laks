@@ -482,12 +482,12 @@ $RECYCLE.BIN/
 *.swp
 
 
-src/Laks.Web/appsettings.Development.json
+Laks.Web/appsettings.Development.json
 
-src/Laks.Importer/credentials.json
+Laks.Importer/credentials.json
 
-src/Laks.Importer/tokens.json
+Laks.Importer/tokens.json
 
 .jumbo/
 .jumbo/jumbo.db
-src/Laks.Importer/token.json/Google.Apis.Auth.OAuth2.Responses.TokenResponse-user
+Laks.Importer/token.json/Google.Apis.Auth.OAuth2.Responses.TokenResponse-user
