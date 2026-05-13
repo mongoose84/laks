@@ -32,6 +32,14 @@
             <div class="ed-condition-label">Lufttemp</div>
             <div class="ed-condition-value">@(Model.CurrentWeather?.AirTemperatureC.HasValue == true ? Model.CurrentWeather.AirTemperatureC.Value.ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) + "°" : "—")</div>
         </article>
+        <article class="ed-condition-card">
+            <div class="ed-condition-label">Nedbør</div>
+            <div class="ed-condition-value">@FormatPrecip(Model.CurrentWeather?.PrecipitationMm)</div>
+        </article>
+        <article class="ed-condition-card">
+            <div class="ed-condition-label">Vind</div>
+            <div class="ed-condition-value">@Format(Model.CurrentWeather?.WindSpeedMs) <span style="font-size:0.7em;color:var(--ed-text-muted);">@Model.CurrentWeather?.WindDirection</span></div>
+        </article>
         <article class="ed-condition-card @risingClass">
             <div class="ed-condition-label">Vandstand</div>
             <div class="ed-condition-value">
@@ -43,14 +51,6 @@
         <article class="ed-condition-card">
             <div class="ed-condition-label">Vandtemp</div>
             <div class="ed-condition-value">@(Model.CurrentWaterLevel?.WaterTemperatureC.HasValue == true ? Model.CurrentWaterLevel.WaterTemperatureC.Value.ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) + "°" : "—")</div>
-        </article>
-        <article class="ed-condition-card">
-            <div class="ed-condition-label">Vind</div>
-            <div class="ed-condition-value">@Format(Model.CurrentWeather?.WindSpeedMs) <span style="font-size:0.7em;color:var(--ed-text-muted);">@Model.CurrentWeather?.WindDirection</span></div>
-        </article>
-        <article class="ed-condition-card">
-            <div class="ed-condition-label">Nedbør</div>
-            <div class="ed-condition-value">@FormatPrecip(Model.CurrentWeather?.PrecipitationMm)</div>
         </article>
     </div>
 </section>

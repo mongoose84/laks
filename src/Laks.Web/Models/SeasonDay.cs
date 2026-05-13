@@ -22,7 +22,7 @@ public class SeasonDay
             {
                 var days = (NextGroupStart.Value.Date - DateTime.UtcNow.Date).Days;
                 var teamSuffix = !string.IsNullOrWhiteSpace(NextGroupTeamName)
-                    ? $" · {NextGroupTeamName}"
+                    ? $" · Team {NextGroupTeamName}"
                     : "";
                 return days switch
                 {

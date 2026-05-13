@@ -34,7 +34,6 @@ public class IndexModel : PageModel
     public List<SeasonConfig> AvailableGroups { get; private set; } = [];
 
     public string IssueDateLabel { get; private set; } = string.Empty;
-    public string LedeText { get; private set; } = string.Empty;
     public string LastUpdatedLabel { get; private set; } = string.Empty;
 
     [BindProperty(SupportsGet = true)]
@@ -154,7 +153,6 @@ public class IndexModel : PageModel
 
         IssueDateLabel = BuildIssueDateLabel(now);
         LastUpdatedLabel = BuildLastUpdatedLabel(CurrentWaterLevel?.MeasuredAt, CurrentWeather?.MeasuredAt);
-        LedeText = BuildLedeText(CurrentWaterLevel, CurrentWeather, SeasonDay);
     }
 
     internal static string BuildIssueDateLabel(DateTime utcNow)
@@ -180,36 +178,7 @@ public class IndexModel : PageModel
         return $"Sidste opdatering · {local.ToString("HH:mm", CultureInfo.InvariantCulture)}";
     }
 
-    internal static string BuildLedeText(WaterLevelSnapshot? water, WeatherData? weather, SeasonDay seasonDay)
-    {
-        if (seasonDay.IsOffSeason)
-        {
-            return "Sæsonen er sluttet for i år. Holmfoss hviler, og vi venter på næste sommer.";
-        }
 
-        if (water is null && weather is null)
-        {
-            return "Ingen aktuelle målinger fra elven endnu i dag — kig forbi senere for friske tal.";
-        }
-
-        var trendSentence = water?.Trend switch
-        {
-            WaterLevelTrend.Rising => "Vandet stiger, og morgenens forhold lover godt.",
-            WaterLevelTrend.Falling => "Vandet falder, og elven klarner op time for time.",
-            WaterLevelTrend.Stable => "Vandstanden ligger stille, og elven holder sin rytme.",
-            _ => "Elven løber sin vante gang gennem Holmfoss."
-        };
-
-        var weatherSentence = weather?.WeatherSymbol switch
-        {
-            string s when s.Contains("rain", StringComparison.OrdinalIgnoreCase) => "Regnen falder over dalen, og fluen får selskab af friske dråber.",
-            string s when s.Contains("cloud", StringComparison.OrdinalIgnoreCase) => "Skyerne hænger lavt over dalen, og lyset er blødt at fiske i.",
-            string s when s.Contains("clear", StringComparison.OrdinalIgnoreCase) || s.Contains("fair", StringComparison.OrdinalIgnoreCase) => "Solen står klart over dalen, og dagen kalder ud til elven.",
-            _ => "Vejret holder sig over dalen, og betingelserne er værd at prøve af."
-        };
-
-        return $"{trendSentence} {weatherSentence}";
-    }
 
     private static DateTime ConvertToOslo(DateTime utc)
     {

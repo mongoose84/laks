@@ -115,7 +115,7 @@ public class ModelTests
             NextGroupTeamName = "Hold Rød"
         };
 
-        Assert.Equal("Fiskeriet starter i dag · Hold Rød", day.DisplayText);
+        Assert.Equal("Fiskeriet starter i dag · Team Hold Rød", day.DisplayText);
     }
 
     [Fact]
