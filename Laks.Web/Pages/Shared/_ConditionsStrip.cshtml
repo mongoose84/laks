@@ -1,0 +1,56 @@
+﻿@model Laks.Web.Pages.IndexModel
+@{
+    var trend = Model.CurrentWaterLevel?.Trend ?? Laks.Web.Models.WaterLevelTrend.Stable;
+    var trendArrow = trend switch
+    {
+        Laks.Web.Models.WaterLevelTrend.Rising => "↑",
+        Laks.Web.Models.WaterLevelTrend.Falling => "↓",
+        _ => "→"
+    };
+    var trendText = trend switch
+    {
+        Laks.Web.Models.WaterLevelTrend.Rising => "Stigende",
+        Laks.Web.Models.WaterLevelTrend.Falling => "Faldende",
+        _ => "Stabil"
+    };
+    var risingClass = trend == Laks.Web.Models.WaterLevelTrend.Rising ? "ed-condition-rising" : string.Empty;
+
+    string Format(decimal? value, string suffix = "") =>
+        value.HasValue ? value.Value.ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) + suffix : "—";
+
+    string FormatLevel(decimal? value) =>
+        value.HasValue ? value.Value.ToString("F2", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) : "—";
+
+    string FormatPrecip(decimal? value) =>
+        value.HasValue ? value.Value.ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) + " mm" : "—";
+}
+
+<section class="ed-section" aria-label="Aktuelle forhold">
+    <h2 class="ed-section-title">Aktuelle forhold <span class="ed-kicker">Målinger</span></h2>
+    <div class="ed-conditions-grid">
+        <article class="ed-condition-card">
+            <div class="ed-condition-label">Lufttemp</div>
+            <div class="ed-condition-value">@(Model.CurrentWeather?.AirTemperatureC.HasValue == true ? Model.CurrentWeather.AirTemperatureC.Value.ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) + "°" : "—")</div>
+        </article>
+        <article class="ed-condition-card">
+            <div class="ed-condition-label">Nedbør</div>
+            <div class="ed-condition-value">@FormatPrecip(Model.CurrentWeather?.PrecipitationMm)</div>
+        </article>
+        <article class="ed-condition-card">
+            <div class="ed-condition-label">Vind</div>
+            <div class="ed-condition-value">@Format(Model.CurrentWeather?.WindSpeedMs) <span style="font-size:0.7em;color:var(--ed-text-muted);">@Model.CurrentWeather?.WindDirection</span></div>
+        </article>
+        <article class="ed-condition-card @risingClass">
+            <div class="ed-condition-label">Vandstand</div>
+            <div class="ed-condition-value">
+                @FormatLevel(Model.CurrentWaterLevel?.LevelMeters)
+                <span aria-hidden="true">@trendArrow</span>
+                <span class="visually-hidden">@trendText</span>
+            </div>
+        </article>
+        <article class="ed-condition-card">
+            <div class="ed-condition-label">Vandtemp</div>
+            <div class="ed-condition-value">@(Model.CurrentWaterLevel?.WaterTemperatureC.HasValue == true ? Model.CurrentWaterLevel.WaterTemperatureC.Value.ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) + "°" : "—")</div>
+        </article>
+    </div>
+</section>

@@ -1,0 +1,41 @@
+﻿@model Laks.Web.Pages.IndexModel
+@{
+    var displayedTime = "—";
+    if (Model.CurrentWaterLevel?.MeasuredAt is DateTime measuredAt)
+    {
+        try
+        {
+            var osloZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+            displayedTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(measuredAt, DateTimeKind.Utc), osloZone).ToString("HH:mm");
+        }
+        catch
+        {
+            displayedTime = measuredAt.ToString("HH:mm");
+        }
+    }
+    var levelText = Model.CurrentWaterLevel?.LevelMeters?.ToString("F2", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) ?? "—";
+}
+
+<section class="ed-section" aria-labelledby="water-level-title">
+    <h2 id="water-level-title" class="ed-section-title">
+        Vandstand seneste 24 timer
+        <a href="https://sildre.nve.no/" target="_blank" rel="noopener">NVE kilde</a>
+    </h2>
+    <figure class="ed-chart-figure">
+        <div class="ed-chart-meta">
+            <span><span class="ed-current-level">@levelText m</span></span>
+            <span>Sidst opdateret · @displayedTime · Holmfoss 15.61.0</span>
+        </div>
+        @if (Model.WaterLevelChartJson == "[]")
+        {
+            <div class="ed-chart-empty">Ingen vandstandsmålinger de seneste 24 timer.</div>
+        }
+        else
+        {
+            <div class="ed-chart-wrap">
+                <canvas id="waterLevelChart" role="img" aria-label="Vandstandsgraf for de seneste 24 timer, Holmfoss station 15.61.0"></canvas>
+            </div>
+            <figcaption class="ed-chart-caption">Fig. 1 — Målinger fra NVE station 15.61.0, Holmfoss.</figcaption>
+        }
+    </figure>
+</section>

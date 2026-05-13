@@ -1,0 +1,12 @@
+﻿@model Laks.Web.Pages.IndexModel
+<div class="ed-top-bar">
+    <span>Sæson <span class="ed-issue">@Model.CurrentYear</span></span>
+    <nav class="ed-top-nav" aria-label="Hovednavigation">
+        <a asp-page="/Index">Forside</a>
+        <span aria-hidden="true">·</span>
+        <a asp-page="/Catches/Index">Fangster</a>
+        <span aria-hidden="true">·</span>
+        <a asp-page="/Statistics/Index">Statistik</a>
+    </nav>
+    <span>@Model.IssueDateLabel</span>
+</div>

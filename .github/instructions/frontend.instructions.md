@@ -8,7 +8,7 @@ Inherits from [global instructions](../copilot-instructions.md).
 
 ## Context Loading
 Review [project conventions](../../README.md) and
-[component patterns](../../src/) before starting.
+[component patterns](../../) before starting.
 
 ## Deterministic Requirements
 - Follow .cshtml best practices and conventions

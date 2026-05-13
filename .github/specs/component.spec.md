@@ -9,8 +9,8 @@
 **Type**: [ ] Razor Page | [ ] Partial View | [ ] Shared Layout Section
 
 **Location**:
-- Markup: `src/Laks.Web/Pages/[Path]/[Name].cshtml`
-- PageModel (if page): `src/Laks.Web/Pages/[Path]/[Name].cshtml.cs`
+- Markup: `Laks.Web/Pages/[Path]/[Name].cshtml`
+- PageModel (if page): `Laks.Web/Pages/[Path]/[Name].cshtml.cs`
 
 ## Inputs and Data Contract
 **Route/Input Parameters**:

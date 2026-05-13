@@ -18,43 +18,46 @@ A production-ready web application for tracking yearly salmon fishing results on
 laks/
 ├── .github/workflows/
 │   └── ci-cd.yml               # Build → Test → Publish → Deploy
-├── src/
-│   └── Laks.Web/
-│       ├── Data/
-│       │   ├── DbConnectionFactory.cs
-│       │   ├── Migrations/
-│       │   │   └── 001_initial_schema.sql   # Run once on the DB
-│       │   └── Repositories/
-│       │       ├── ICatchRepository.cs
-│       │       ├── CatchRepository.cs
-│       │       ├── ITripRepository.cs
-│       │       ├── TripRepository.cs
-│       │       ├── IAnglerRepository.cs
-│       │       └── AnglerRepository.cs
-│       ├── Models/
-│       │   ├── Catch.cs
-│       │   ├── Angler.cs
-│       │   ├── Trip.cs
-│       │   ├── Species.cs
-│       │   └── ChartModels.cs
-│       ├── Pages/
-│       │   ├── Index.cshtml(.cs)            # Home – latest trip + recent catches
-│       │   ├── Catches/
-│       │   │   └── Index.cshtml(.cs)        # Full catch log with trip filter
-│       │   ├── Statistics/
-│       │   │   └── Index.cshtml(.cs)        # 3 Chart.js charts
-│       │   └── Shared/_Layout.cshtml
-│       ├── wwwroot/css/site.css
-│       ├── Program.cs
-│       ├── appsettings.json
-│       ├── appsettings.Development.json
-│       ├── appsettings.Production.json
-│       └── web.config                       # IIS in-process hosting
-└── tests/
-    └── Laks.Web.Tests/
-        └── Unit/
-            ├── ModelTests.cs
-            └── StatisticsPageModelTests.cs
+├── Laks.Web/
+│   ├── Data/
+│   │   ├── DbConnectionFactory.cs
+│   │   ├── Migrations/
+│   │   │   └── 001_initial_schema.sql   # Run once on the DB
+│   │   └── Repositories/
+│   │       ├── ICatchRepository.cs
+│   │       ├── CatchRepository.cs
+│   │       ├── ITripRepository.cs
+│   │       ├── TripRepository.cs
+│   │       ├── IAnglerRepository.cs
+│   │       └── AnglerRepository.cs
+│   ├── Models/
+│   │   ├── Catch.cs
+│   │   ├── Angler.cs
+│   │   ├── Trip.cs
+│   │   ├── Species.cs
+│   │   └── ChartModels.cs
+│   ├── Pages/
+│   │   ├── Index.cshtml(.cs)            # Home – latest trip + recent catches
+│   │   ├── Catches/
+│   │   │   └── Index.cshtml(.cs)        # Full catch log with trip filter
+│   │   ├── Statistics/
+│   │   │   └── Index.cshtml(.cs)        # 3 Chart.js charts
+│   │   └── Shared/_Layout.cshtml
+│   ├── wwwroot/css/site.css
+│   ├── Program.cs
+│   ├── appsettings.json
+│   ├── appsettings.Development.json
+│   ├── appsettings.Production.json
+│   └── web.config                       # IIS in-process hosting
+├── Laks.Importer/
+│   ├── Program.cs
+│   ├── SheetsConnector.cs
+│   ├── DataConverter.cs
+│   └── ...
+└── Laks.Web.Tests/
+    └── Unit/
+        ├── ModelTests.cs
+        └── StatisticsPageModelTests.cs
 ```
 
 ---
@@ -82,12 +85,12 @@ dotnet restore Laks.slnx
 Run the migration script once:
 
 ```bash
-mysql -u root -p laks < src/Laks.Web/Data/Migrations/001_initial_schema.sql
+mysql -u root -p laks < Laks.Web/Data/Migrations/001_initial_schema.sql
 ```
 
 ### 3 – Configure the connection string (Development)
 
-Edit `src/Laks.Web/appsettings.Development.json`:
+Edit `Laks.Web/appsettings.Development.json`:
 
 ```json
 {
@@ -103,7 +106,7 @@ Edit `src/Laks.Web/appsettings.Development.json`:
 ### 4 – Run locally
 
 ```bash
-dotnet run --project .\src\Laks.Web\Laks.Web.csproj
+dotnet run --project .\Laks.Web\Laks.Web.csproj
 # Open the HTTPS URL shown in the terminal
 ```
 
