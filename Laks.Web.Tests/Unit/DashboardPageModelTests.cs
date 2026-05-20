@@ -256,6 +256,62 @@ public class DashboardPageModelTests
         Assert.True(model.LeaderboardPreview.Count() <= 5);
     }
 
+    [Fact]
+    public async Task OnGetAsync_LastSeasonLabelYear_ReflectsMostRecentSeasonWithCatches()
+    {
+        var model = new IndexModel(
+            new FakeSeasonRepository(),
+            new FakeCatchRepository(),
+            new FakeWeatherService(),
+            new FakeWaterLevelService(),
+            NullLogger<IndexModel>.Instance);
+
+        await model.OnGetAsync(CancellationToken.None);
+
+        Assert.Equal(2025, model.LastSeasonLabelYear);
+    }
+
+    [Fact]
+    public async Task OnGetAsync_LastYear_PreSeasonFallsBackToLastSeasonWithData()
+    {
+        var catches = new HistoricalFallbackCatchRepository();
+        var model = new IndexModel(
+            new FakeSeasonRepository(),
+            catches,
+            new FakeWeatherService(),
+            new FakeWaterLevelService(),
+            NullLogger<IndexModel>.Instance)
+        {
+            LeaderboardScope = "last-year"
+        };
+
+        await model.OnGetAsync(CancellationToken.None);
+
+        Assert.Equal(2024, model.LeaderboardYear);
+        Assert.NotEmpty(model.Leaderboard);
+        Assert.Equal(new[] { 2025, 2024, 2024 }, catches.RequestedYears);
+    }
+
+    [Fact]
+    public async Task OnGetAsync_LastYear_ActiveSeasonDoesNotFallback()
+    {
+        var catches = new HistoricalFallbackCatchRepository();
+        var model = new IndexModel(
+            new ActiveSeasonRepository(),
+            catches,
+            new FakeWeatherService(),
+            new FakeWaterLevelService(),
+            NullLogger<IndexModel>.Instance)
+        {
+            LeaderboardScope = "last-year"
+        };
+
+        await model.OnGetAsync(CancellationToken.None);
+
+        Assert.Equal(2025, model.LeaderboardYear);
+        Assert.Equal(new[] { 2025 }, catches.RequestedYears);
+    }
+
     private sealed class LargeLeaderboardCatchRepository : ICatchRepository
     {
         private static readonly IEnumerable<LeaderboardEntry> _leaderboard =
@@ -291,6 +347,48 @@ public class DashboardPageModelTests
         public Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null) => Task.FromResult<IEnumerable<BiggestSalmonPerTeam>>([]);
     }
 
+    private sealed class HistoricalFallbackCatchRepository : ICatchRepository
+    {
+        private static readonly IEnumerable<LeaderboardEntry> Empty = [];
+        private static readonly IEnumerable<LeaderboardEntry> Data =
+            Enumerable.Range(1, 3).Select(i => new LeaderboardEntry
+            {
+                Rank = i,
+                AnglerId = i,
+                AnglerName = $"Fisker {i}",
+                FishCount = 4 - i,
+                TotalWeightKg = (4 - i) * 7.5m,
+                BestWeightKg = 9m
+            });
+
+        public List<int> RequestedYears { get; } = [];
+
+        public Task<IEnumerable<LeaderboardEntry>> GetLeaderboardAsync(int year, int? groupNumber = null)
+        {
+            RequestedYears.Add(year);
+
+            return Task.FromResult(year switch
+            {
+                2025 => Empty,
+                2024 => Data,
+                _ => Empty
+            });
+        }
+
+        public Task<IEnumerable<Catch>> GetRecentAsync(int count = 20) => Task.FromResult<IEnumerable<Catch>>([]);
+        public Task<IEnumerable<Catch>> GetByYearAsync(int year) => Task.FromResult<IEnumerable<Catch>>([]);
+        public Task<IEnumerable<Catch>> GetByAnglerAsync(int anglerId) => Task.FromResult<IEnumerable<Catch>>([]);
+        public Task<int> GetTotalCountAsync() => Task.FromResult(0);
+        public Task<GroupSummary?> GetGroupSummaryAsync(int year, int groupNumber) => Task.FromResult<GroupSummary?>(null);
+        public Task<SeasonSummary?> GetSeasonSummaryAsync(int year) => Task.FromResult<SeasonSummary?>(null);
+        public Task<AllTimeRecords?> GetAllTimeRecordsAsync() => Task.FromResult<AllTimeRecords?>(null);
+        public Task<IEnumerable<CatchLocation>> GetCatchLocationsAsync(int? year = null) => Task.FromResult<IEnumerable<CatchLocation>>([]);
+        public Task<IEnumerable<CatchesPerYear>> GetCatchesPerYearAsync() => Task.FromResult<IEnumerable<CatchesPerYear>>([]);
+        public Task<IEnumerable<CatchesPerAngler>> GetCatchesPerAnglerAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesPerAngler>>([]);
+        public Task<IEnumerable<CatchesByType>> GetCatchesByTypeAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByType>>([]);
+        public Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null) => Task.FromResult<IEnumerable<BiggestSalmonPerTeam>>([]);
+    }
+
     private static List<SeasonConfig> ThreeGroupConfig(int year) =>
     [
         new() { Year = year, GroupNumber = 1, StartDate = new DateTime(year, 6, 21), EndDate = new DateTime(year, 6, 25) },
@@ -301,7 +399,12 @@ public class DashboardPageModelTests
     private sealed class FakeSeasonRepository : ISeasonRepository
     {
         public Task<IEnumerable<FishingSeason>> GetAllAsync() =>
-            Task.FromResult<IEnumerable<FishingSeason>>([new FishingSeason { Year = 2026 }]);
+            Task.FromResult<IEnumerable<FishingSeason>>(
+            [
+                new FishingSeason { Year = 2024, TotalCatches = 18 },
+                new FishingSeason { Year = 2025, TotalCatches = 31 },
+                new FishingSeason { Year = 2026, TotalCatches = 0 }
+            ]);
 
         public Task<FishingSeason?> GetByYearAsync(int year) =>
             Task.FromResult<FishingSeason?>(new FishingSeason { Year = year, ParticipantCount = 36 });
@@ -315,6 +418,27 @@ public class DashboardPageModelTests
                 new SeasonConfig { Year = year, GroupNumber = 1, StartDate = new DateTime(year, 6, 21), EndDate = new DateTime(year, 6, 25) },
                 new SeasonConfig { Year = year, GroupNumber = 2, StartDate = new DateTime(year, 6, 26), EndDate = new DateTime(year, 6, 30) },
                 new SeasonConfig { Year = year, GroupNumber = 3, StartDate = new DateTime(year, 7, 1), EndDate = new DateTime(year, 7, 5) }
+            ]);
+
+        public Task<int?> GetAnglerGroupAsync(int year, int anglerId) =>
+            Task.FromResult<int?>(2);
+    }
+
+    private sealed class ActiveSeasonRepository : ISeasonRepository
+    {
+        public Task<IEnumerable<FishingSeason>> GetAllAsync() =>
+            Task.FromResult<IEnumerable<FishingSeason>>([new FishingSeason { Year = 2026 }]);
+
+        public Task<FishingSeason?> GetByYearAsync(int year) =>
+            Task.FromResult<FishingSeason?>(new FishingSeason { Year = year, ParticipantCount = 36 });
+
+        public Task<FishingSeason?> GetLatestAsync() =>
+            Task.FromResult<FishingSeason?>(new FishingSeason { Year = 2026, ParticipantCount = 36 });
+
+        public Task<IEnumerable<SeasonConfig>> GetSeasonConfigAsync(int year) =>
+            Task.FromResult<IEnumerable<SeasonConfig>>(
+            [
+                new SeasonConfig { Year = year, GroupNumber = 1, StartDate = new DateTime(year, 5, 1), EndDate = new DateTime(year, 5, 30) }
             ]);
 
         public Task<int?> GetAnglerGroupAsync(int year, int anglerId) =>

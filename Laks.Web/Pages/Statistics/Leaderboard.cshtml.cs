@@ -20,6 +20,9 @@ public class LeaderboardModel : PageModel
     public string LeaderboardScope { get; set; } = "my-group";
 
     [BindProperty(SupportsGet = true)]
+    public int? Year { get; set; }
+
+    [BindProperty(SupportsGet = true)]
     public int? GroupNumber { get; set; }
 
     public LeaderboardModel(
@@ -62,7 +65,7 @@ public class LeaderboardModel : PageModel
             var (year, group) = LeaderboardScope switch
             {
                 "all-groups" => (CurrentYear, (int?)null),
-                "last-year" => (CurrentYear - 1, (int?)null),
+                "last-year" => (Year.GetValueOrDefault(CurrentYear - 1), (int?)null),
                 _ => (CurrentYear, SelectedGroup)
             };
 

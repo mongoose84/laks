@@ -15,7 +15,7 @@
            asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>
         <a class="ed-pill @(Model.LeaderboardScope == "last-year" ? "is-active" : "")"
            asp-page="/Index"
-           asp-route-leaderboardScope="last-year">Sidste år</a>
+           asp-route-leaderboardScope="last-year">@Model.LastSeasonLabelYear</a>
     </div>
 
     @if (Model.AvailableGroups.Count > 1 && Model.LeaderboardScope == "my-group")
@@ -57,6 +57,7 @@
             <div class="ed-lb-see-all">
                 <a asp-page="/Statistics/Leaderboard"
                    asp-route-leaderboardScope="@Model.LeaderboardScope"
+                   asp-route-year="@Model.LeaderboardYear"
                    asp-route-groupNumber="@Model.SelectedGroup"
                    aria-label="Se hele ranglisten med alle @Model.LeaderboardTotalCount deltagere">
                     Se hele ranglisten (@Model.LeaderboardTotalCount) →

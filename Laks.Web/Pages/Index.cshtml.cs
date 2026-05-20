@@ -19,6 +19,8 @@ public class IndexModel : PageModel
     private readonly ILogger<IndexModel> _logger;
 
     public int CurrentYear { get; private set; }
+    public int LeaderboardYear { get; private set; }
+    public int LastSeasonLabelYear { get; private set; }
     public WeatherData? CurrentWeather { get; private set; }
     public WaterLevelSnapshot? CurrentWaterLevel { get; private set; }
     public SeasonDay SeasonDay { get; private set; } = new();
@@ -66,7 +68,8 @@ public class IndexModel : PageModel
         var waterSnapshotTask = SafeCallAsync(() => _waterLevelService.GetCurrentAsync(cancellationToken), "load current water level");
         var waterReadingsTask = SafeCallAsync(() => _waterLevelService.GetLast24HoursAsync(cancellationToken), "load water level series");
         var seasonConfigTask = SafeCallAsync(() => _seasons.GetSeasonConfigAsync(CurrentYear), "load season config");
-        var recentTask = SafeCallAsync(() => _catches.GetRecentAsync(10), "load recent catches");
+        var allSeasonsTask = SafeCallAsync(() => _seasons.GetAllAsync(), "load all seasons");
+        var recentTask = SafeCallAsync(() => _catches.GetRecentAsync(3), "load recent catches");
         var seasonSummaryTask = SafeCallAsync(() => _catches.GetSeasonSummaryAsync(CurrentYear), "load season summary");
         var recordsTask = SafeCallAsync(() => _catches.GetAllTimeRecordsAsync(), "load all time records");
         var seasonLocationsTask = SafeCallAsync(() => _catches.GetCatchLocationsAsync(CurrentYear), "load current season map locations");
@@ -77,6 +80,7 @@ public class IndexModel : PageModel
             waterSnapshotTask,
             waterReadingsTask,
             seasonConfigTask,
+            allSeasonsTask,
             recentTask,
             seasonSummaryTask,
             recordsTask,
@@ -93,12 +97,26 @@ public class IndexModel : PageModel
         AvailableGroups = seasonConfig;
         SeasonDay = BuildSeasonDay(seasonConfig, DateTime.UtcNow.Date);
 
+        var allSeasons = (await allSeasonsTask) ?? [];
+        LastSeasonLabelYear = allSeasons
+            .Where(s => s.Year < CurrentYear && s.TotalCatches > 0)
+            .Select(s => s.Year)
+            .DefaultIfEmpty(CurrentYear - 1)
+            .Max();
+
         var selectedGroup = ResolveSelectedGroup(seasonConfig, GroupNumber, SeasonDay.GroupNumber);
         SelectedGroup = selectedGroup;
         var (leaderboardYear, leaderboardGroup) = ResolveLeaderboardScope(selectedGroup);
 
+        if (ShouldFallbackToEarlierSeason())
+        {
+            leaderboardYear = await ResolveHistoricalLeaderboardYearAsync(leaderboardYear);
+        }
+
+        LeaderboardYear = leaderboardYear;
+
         Leaderboard = await SafeCallAsync(
-                          () => _catches.GetLeaderboardAsync(leaderboardYear, leaderboardGroup),
+                          () => _catches.GetLeaderboardAsync(LeaderboardYear, leaderboardGroup),
                           "load leaderboard")
                       ?? [];
 
@@ -235,6 +253,39 @@ public class IndexModel : PageModel
             "last-year" => (CurrentYear - 1, null),
             _ => (CurrentYear, selectedGroup)
         };
+    }
+
+    private bool ShouldFallbackToEarlierSeason()
+    {
+        return LeaderboardScope == "last-year"
+               && SeasonDay.IsOffSeason
+               && SeasonDay.NextGroupStart.HasValue
+               && DateTime.UtcNow.Date < SeasonDay.NextGroupStart.Value.Date;
+    }
+
+    private async Task<int> ResolveHistoricalLeaderboardYearAsync(int startYear)
+    {
+        var candidateYears = new List<int> { startYear };
+
+        var seasonYears = (await SafeCallAsync(() => _seasons.GetAllAsync(), "load season history") ?? [])
+            .Select(season => season.Year)
+            .Where(year => year < startYear)
+            .Distinct()
+            .OrderByDescending(year => year)
+            .ToList();
+
+        candidateYears.AddRange(seasonYears);
+
+        foreach (var year in candidateYears.Distinct())
+        {
+            var leaderboard = await SafeCallAsync(() => _catches.GetLeaderboardAsync(year, null), $"load leaderboard year {year}") ?? [];
+            if (leaderboard.Any())
+            {
+                return year;
+            }
+        }
+
+        return startYear;
     }
 
     private static int? ResolveSelectedGroup(IEnumerable<SeasonConfig> configs, int? requestedGroup, int? currentGroup)
