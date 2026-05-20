@@ -17,12 +17,17 @@ public class IndexModel : PageModel
     private readonly IWeatherService _weatherService;
     private readonly IWaterLevelService _waterLevelService;
     private readonly ILogger<IndexModel> _logger;
+    private readonly TimeProvider _timeProvider;
 
     public int CurrentYear { get; private set; }
+    public int LeaderboardYear { get; private set; }
+    public int LastSeasonLabelYear { get; private set; }
     public WeatherData? CurrentWeather { get; private set; }
     public WaterLevelSnapshot? CurrentWaterLevel { get; private set; }
     public SeasonDay SeasonDay { get; private set; } = new();
     public IEnumerable<LeaderboardEntry> Leaderboard { get; private set; } = [];
+    public IEnumerable<LeaderboardEntry> LeaderboardPreview { get; private set; } = [];
+    public int LeaderboardTotalCount { get; private set; }
     public List<GroupSummary> GroupSummaries { get; private set; } = [];
     public int? SelectedGroup { get; private set; }
     public IEnumerable<Catch> RecentCatches { get; private set; } = [];
@@ -47,24 +52,28 @@ public class IndexModel : PageModel
         ICatchRepository catches,
         IWeatherService weatherService,
         IWaterLevelService waterLevelService,
-        ILogger<IndexModel> logger)
+        ILogger<IndexModel> logger,
+        TimeProvider? timeProvider = null)
     {
         _seasons = seasons;
         _catches = catches;
         _weatherService = weatherService;
         _waterLevelService = waterLevelService;
         _logger = logger;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
-        CurrentYear = DateTime.UtcNow.Year;
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        CurrentYear = now.Year;
 
         var weatherTask = SafeCallAsync(() => _weatherService.GetCurrentAsync(cancellationToken), "load weather");
         var waterSnapshotTask = SafeCallAsync(() => _waterLevelService.GetCurrentAsync(cancellationToken), "load current water level");
         var waterReadingsTask = SafeCallAsync(() => _waterLevelService.GetLast24HoursAsync(cancellationToken), "load water level series");
         var seasonConfigTask = SafeCallAsync(() => _seasons.GetSeasonConfigAsync(CurrentYear), "load season config");
-        var recentTask = SafeCallAsync(() => _catches.GetRecentAsync(10), "load recent catches");
+        var allSeasonsTask = SafeCallAsync(() => _seasons.GetAllAsync(), "load all seasons");
+        var recentTask = SafeCallAsync(() => _catches.GetRecentAsync(3), "load recent catches");
         var seasonSummaryTask = SafeCallAsync(() => _catches.GetSeasonSummaryAsync(CurrentYear), "load season summary");
         var recordsTask = SafeCallAsync(() => _catches.GetAllTimeRecordsAsync(), "load all time records");
         var seasonLocationsTask = SafeCallAsync(() => _catches.GetCatchLocationsAsync(CurrentYear), "load current season map locations");
@@ -75,6 +84,7 @@ public class IndexModel : PageModel
             waterSnapshotTask,
             waterReadingsTask,
             seasonConfigTask,
+            allSeasonsTask,
             recentTask,
             seasonSummaryTask,
             recordsTask,
@@ -89,16 +99,37 @@ public class IndexModel : PageModel
 
         var seasonConfig = (await seasonConfigTask)?.ToList() ?? [];
         AvailableGroups = seasonConfig;
-        SeasonDay = BuildSeasonDay(seasonConfig, DateTime.UtcNow.Date);
+        SeasonDay = BuildSeasonDay(seasonConfig, now.Date);
+
+        var allSeasons = (await allSeasonsTask) ?? [];
+        LastSeasonLabelYear = allSeasons
+            .Where(s => s.Year < CurrentYear && s.TotalCatches > 0)
+            .Select(s => s.Year)
+            .DefaultIfEmpty(CurrentYear - 1)
+            .Max();
 
         var selectedGroup = ResolveSelectedGroup(seasonConfig, GroupNumber, SeasonDay.GroupNumber);
         SelectedGroup = selectedGroup;
         var (leaderboardYear, leaderboardGroup) = ResolveLeaderboardScope(selectedGroup);
 
+        if (ShouldFallbackToEarlierSeason())
+        {
+            leaderboardYear = allSeasons
+                .Where(s => s.Year < leaderboardYear && s.TotalCatches > 0)
+                .Select(s => s.Year)
+                .DefaultIfEmpty(leaderboardYear)
+                .Max();
+        }
+
+        LeaderboardYear = leaderboardYear;
+
         Leaderboard = await SafeCallAsync(
-                          () => _catches.GetLeaderboardAsync(leaderboardYear, leaderboardGroup),
+                          () => _catches.GetLeaderboardAsync(LeaderboardYear, leaderboardGroup),
                           "load leaderboard")
                       ?? [];
+
+        LeaderboardPreview = Leaderboard.Take(5).ToList();
+        LeaderboardTotalCount = Leaderboard.Count();
 
         var groupSummaryTasks = seasonConfig
             .Select(g => SafeCallAsync(
@@ -122,7 +153,6 @@ public class IndexModel : PageModel
                 v = r.LevelMeters
             }));
 
-        var now = DateTime.UtcNow;
         CatchLocationsCurrentSeasonJson = JsonSerializer.Serialize((await seasonLocationsTask ?? [])
             .Select(c => new
             {
@@ -230,6 +260,14 @@ public class IndexModel : PageModel
             "last-year" => (CurrentYear - 1, null),
             _ => (CurrentYear, selectedGroup)
         };
+    }
+
+    private bool ShouldFallbackToEarlierSeason()
+    {
+        return LeaderboardScope == "last-year"
+               && SeasonDay.IsOffSeason
+               && SeasonDay.NextGroupStart.HasValue
+               && _timeProvider.GetUtcNow().UtcDateTime.Date < SeasonDay.NextGroupStart.Value.Date;
     }
 
     private static int? ResolveSelectedGroup(IEnumerable<SeasonConfig> configs, int? requestedGroup, int? currentGroup)

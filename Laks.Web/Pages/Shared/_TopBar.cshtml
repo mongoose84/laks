@@ -1,12 +1,48 @@
 ﻿@model Laks.Web.Pages.IndexModel
 <div class="ed-top-bar">
     <span>Sæson <span class="ed-issue">@Model.CurrentYear</span></span>
-    <nav class="ed-top-nav" aria-label="Hovednavigation">
+    <div class="ed-top-bar-right">
+        <span class="ed-top-bar-date">@Model.IssueDateLabel</span>
+        <button type="button" class="ed-burger" id="edBurger"
+                aria-label="Åbn navigation" aria-expanded="false" aria-controls="edNavDrawer">
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor" aria-hidden="true">
+                <rect y="0" width="16" height="2" rx="1"/>
+                <rect y="5" width="16" height="2" rx="1"/>
+                <rect y="10" width="16" height="2" rx="1"/>
+            </svg>
+        </button>
+    </div>
+    <nav class="ed-nav-drawer" id="edNavDrawer" aria-label="Hovednavigation">
         <a asp-page="/Index">Forside</a>
-        <span aria-hidden="true">·</span>
         <a asp-page="/Catches/Index">Fangster</a>
-        <span aria-hidden="true">·</span>
         <a asp-page="/Statistics/Index">Statistik</a>
     </nav>
-    <span>@Model.IssueDateLabel</span>
 </div>
+<script>
+(function () {
+    document.documentElement.classList.add('js');
+    var btn = document.getElementById('edBurger');
+    var drawer = document.getElementById('edNavDrawer');
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = drawer.classList.toggle('is-open');
+        btn.setAttribute('aria-expanded', String(open));
+        btn.setAttribute('aria-label', open ? 'Luk navigation' : 'Åbn navigation');
+    });
+    document.addEventListener('click', function (e) {
+        if (!drawer.contains(e.target) && !btn.contains(e.target)) {
+            drawer.classList.remove('is-open');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.setAttribute('aria-label', 'Åbn navigation');
+        }
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            drawer.classList.remove('is-open');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.setAttribute('aria-label', 'Åbn navigation');
+            btn.focus();
+        }
+    });
+}());
+</script>

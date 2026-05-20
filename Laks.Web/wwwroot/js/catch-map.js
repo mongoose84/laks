@@ -14,7 +14,7 @@
     var allButton = document.getElementById("mapScopeAll");
     var empty = document.getElementById("catchMapEmpty");
 
-    var map = L.map("catchMap").setView([59.186959, 9.993806], 13);
+    var map = L.map("catchMap").setView([59.186959, 9.993806], 16);
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
         attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
     }).addTo(map);
@@ -103,5 +103,5 @@
     seasonButton.addEventListener("click", function () { setMode("season"); });
     allButton.addEventListener("click", function () { setMode("all"); });
 
-    setMode("season");
+    setMode(seasonData.length === 0 ? "all" : "season");
 })();

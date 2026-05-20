@@ -2,25 +2,25 @@
 @{
     var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
 }
-<section class="ed-section" aria-labelledby="leaderboard-title">
-    <h2 id="leaderboard-title" class="ed-section-title">Sæsontavlen <span class="ed-kicker">Top</span></h2>
+<section class="ed-section ed-section--leaderboard" aria-labelledby="leaderboard-title">
+    <h2 id="leaderboard-title" class="ed-section-title">Sæsontavlen <span class="ed-kicker">Top 5</span></h2>
 
     <div class="ed-lb-controls" role="group" aria-label="Rangliste-omfang">
         <a class="ed-pill @(Model.LeaderboardScope == "my-group" ? "is-active" : "")"
            asp-page="/Index"
            asp-route-leaderboardScope="my-group"
-           asp-route-groupNumber="@Model.GroupNumber">Mit hold</a>
+           asp-route-groupNumber="@Model.SelectedGroup">Mit hold</a>
         <a class="ed-pill @(Model.LeaderboardScope == "all-groups" ? "is-active" : "")"
            asp-page="/Index"
            asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>
         <a class="ed-pill @(Model.LeaderboardScope == "last-year" ? "is-active" : "")"
            asp-page="/Index"
-           asp-route-leaderboardScope="last-year">Sidste år</a>
+           asp-route-leaderboardScope="last-year">@Model.LastSeasonLabelYear</a>
     </div>
 
     @if (Model.AvailableGroups.Count > 1 && Model.LeaderboardScope == "my-group")
     {
-        <div class="ed-lb-controls" role="group" aria-label="Vælg hold">
+        <div class="ed-lb-controls ed-lb-controls--groups" role="group" aria-label="Vælg hold">
             <span class="ed-lb-group-label">Hold</span>
             @foreach (var g in Model.AvailableGroups)
             {
@@ -32,39 +32,47 @@
         </div>
     }
 
-    @if (!Model.Leaderboard.Any())
+    @if (!Model.LeaderboardPreview.Any())
     {
         <div class="ed-lb-empty">Ingen rangliste-data tilgængelig.</div>
     }
     else
     {
-        <div>
-            @foreach (var item in Model.Leaderboard)
+        <div class="ed-lb-list">
+            @foreach (var item in Model.LeaderboardPreview)
             {
-                <div class="ed-lb-row">
+                <div class="ed-lb-row @(item.Rank == 1 ? "ed-lb-row--leader" : "")">
                     <span class="ed-lb-rank">@item.Rank</span>
                     <span class="ed-lb-name">@item.AnglerName</span>
                     <div class="ed-lb-stats">
                         <span class="ed-lb-weight">@item.TotalWeightKg.ToString("F1", da) kg</span>
-                        @item.FishCount fisk · bedste @item.BestWeightKg.ToString("F1", da) kg
+                        <span>@item.FishCount fisk</span>
                     </div>
                 </div>
             }
         </div>
+
+        @if (Model.LeaderboardTotalCount > 5)
+        {
+            <div class="ed-lb-see-all">
+                <a asp-page="/Statistics/Leaderboard"
+                   asp-route-leaderboardScope="@Model.LeaderboardScope"
+                   asp-route-year="@Model.LeaderboardYear"
+                   asp-route-groupNumber="@Model.SelectedGroup"
+                   aria-label="Se hele ranglisten med alle @Model.LeaderboardTotalCount deltagere">
+                    Se hele ranglisten (@Model.LeaderboardTotalCount) →
+                </a>
+            </div>
+        }
     }
 
     @if (Model.GroupSummaries.Count > 0)
     {
-        <div class="ed-lb-groups">
-            @for (var i = 0; i < Model.GroupSummaries.Count; i++)
+        <div class="ed-lb-groups" role="group" aria-label="Hold-oversigt">
+            @foreach (var group in Model.GroupSummaries)
             {
-                var group = Model.GroupSummaries[i];
                 var isSel = group.GroupNumber == Model.SelectedGroup;
-                <span class="@(isSel ? "is-selected" : "")">Hold @group.GroupNumber (@group.Label): @group.FishCount fisk / @group.TotalWeightKg.ToString("F1", da) kg</span>
-                if (i < Model.GroupSummaries.Count - 1)
-                {
-                    <span> · </span>
-                }
+                <span class="ed-lb-group-chip @(isSel ? "is-selected" : "")">Hold @group.GroupNumber: @group.FishCount fisk / @group.TotalWeightKg.ToString("F1", da) kg</span>
             }
         </div>
     }
