@@ -275,12 +275,14 @@ public class DashboardPageModelTests
     public async Task OnGetAsync_LastYear_PreSeasonFallsBackToLastSeasonWithData()
     {
         var catches = new HistoricalFallbackCatchRepository();
+        // Freeze time before the season starts (June 21) so ShouldFallbackToEarlierSeason() is deterministic.
         var model = new IndexModel(
             new FakeSeasonRepository(),
             catches,
             new FakeWeatherService(),
             new FakeWaterLevelService(),
-            NullLogger<IndexModel>.Instance)
+            NullLogger<IndexModel>.Instance,
+            new FakeTimeProvider(new DateTimeOffset(2026, 5, 20, 12, 0, 0, TimeSpan.Zero)))
         {
             LeaderboardScope = "last-year"
         };
@@ -289,19 +291,22 @@ public class DashboardPageModelTests
 
         Assert.Equal(2024, model.LeaderboardYear);
         Assert.NotEmpty(model.Leaderboard);
-        Assert.Equal(new[] { 2025, 2024, 2024 }, catches.RequestedYears);
+        // Year is resolved from allSeasons.TotalCatches — only one GetLeaderboardAsync call for the resolved year.
+        Assert.Equal(new[] { 2024 }, catches.RequestedYears);
     }
 
     [Fact]
     public async Task OnGetAsync_LastYear_ActiveSeasonDoesNotFallback()
     {
         var catches = new HistoricalFallbackCatchRepository();
+        // Freeze time inside the active season (May 1–30) so IsOffSeason is false and no fallback occurs.
         var model = new IndexModel(
             new ActiveSeasonRepository(),
             catches,
             new FakeWeatherService(),
             new FakeWaterLevelService(),
-            NullLogger<IndexModel>.Instance)
+            NullLogger<IndexModel>.Instance,
+            new FakeTimeProvider(new DateTimeOffset(2026, 5, 15, 12, 0, 0, TimeSpan.Zero)))
         {
             LeaderboardScope = "last-year"
         };
@@ -387,6 +392,11 @@ public class DashboardPageModelTests
         public Task<IEnumerable<CatchesPerAngler>> GetCatchesPerAnglerAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesPerAngler>>([]);
         public Task<IEnumerable<CatchesByType>> GetCatchesByTypeAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByType>>([]);
         public Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null) => Task.FromResult<IEnumerable<BiggestSalmonPerTeam>>([]);
+    }
+
+    private sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => utcNow;
     }
 
     private static List<SeasonConfig> ThreeGroupConfig(int year) =>

@@ -17,6 +17,7 @@ public class IndexModel : PageModel
     private readonly IWeatherService _weatherService;
     private readonly IWaterLevelService _waterLevelService;
     private readonly ILogger<IndexModel> _logger;
+    private readonly TimeProvider _timeProvider;
 
     public int CurrentYear { get; private set; }
     public int LeaderboardYear { get; private set; }
@@ -51,18 +52,21 @@ public class IndexModel : PageModel
         ICatchRepository catches,
         IWeatherService weatherService,
         IWaterLevelService waterLevelService,
-        ILogger<IndexModel> logger)
+        ILogger<IndexModel> logger,
+        TimeProvider? timeProvider = null)
     {
         _seasons = seasons;
         _catches = catches;
         _weatherService = weatherService;
         _waterLevelService = waterLevelService;
         _logger = logger;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
-        CurrentYear = DateTime.UtcNow.Year;
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        CurrentYear = now.Year;
 
         var weatherTask = SafeCallAsync(() => _weatherService.GetCurrentAsync(cancellationToken), "load weather");
         var waterSnapshotTask = SafeCallAsync(() => _waterLevelService.GetCurrentAsync(cancellationToken), "load current water level");
@@ -95,7 +99,7 @@ public class IndexModel : PageModel
 
         var seasonConfig = (await seasonConfigTask)?.ToList() ?? [];
         AvailableGroups = seasonConfig;
-        SeasonDay = BuildSeasonDay(seasonConfig, DateTime.UtcNow.Date);
+        SeasonDay = BuildSeasonDay(seasonConfig, now.Date);
 
         var allSeasons = (await allSeasonsTask) ?? [];
         LastSeasonLabelYear = allSeasons
@@ -110,7 +114,11 @@ public class IndexModel : PageModel
 
         if (ShouldFallbackToEarlierSeason())
         {
-            leaderboardYear = await ResolveHistoricalLeaderboardYearAsync(leaderboardYear);
+            leaderboardYear = allSeasons
+                .Where(s => s.Year < leaderboardYear && s.TotalCatches > 0)
+                .Select(s => s.Year)
+                .DefaultIfEmpty(leaderboardYear)
+                .Max();
         }
 
         LeaderboardYear = leaderboardYear;
@@ -145,7 +153,6 @@ public class IndexModel : PageModel
                 v = r.LevelMeters
             }));
 
-        var now = DateTime.UtcNow;
         CatchLocationsCurrentSeasonJson = JsonSerializer.Serialize((await seasonLocationsTask ?? [])
             .Select(c => new
             {
@@ -260,32 +267,7 @@ public class IndexModel : PageModel
         return LeaderboardScope == "last-year"
                && SeasonDay.IsOffSeason
                && SeasonDay.NextGroupStart.HasValue
-               && DateTime.UtcNow.Date < SeasonDay.NextGroupStart.Value.Date;
-    }
-
-    private async Task<int> ResolveHistoricalLeaderboardYearAsync(int startYear)
-    {
-        var candidateYears = new List<int> { startYear };
-
-        var seasonYears = (await SafeCallAsync(() => _seasons.GetAllAsync(), "load season history") ?? [])
-            .Select(season => season.Year)
-            .Where(year => year < startYear)
-            .Distinct()
-            .OrderByDescending(year => year)
-            .ToList();
-
-        candidateYears.AddRange(seasonYears);
-
-        foreach (var year in candidateYears.Distinct())
-        {
-            var leaderboard = await SafeCallAsync(() => _catches.GetLeaderboardAsync(year, null), $"load leaderboard year {year}") ?? [];
-            if (leaderboard.Any())
-            {
-                return year;
-            }
-        }
-
-        return startYear;
+               && _timeProvider.GetUtcNow().UtcDateTime.Date < SeasonDay.NextGroupStart.Value.Date;
     }
 
     private static int? ResolveSelectedGroup(IEnumerable<SeasonConfig> configs, int? requestedGroup, int? currentGroup)
