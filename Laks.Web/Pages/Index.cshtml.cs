@@ -23,6 +23,8 @@ public class IndexModel : PageModel
     public WaterLevelSnapshot? CurrentWaterLevel { get; private set; }
     public SeasonDay SeasonDay { get; private set; } = new();
     public IEnumerable<LeaderboardEntry> Leaderboard { get; private set; } = [];
+    public IEnumerable<LeaderboardEntry> LeaderboardPreview { get; private set; } = [];
+    public int LeaderboardTotalCount { get; private set; }
     public List<GroupSummary> GroupSummaries { get; private set; } = [];
     public int? SelectedGroup { get; private set; }
     public IEnumerable<Catch> RecentCatches { get; private set; } = [];
@@ -99,6 +101,9 @@ public class IndexModel : PageModel
                           () => _catches.GetLeaderboardAsync(leaderboardYear, leaderboardGroup),
                           "load leaderboard")
                       ?? [];
+
+        LeaderboardPreview = Leaderboard.Take(5).ToList();
+        LeaderboardTotalCount = Leaderboard.Count();
 
         var groupSummaryTasks = seasonConfig
             .Select(g => SafeCallAsync(
