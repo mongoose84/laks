@@ -8,6 +8,8 @@ namespace Laks.Web.Tests.Unit;
 
 public class DashboardPageModelTests
 {
+    private const int TestCurrentYear = 2026;
+
     [Fact]
     public async Task OnGetAsync_LoadsDashboardSections()
     {
@@ -21,7 +23,8 @@ public class DashboardPageModelTests
             catches,
             weather,
             water,
-            NullLogger<IndexModel>.Instance)
+            NullLogger<IndexModel>.Instance,
+            new FakeTimeProvider(new DateTimeOffset(TestCurrentYear, 6, 26, 12, 0, 0, TimeSpan.Zero)))
         {
             GroupNumber = 2,
             LeaderboardScope = "my-group"
@@ -29,7 +32,7 @@ public class DashboardPageModelTests
 
         await model.OnGetAsync(CancellationToken.None);
 
-        Assert.Equal(DateTime.UtcNow.Year, model.CurrentYear);
+        Assert.Equal(TestCurrentYear, model.CurrentYear);
         Assert.NotNull(model.CurrentWeather);
         Assert.NotNull(model.CurrentWaterLevel);
         Assert.NotEmpty(model.Leaderboard);
@@ -259,17 +262,17 @@ public class DashboardPageModelTests
     [Fact]
     public async Task OnGetAsync_LastSeasonLabelYear_ReflectsMostRecentSeasonWithCatches()
     {
-        var currentYear = DateTime.UtcNow.Year;
         var model = new IndexModel(
             new FakeSeasonRepository(),
             new FakeCatchRepository(),
             new FakeWeatherService(),
             new FakeWaterLevelService(),
-            NullLogger<IndexModel>.Instance);
+            NullLogger<IndexModel>.Instance,
+            new FakeTimeProvider(new DateTimeOffset(TestCurrentYear, 6, 26, 12, 0, 0, TimeSpan.Zero)));
 
         await model.OnGetAsync(CancellationToken.None);
 
-        Assert.Equal(currentYear - 1, model.LastSeasonLabelYear);
+        Assert.Equal(TestCurrentYear - 1, model.LastSeasonLabelYear);
     }
 
     [Fact]
@@ -411,9 +414,9 @@ public class DashboardPageModelTests
         new() { Year = year, GroupNumber = 3, StartDate = new DateTime(year, 7, 1), EndDate = new DateTime(year, 7, 5) }
     ];
 
-    private sealed class FakeSeasonRepository(int currentYear = 0) : ISeasonRepository
+    private sealed class FakeSeasonRepository(int currentYear = TestCurrentYear) : ISeasonRepository
     {
-        private readonly int _currentYear = currentYear == 0 ? DateTime.UtcNow.Year : currentYear;
+        private readonly int _currentYear = currentYear;
 
         public Task<IEnumerable<FishingSeason>> GetAllAsync() =>
             Task.FromResult<IEnumerable<FishingSeason>>(

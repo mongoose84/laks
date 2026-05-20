@@ -104,7 +104,7 @@ public class LeaderboardPageModelTests
 
     private sealed class FakeLeaderboardSeasonRepository : ISeasonRepository
     {
-        private static readonly int Year = DateTime.UtcNow.Year;
+        private const int Year = 2026;
 
         public Task<IEnumerable<FishingSeason>> GetAllAsync() =>
             Task.FromResult<IEnumerable<FishingSeason>>([new FishingSeason { Year = Year }]);
