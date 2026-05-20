@@ -252,7 +252,7 @@ public class DashboardPageModelTests
         await model.OnGetAsync(CancellationToken.None);
 
         Assert.Equal(model.Leaderboard.Count(), model.LeaderboardTotalCount);
-        Assert.Equal(model.LeaderboardPreview.Count(), model.LeaderboardPreview.Count());
+        Assert.Equal(Math.Min(5, model.LeaderboardTotalCount), model.LeaderboardPreview.Count());
         Assert.True(model.LeaderboardPreview.Count() <= 5);
     }
 
