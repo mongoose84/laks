@@ -75,7 +75,6 @@
 }
 .js .ed-nav-drawer { display: none; }
 .js .ed-nav-drawer.is-open { display: flex; }
-.ed-nav-drawer.is-open { display: flex; }
 .ed-nav-drawer a {
     display: block;
     padding: 0.55rem 1.2rem;
