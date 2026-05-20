@@ -61,7 +61,7 @@
 }
 .ed-burger:hover { color: var(--ed-text-primary); }
 .ed-nav-drawer {
-    display: none;
+    display: flex;
     flex-direction: column;
     position: absolute;
     top: 100%;
@@ -73,6 +73,8 @@
     z-index: 200;
     padding: 0.4rem 0;
 }
+.js .ed-nav-drawer { display: none; }
+.js .ed-nav-drawer.is-open { display: flex; }
 .ed-nav-drawer.is-open { display: flex; }
 .ed-nav-drawer a {
     display: block;

@@ -9,7 +9,7 @@
         <a class="ed-pill @(Model.LeaderboardScope == "my-group" ? "is-active" : "")"
            asp-page="/Index"
            asp-route-leaderboardScope="my-group"
-           asp-route-groupNumber="@Model.GroupNumber">Mit hold</a>
+           asp-route-groupNumber="@Model.SelectedGroup">Mit hold</a>
         <a class="ed-pill @(Model.LeaderboardScope == "all-groups" ? "is-active" : "")"
            asp-page="/Index"
            asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>

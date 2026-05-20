@@ -1,12 +1,12 @@
 ---
-applyTo: |
-  Laks.Web/Pages/**/*.{cshtml,cshtml.cs}
-  Laks.Web/wwwroot/css/**/*.css
-  Laks.Web/wwwroot/js/**/*.js
-  Laks.Web/wwwroot/**/*.html
-  Laks.Web/wwwroot/**/*.scss
-  Laks.Web/wwwroot/**/*.sass
-  Laks.Web/wwwroot/**/*.less
+applyTo:
+  - Laks.Web/Pages/**/*.{cshtml,cshtml.cs}
+  - Laks.Web/wwwroot/css/**/*.css
+  - Laks.Web/wwwroot/js/**/*.js
+  - Laks.Web/wwwroot/**/*.html
+  - Laks.Web/wwwroot/**/*.scss
+  - Laks.Web/wwwroot/**/*.sass
+  - Laks.Web/wwwroot/**/*.less
 description: '.cshtml development guidelines with context engineering'
 ---
 # .cshtml Development Guidelines

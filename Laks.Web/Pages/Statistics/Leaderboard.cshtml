@@ -16,7 +16,7 @@
             <a class="btn btn-sm @(Model.LeaderboardScope == "my-group" ? "btn-primary" : "btn-outline-secondary")"
                asp-page="/Statistics/Leaderboard"
                asp-route-leaderboardScope="my-group"
-               asp-route-groupNumber="@Model.GroupNumber">Mit hold</a>
+               asp-route-groupNumber="@Model.SelectedGroup">Mit hold</a>
             <a class="btn btn-sm @(Model.LeaderboardScope == "all-groups" ? "btn-primary" : "btn-outline-secondary")"
                asp-page="/Statistics/Leaderboard"
                asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>
@@ -57,7 +57,7 @@ else
                         <th scope="col" class="text-end" style="width:3rem">Rang</th>
                         <th scope="col">Fisker</th>
                         <th scope="col" class="text-end">Fisk</th>
-                        <th scope="col" class="text-end">Vægt total</th>
+                        <th scope="col" class="text-end">Samlet vægt</th>
                         <th scope="col" class="text-end">Bedste</th>
                     </tr>
                 </thead>
