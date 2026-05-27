@@ -4,7 +4,7 @@
     static string DateLabel(DateTime date)
     {
         var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
-        return date.ToString("d. MMM", da).ToLower(da);
+        return date.ToString("d. MMM yyyy", da).ToLower(da);
     }
     static string Emphasis(Laks.Web.Models.Catch c)
     {
