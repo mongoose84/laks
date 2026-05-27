@@ -8,13 +8,16 @@
     <div class="ed-lb-controls" role="group" aria-label="Rangliste-omfang">
         <a class="ed-pill @(Model.LeaderboardScope == "my-group" ? "is-active" : "")"
            asp-page="/Index"
+           asp-fragment="leaderboard-title"
            asp-route-leaderboardScope="my-group"
            asp-route-groupNumber="@Model.SelectedGroup">Mit hold</a>
         <a class="ed-pill @(Model.LeaderboardScope == "all-groups" ? "is-active" : "")"
            asp-page="/Index"
+           asp-fragment="leaderboard-title"
            asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>
         <a class="ed-pill @(Model.LeaderboardScope == "last-year" ? "is-active" : "")"
            asp-page="/Index"
+           asp-fragment="leaderboard-title"
            asp-route-leaderboardScope="last-year">@Model.LastSeasonLabelYear</a>
     </div>
 
@@ -26,6 +29,7 @@
             {
                 <a class="ed-pill @(g.GroupNumber == Model.SelectedGroup ? "is-active" : "")"
                    asp-page="/Index"
+                   asp-fragment="leaderboard-title"
                    asp-route-leaderboardScope="my-group"
                    asp-route-groupNumber="@g.GroupNumber">@g.GroupNumber</a>
             }

@@ -136,6 +136,51 @@ jobs:
           } | ConvertTo-Json -Depth 5
           Set-Content -Path $appSettingsPath -Value $cfg
 
+      # Put the site into maintenance mode before replacing DLLs. IIS detects
+      # app_offline.htm and shuts down the worker process, releasing file locks.
+      # Runs only after a successful build so a broken build never takes the
+      # site offline. Retries up to 3 times with exponential back-off.
+      - name: Bring site offline (upload app_offline.htm)
+        id: bring-offline
+        shell: bash
+        env:
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_HOST: ${{ secrets.FTP_URL }}
+          FTP_PATH: ${{ secrets.FTP_PATH }}
+        run: |
+          max_attempts=3
+          remote_url="ftp://${FTP_HOST}/${FTP_PATH}/app_offline.htm"
+          local_file="Laks.Web/CI-Support/app_offline.htm"
+
+          # If already offline from a previous run, skip upload but still mark
+          # site_offline so the bring-online step will clean up afterwards.
+          if curl -s --ssl -u "${FTP_USER}:${FTP_PASS}" "${remote_url}" > /dev/null 2>&1; then
+            echo "⚠️ app_offline.htm already present; skipping upload."
+            echo "site_offline=true" >> "$GITHUB_OUTPUT"
+          else
+            for i in $(seq 1 $max_attempts); do
+              echo "Attempt ${i}: uploading app_offline.htm"
+              if curl -v --ssl -u "${FTP_USER}:${FTP_PASS}" \
+                  -T "${local_file}" "${remote_url}"; then
+                echo "✅ Maintenance mode enabled"
+                echo "site_offline=true" >> "$GITHUB_OUTPUT"
+                break
+              elif [ "$i" -eq "$max_attempts" ]; then
+                echo "❌ Failed to enable maintenance mode after ${max_attempts} attempts"
+                exit 1
+              else
+                delay=$((5 * i))
+                echo "Upload failed; retrying in ${delay}s..."
+                sleep $delay
+              fi
+            done
+          fi
+
+          echo "⏳ Waiting 15 seconds for IIS to release file locks..."
+          sleep 15
+          echo "✅ Proceeding with deployment"
+
       - name: Deploy via FTP (attempt 1)
         id: ftp_deploy
         continue-on-error: true
@@ -153,6 +198,7 @@ jobs:
             **/*.br
             **/*.gz
             appsettings.Development.json
+            app_offline.htm
           server-dir: ${{ secrets.FTP_PATH }}
 
       - name: Deploy via FTP (retry on transient failure)
@@ -171,7 +217,54 @@ jobs:
             **/*.br
             **/*.gz
             appsettings.Development.json
+            app_offline.htm
           server-dir: ${{ secrets.FTP_PATH }}
+
+      # Runs unconditionally (success or failure) as long as the offline step
+      # ran, so the site is never left in maintenance mode due to a deploy error.
+      - name: Bring site back online (delete app_offline.htm)
+        if: always() && steps.bring-offline.outputs.site_offline == 'true'
+        shell: bash
+        env:
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_HOST: ${{ secrets.FTP_URL }}
+          FTP_PATH: ${{ secrets.FTP_PATH }}
+        run: |
+          max_attempts=3
+          remote_base="ftp://${FTP_HOST}/${FTP_PATH}"
+          delete_succeeded=false
+
+          for i in $(seq 1 $max_attempts); do
+            echo "Attempt ${i}: deleting app_offline.htm"
+            curl -v --ssl -u "${FTP_USER}:${FTP_PASS}" \
+              "${remote_base}" \
+              -Q "DELE ${FTP_PATH}/app_offline.htm"
+            exit_code=$?
+
+            if [ $exit_code -eq 0 ]; then
+              echo "✅ Maintenance mode disabled"
+              delete_succeeded=true
+              break
+            elif [ $exit_code -eq 21 ] || [ $exit_code -eq 78 ]; then
+              echo "✅ app_offline.htm not found; site already online (exit ${exit_code})"
+              delete_succeeded=true
+              break
+            elif [ "$i" -eq "$max_attempts" ]; then
+              echo "⚠️ Failed to delete app_offline.htm after ${max_attempts} attempts"
+            else
+              delay=$((5 * i))
+              echo "Delete failed (exit ${exit_code}); retrying in ${delay}s..."
+              sleep $delay
+            fi
+          done
+
+          if [ "$delete_succeeded" = false ]; then
+            echo "❌ Maintenance mode could not be disabled; site may remain offline"
+            exit 1
+          fi
+
+          echo "✅ Site is now online"
 
       - name: Upload publish artifact (rollback snapshot)
         uses: actions/upload-artifact@v4
