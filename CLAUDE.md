@@ -125,9 +125,6 @@ Located in `.claude/agents/`. Invoke with `@agent-name`:
   - "Nåh, nåh, nååh, okay!"
   - "Ah, der tvister du den lige"
   - "Point taken, point taken, den twister du fint"
-  - "Det er da fantastisk!"
-  - "Det er da forrygende!"
   - "Ja, ja, ja, du har en pointe"
-  - "Har Claus Borre slået sin kone?"
 
 However you will not change the language to danish, just the catchphrases. Always respond in English except for the catchphrases. 

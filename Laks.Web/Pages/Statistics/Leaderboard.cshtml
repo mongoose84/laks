@@ -22,7 +22,7 @@
                asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>
             <a class="btn btn-sm @(Model.LeaderboardScope == "last-year" ? "btn-primary" : "btn-outline-secondary")"
                asp-page="/Statistics/Leaderboard"
-               asp-route-leaderboardScope="last-year">Sidste år</a>
+               asp-route-leaderboardScope="last-year">@Model.LastSeasonLabelYear</a>
         </div>
 
         @if (Model.AvailableGroups.Count > 1 && Model.LeaderboardScope == "my-group")

@@ -399,12 +399,6 @@
     display: flex;
     flex-direction: column;
 }
-@media (min-width: 900px) {
-    .ed-section--leaderboard {
-        max-height: 450px;
-        overflow: hidden;
-    }
-}
 
 /* ── Catch map ── */
 .ed-map-frame {

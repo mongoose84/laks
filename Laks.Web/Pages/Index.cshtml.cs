@@ -123,13 +123,14 @@ public class IndexModel : PageModel
 
         LeaderboardYear = leaderboardYear;
 
-        Leaderboard = await SafeCallAsync(
-                          () => _catches.GetLeaderboardAsync(LeaderboardYear, leaderboardGroup),
-                          "load leaderboard")
-                      ?? [];
+        var leaderboardList = (await SafeCallAsync(
+                                  () => _catches.GetLeaderboardAsync(LeaderboardYear, leaderboardGroup),
+                                  "load leaderboard")
+                              ?? []).ToList();
 
-        LeaderboardPreview = Leaderboard.Take(5).ToList();
-        LeaderboardTotalCount = Leaderboard.Count();
+        Leaderboard = leaderboardList;
+        LeaderboardPreview = leaderboardList.Take(5).ToList();
+        LeaderboardTotalCount = leaderboardList.Count;
 
         var groupSummaryTasks = seasonConfig
             .Select(g => SafeCallAsync(

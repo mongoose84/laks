@@ -10,11 +10,13 @@ public class LeaderboardModel : PageModel
     private readonly ICatchRepository _catches;
     private readonly ISeasonRepository _seasons;
     private readonly ILogger<LeaderboardModel> _logger;
+    private readonly TimeProvider _timeProvider;
 
     public IEnumerable<LeaderboardEntry> Leaderboard { get; private set; } = [];
     public List<SeasonConfig> AvailableGroups { get; private set; } = [];
     public int? SelectedGroup { get; private set; }
     public int CurrentYear { get; private set; }
+    public int LastSeasonLabelYear { get; private set; }
 
     [BindProperty(SupportsGet = true)]
     public string LeaderboardScope { get; set; } = "my-group";
@@ -28,21 +30,31 @@ public class LeaderboardModel : PageModel
     public LeaderboardModel(
         ICatchRepository catches,
         ISeasonRepository seasons,
-        ILogger<LeaderboardModel> logger)
+        ILogger<LeaderboardModel> logger,
+        TimeProvider? timeProvider = null)
     {
         _catches = catches;
         _seasons = seasons;
         _logger = logger;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
-        CurrentYear = DateTime.UtcNow.Year;
+        CurrentYear = _timeProvider.GetUtcNow().Year;
 
         try
         {
+            var allSeasonsTask = _seasons.GetAllAsync();
             var seasonConfig = (await _seasons.GetSeasonConfigAsync(CurrentYear)).ToList();
             AvailableGroups = seasonConfig;
+
+            var allSeasons = await allSeasonsTask;
+            LastSeasonLabelYear = allSeasons
+                .Where(s => s.Year < CurrentYear && s.TotalCatches > 0)
+                .Select(s => s.Year)
+                .DefaultIfEmpty(CurrentYear - 1)
+                .Max();
 
             LeaderboardScope = LeaderboardScope?.ToLowerInvariant() switch
             {
