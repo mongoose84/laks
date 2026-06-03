@@ -4,61 +4,56 @@
     ViewData["Title"] = "Fangster";
 }
 
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="h3 mb-0">🐟 Fangstlog</h1>
-    <a asp-page="/Statistics/Index" class="btn btn-outline-primary btn-sm">Statistik &raquo;</a>
+<div class="ed-page-header">
+    <h1 class="ed-section-title">Fangstlog</h1>
+    <a asp-page="/Statistics/Index" class="ed-action-link">Statistik &rarr;</a>
 </div>
 
-<!-- Season filter -->
-<div class="card mb-4 shadow-sm">
-    <div class="card-body">
-        <form method="get" class="row g-2 align-items-end">
-            <div class="col-sm-4">
-                <label for="year" class="form-label fw-semibold">Filtrer efter sæsonår</label>
-                <select id="year" name="year" class="form-select" onchange="this.form.submit()">
-                    <option value="">— Alle sæsoner —</option>
-                    @foreach (var season in Model.Seasons)
-                    {
-                        <option value="@season.Year" selected="@(Model.SelectedYear == season.Year)">
-                            @season.Year (@season.TotalCatches fangster)
-                        </option>
-                    }
-                </select>
-            </div>
-        </form>
-    </div>
+<div class="ed-filter-bar">
+    <form method="get">
+        <label for="year" class="ed-form-label">Filtrer efter sæsonår</label>
+        <select id="year" name="year" class="ed-form-select" onchange="this.form.submit()">
+            <option value="">— Alle sæsoner —</option>
+            @foreach (var season in Model.Seasons)
+            {
+                <option value="@season.Year" selected="@(Model.SelectedYear == season.Year)">
+                    @season.Year (@season.TotalCatches fangster)
+                </option>
+            }
+        </select>
+    </form>
 </div>
 
 @if (Model.SelectedSeason != null)
 {
-    <div class="alert alert-info">
-        <strong>Sæson @Model.SelectedSeason.Year</strong> –
+    <div class="ed-alert">
+        <strong>Sæson @Model.SelectedSeason.Year</strong> —
         @Model.SelectedSeason.TotalCatches fangster, @Model.SelectedSeason.ParticipantCount deltagere
         @if (Model.SelectedSeason.FirstCatchDate.HasValue && Model.SelectedSeason.LastCatchDate.HasValue)
         {
-            <span>| @Model.SelectedSeason.FirstCatchDate.Value.ToString("d MMM", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) – @Model.SelectedSeason.LastCatchDate.Value.ToString("d MMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("da-DK"))</span>
+            <span>· @Model.SelectedSeason.FirstCatchDate.Value.ToString("d MMM", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) – @Model.SelectedSeason.LastCatchDate.Value.ToString("d MMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("da-DK"))</span>
         }
     </div>
 }
 
 @if (Model.CatchList.Any())
 {
-    <div class="table-responsive">
-        <table class="table table-hover table-striped align-middle caption-top">
+    <div class="ed-table-wrap">
+        <table class="ed-table" aria-label="Fangstlog">
             <caption>@Model.CatchList.Count() fangst(er) vist</caption>
-            <thead class="table-primary">
+            <thead>
                 <tr>
-                    <th>Dato</th>
-                    <th>Tid</th>
-                    <th>År</th>
-                    <th>Fisker</th>
-                    <th>Type</th>
-                    <th class="text-end">Vægt (kg)</th>
-                    <th>Sted</th>
-                    <th>Vejr</th>
-                    <th>Vandstand</th>
-                    <th>Agn</th>
-                    <th>Noter</th>
+                    <th scope="col">Dato</th>
+                    <th scope="col">Tid</th>
+                    <th scope="col">År</th>
+                    <th scope="col">Fisker</th>
+                    <th scope="col">Type</th>
+                    <th scope="col" class="ed-td-num">Vægt (kg)</th>
+                    <th scope="col">Sted</th>
+                    <th scope="col">Vejr</th>
+                    <th scope="col">Vandstand</th>
+                    <th scope="col">Agn</th>
+                    <th scope="col">Noter</th>
                 </tr>
             </thead>
             <tbody>
@@ -70,12 +65,12 @@
                         <td>@c.SeasonYear</td>
                         <td>@c.AnglerName</td>
                         <td>@c.CatchType</td>
-                        <td class="text-end fw-semibold">@c.WeightKg.ToString("F2")</td>
+                        <td class="ed-td-num">@c.WeightKg.ToString("F2")</td>
                         <td>@c.Location</td>
                         <td>@c.Weather</td>
                         <td>@(c.WaterLevel?.ToString("F3") ?? "—")</td>
                         <td>@c.Bait</td>
-                        <td class="text-muted small">@c.Notes</td>
+                        <td class="ed-td-muted">@c.Notes</td>
                     </tr>
                 }
             </tbody>
@@ -84,5 +79,5 @@
 }
 else
 {
-    <div class="alert alert-warning">Ingen fangster fundet for det valgte filter.</div>
+    <p class="ed-empty">Ingen fangster fundet for det valgte filter.</p>
 }

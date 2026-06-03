@@ -45,6 +45,33 @@
 .ed-top-bar { position: relative; }
 .ed-top-bar .ed-issue { color: var(--ed-accent); }
 .ed-top-bar-right { display: flex; align-items: center; gap: 0.75rem; }
+
+/* Desktop inline nav — hidden on mobile, shown on ≥768px */
+.ed-top-bar-links {
+    display: none;
+}
+.ed-top-bar-links a {
+    color: var(--ed-text-muted);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.2rem 0;
+    border-bottom: 1px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+.ed-top-bar-links a:hover,
+.ed-top-bar-links a.active { color: var(--ed-text-primary); border-bottom-color: var(--ed-accent); }
+@media (min-width: 768px) {
+    .ed-top-bar-links { display: flex; gap: 1.5rem; align-items: center; }
+    .ed-burger { display: none; }
+    .ed-nav-drawer { display: none !important; }
+    .ed-top-bar-date { display: inline; }
+}
+@media (max-width: 767px) {
+    .ed-top-bar-date { display: none; }
+}
+
 .ed-burger {
     background: none;
     border: none;
@@ -503,3 +530,173 @@
     text-transform: uppercase;
     color: var(--ed-text-muted);
 }
+
+/* ══════════════════════════════════════════════════════
+   INNER PAGE PRIMITIVES  (Fangster, Statistik, Rangliste)
+   ══════════════════════════════════════════════════════ */
+
+/* ── Page header row (title + optional action link) ── */
+.ed-page-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--ed-rule);
+}
+.ed-page-header .ed-section-title {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    font-size: 1.6rem;
+}
+.ed-page-header .ed-action-link {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ed-accent);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.ed-page-header .ed-action-link:hover { color: var(--ed-accent-soft); text-decoration: underline; }
+
+/* ── Filter bar ── */
+.ed-filter-bar {
+    border: 1px solid var(--ed-rule);
+    background: var(--ed-bg-surface);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.ed-form-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ed-text-muted);
+    margin-bottom: 0.45rem;
+}
+.ed-form-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: var(--ed-bg-raised);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a6f60' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    border: 1px solid var(--ed-rule);
+    color: var(--ed-text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+    width: 100%;
+    max-width: 260px;
+    cursor: pointer;
+}
+.ed-form-select:focus {
+    outline: 2px solid var(--ed-accent);
+    outline-offset: 1px;
+    border-color: var(--ed-accent);
+}
+.ed-form-select option { background: var(--ed-bg-raised); }
+
+/* ── Editorial table ── */
+.ed-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.ed-table caption {
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ed-text-muted);
+    text-align: left;
+    padding-bottom: 0.5rem;
+    caption-side: top;
+}
+.ed-table thead th {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ed-text-muted);
+    padding: 0.5rem 0.6rem;
+    border-bottom: 2px solid var(--ed-rule);
+    white-space: nowrap;
+}
+.ed-table tbody tr { border-bottom: 1px solid var(--ed-rule); }
+.ed-table tbody tr:last-child { border-bottom: none; }
+.ed-table tbody tr:hover { background: var(--ed-bg-surface); }
+.ed-table td {
+    padding: 0.6rem 0.6rem;
+    color: var(--ed-text-primary);
+    vertical-align: middle;
+}
+.ed-table td.ed-td-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-family: 'Fraunces', serif;
+}
+.ed-table td.ed-td-muted { color: var(--ed-text-muted); font-size: 0.82rem; }
+.ed-table tr.ed-row--leader td { color: var(--ed-accent); font-weight: 600; }
+.ed-table-wrap { overflow-x: auto; }
+
+/* ── Alerts / callouts ── */
+.ed-alert {
+    border: 1px solid var(--ed-rule);
+    border-left: 4px solid var(--ed-accent);
+    padding: 0.9rem 1.25rem;
+    background: var(--ed-bg-surface);
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+    color: var(--ed-text-secondary);
+}
+.ed-alert strong { color: var(--ed-text-primary); }
+
+/* ── Empty state ── */
+.ed-empty {
+    padding: 1.5rem 0;
+    color: var(--ed-text-muted);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 1rem;
+}
+
+/* ── Badge (year pill) ── */
+.ed-badge {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ed-bg-base);
+    background: var(--ed-accent);
+    padding: 0.15rem 0.45rem;
+    vertical-align: middle;
+    margin-left: 0.4rem;
+}
+
+/* ── Chart sections on inner pages ── */
+.ed-chart-section { margin-bottom: 2.5rem; }
+.ed-chart-section .ed-chart-figure { margin-top: 1rem; }
+.ed-chart-section .ed-chart-wrap { height: 260px; }
+@media (min-width: 768px) { .ed-chart-section .ed-chart-wrap { height: 320px; } }
+
+/* ── Two-column stats grid ── */
+.ed-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+}
+@media (min-width: 768px) {
+    .ed-stats-grid { grid-template-columns: 1fr 1fr; }
+}
+.ed-stats-grid .ed-chart-section { margin-bottom: 0; }

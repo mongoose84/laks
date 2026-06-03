@@ -1,8 +1,18 @@
-﻿@model Laks.Web.Pages.IndexModel
+@{
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+    var now = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central European Standard Time");
+    var currentYear = now.Year.ToString();
+    var dateLabel = now.ToString("d. MMMM yyyy", da);
+}
 <div class="ed-top-bar">
-    <span>Sæson <span class="ed-issue">@Model.CurrentYear</span></span>
+    <span>Sæson <span class="ed-issue">@currentYear</span></span>
+    <nav class="ed-top-bar-links" aria-label="Sidenavigation">
+        <a asp-area="" asp-page="/Index">Forside</a>
+        <a asp-area="" asp-page="/Catches/Index">Fangster</a>
+        <a asp-area="" asp-page="/Statistics/Index">Statistik</a>
+    </nav>
     <div class="ed-top-bar-right">
-        <span class="ed-top-bar-date">@Model.IssueDateLabel</span>
+        <span class="ed-top-bar-date">@dateLabel</span>
         <button type="button" class="ed-burger" id="edBurger"
                 aria-label="Åbn navigation" aria-expanded="false" aria-controls="edNavDrawer">
             <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor" aria-hidden="true">
@@ -12,7 +22,7 @@
             </svg>
         </button>
     </div>
-    <nav class="ed-nav-drawer" id="edNavDrawer" aria-label="Hovednavigation">
+    <nav class="ed-nav-drawer" id="edNavDrawer" aria-label="Mobilnavigation">
         <a asp-page="/Index">Forside</a>
         <a asp-page="/Catches/Index">Fangster</a>
         <a asp-page="/Statistics/Index">Statistik</a>

@@ -5,75 +5,69 @@
     var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
 }
 
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="h3 mb-0">Rangliste</h1>
-    <a asp-page="/Index" class="btn btn-sm btn-outline-secondary">← Forside</a>
+<div class="ed-page-header">
+    <h1 class="ed-section-title">Rangliste</h1>
+    <a asp-page="/Index" class="ed-action-link">&larr; Forside</a>
 </div>
 
-<div class="card mb-3 shadow-sm">
-    <div class="card-body pb-2">
-        <div class="d-flex flex-wrap gap-2 align-items-center" role="group" aria-label="Rangliste-omfang">
-            <a class="btn btn-sm @(Model.LeaderboardScope == "my-group" ? "btn-primary" : "btn-outline-secondary")"
-               asp-page="/Statistics/Leaderboard"
-               asp-route-leaderboardScope="my-group"
-               asp-route-groupNumber="@Model.SelectedGroup">Mit hold</a>
-            <a class="btn btn-sm @(Model.LeaderboardScope == "all-groups" ? "btn-primary" : "btn-outline-secondary")"
-               asp-page="/Statistics/Leaderboard"
-               asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>
-            <a class="btn btn-sm @(Model.LeaderboardScope == "last-year" ? "btn-primary" : "btn-outline-secondary")"
-               asp-page="/Statistics/Leaderboard"
-               asp-route-leaderboardScope="last-year">@Model.LastSeasonLabelYear</a>
-        </div>
-
-        @if (Model.AvailableGroups.Count > 1 && Model.LeaderboardScope == "my-group")
-        {
-            <div class="d-flex flex-wrap gap-2 align-items-center mt-2" role="group" aria-label="Vælg hold">
-                <span class="text-muted small">Hold:</span>
-                @foreach (var g in Model.AvailableGroups)
-                {
-                    <a class="btn btn-sm @(g.GroupNumber == Model.SelectedGroup ? "btn-primary" : "btn-outline-secondary")"
-                       asp-page="/Statistics/Leaderboard"
-                       asp-route-leaderboardScope="my-group"
-                       asp-route-groupNumber="@g.GroupNumber">@g.GroupNumber</a>
-                }
-            </div>
-        }
+<div class="ed-filter-bar">
+    <div class="ed-lb-controls" role="group" aria-label="Rangliste-omfang">
+        <a class="ed-pill @(Model.LeaderboardScope == "my-group" ? "is-active" : "")"
+           asp-page="/Statistics/Leaderboard"
+           asp-route-leaderboardScope="my-group"
+           asp-route-groupNumber="@Model.SelectedGroup">Mit hold</a>
+        <a class="ed-pill @(Model.LeaderboardScope == "all-groups" ? "is-active" : "")"
+           asp-page="/Statistics/Leaderboard"
+           asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>
+        <a class="ed-pill @(Model.LeaderboardScope == "last-year" ? "is-active" : "")"
+           asp-page="/Statistics/Leaderboard"
+           asp-route-leaderboardScope="last-year">@Model.LastSeasonLabelYear</a>
     </div>
+
+    @if (Model.AvailableGroups.Count > 1 && Model.LeaderboardScope == "my-group")
+    {
+        <div class="ed-lb-controls" style="margin-top:0.75rem" role="group" aria-label="Vælg hold">
+            <span class="ed-lb-group-label">Hold:</span>
+            @foreach (var g in Model.AvailableGroups)
+            {
+                <a class="ed-pill @(g.GroupNumber == Model.SelectedGroup ? "is-active" : "")"
+                   asp-page="/Statistics/Leaderboard"
+                   asp-route-leaderboardScope="my-group"
+                   asp-route-groupNumber="@g.GroupNumber">@g.GroupNumber</a>
+            }
+        </div>
+    }
 </div>
 
 @if (!Model.Leaderboard.Any())
 {
-    <div class="card shadow-sm">
-        <div class="card-body text-muted fst-italic">Ingen rangliste-data tilgængelig.</div>
-    </div>
+    <p class="ed-empty">Ingen rangliste-data tilgængelig.</p>
 }
 else
 {
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0" aria-label="Fuld rangliste">
-                <thead class="table-light">
-                    <tr>
-                        <th scope="col" class="text-end" style="width:3rem">Rang</th>
-                        <th scope="col">Fisker</th>
-                        <th scope="col" class="text-end">Fisk</th>
-                        <th scope="col" class="text-end">Samlet vægt</th>
-                        <th scope="col" class="text-end">Bedste</th>
+    <div class="ed-table-wrap">
+        <table class="ed-table" aria-label="Fuld rangliste">
+            <thead>
+                <tr>
+                    <th scope="col" class="ed-td-num" style="width:3rem">Rang</th>
+                    <th scope="col">Fisker</th>
+                    <th scope="col" class="ed-td-num">Fisk</th>
+                    <th scope="col" class="ed-td-num">Samlet vægt</th>
+                    <th scope="col" class="ed-td-num">Bedste</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Leaderboard)
+                {
+                    <tr class="@(item.Rank == 1 ? "ed-row--leader" : "")">
+                        <td class="ed-td-num">@item.Rank</td>
+                        <td>@item.AnglerName</td>
+                        <td class="ed-td-num">@item.FishCount</td>
+                        <td class="ed-td-num">@item.TotalWeightKg.ToString("F1", da) kg</td>
+                        <td class="ed-td-num">@item.BestWeightKg.ToString("F1", da) kg</td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.Leaderboard)
-                    {
-                        <tr class="@(item.Rank == 1 ? "table-warning fw-bold" : "")">
-                            <td class="text-end fw-bold">@item.Rank</td>
-                            <td>@item.AnglerName</td>
-                            <td class="text-end">@item.FishCount</td>
-                            <td class="text-end">@item.TotalWeightKg.ToString("F1", da) kg</td>
-                            <td class="text-end">@item.BestWeightKg.ToString("F1", da) kg</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                }
+            </tbody>
+        </table>
     </div>
 }
