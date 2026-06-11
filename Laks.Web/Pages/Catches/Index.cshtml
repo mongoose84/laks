@@ -65,7 +65,7 @@
                         <td>@c.CatchDate.ToString("d MMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("da-DK"))</td>
                         <td>@c.CatchTime.ToString(@"hh\:mm")</td>
                         <td>@c.SeasonYear</td>
-                        <td>@c.AnglerName</td>
+                        <td><a class="ed-angler-link" asp-page="/Anglers/Index" asp-route-id="@c.AnglerId">@c.AnglerName</a></td>
                         <td>@c.CatchType</td>
                         <td class="ed-td-num">@c.WeightKg.ToString("F2", da)</td>
                         <td>@c.Location</td>

@@ -7,6 +7,7 @@ public class CatchLocation
     public double Longitude { get; set; }
     public decimal WeightKg { get; set; }
     public string AnglerName { get; set; } = string.Empty;
+    public int AnglerId { get; set; }
     public string CatchType { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public string Bait { get; set; } = string.Empty;

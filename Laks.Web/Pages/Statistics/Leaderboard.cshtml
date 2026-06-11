@@ -65,7 +65,7 @@ else
                 {
                     <tr class="@(item.Rank == 1 ? "ed-row--leader" : "")">
                         <td class="ed-td-num">@item.Rank</td>
-                        <td>@item.AnglerName</td>
+                        <td><a class="ed-angler-link" asp-page="/Anglers/Index" asp-route-id="@item.AnglerId">@item.AnglerName</a></td>
                         <td class="ed-td-num">@item.FishCount</td>
                         <td class="ed-td-num">@item.TotalWeightKg.ToString("F1", da) kg</td>
                         <td class="ed-td-num">@item.BestWeightKg.ToString("F1", da) kg</td>

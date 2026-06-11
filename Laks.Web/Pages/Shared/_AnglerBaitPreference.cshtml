@@ -1,0 +1,21 @@
+@model Laks.Web.Models.AnglerProfileViewModel
+@{
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+}
+@if (Model.TopBaits.Count == 0)
+{
+    <p class="ed-empty">Ingen agn registreret.</p>
+}
+else
+{
+    <ul class="ed-angler-bait-list">
+        @foreach (var bait in Model.TopBaits)
+        {
+            <li class="ed-angler-bait-item">
+                <span class="ed-angler-bait-name">@bait.Bait</span>
+                <span class="ed-angler-bait-pct">@bait.SharePct.ToString("F1", da) %</span>
+                <span class="ed-angler-bait-count">(@bait.CatchCount fangster)</span>
+            </li>
+        }
+    </ul>
+}

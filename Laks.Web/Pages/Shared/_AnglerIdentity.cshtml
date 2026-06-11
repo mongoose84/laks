@@ -1,0 +1,30 @@
+@model Laks.Web.Models.AnglerProfileViewModel
+@{
+    var angler = Model.Angler;
+    var career = Model.Career;
+
+    var kicker = string.IsNullOrWhiteSpace(angler.Country)
+        ? "Fisker"
+        : $"Fisker · {angler.Country}";
+
+    string? activeYearsLine = null;
+    if (career.FirstSeasonYear.HasValue && career.LastSeasonYear.HasValue)
+    {
+        var first = career.FirstSeasonYear.Value;
+        var last = career.LastSeasonYear.Value;
+        var count = career.SeasonsActive;
+        var saesonWord = count == 1 ? "sæson" : "sæsoner";
+
+        activeYearsLine = first == last
+            ? $"Aktiv {first} · {count} {saesonWord}"
+            : $"Aktiv {first}–{last} · {count} {saesonWord}";
+    }
+}
+<div class="ed-angler-identity">
+    <h1 class="ed-angler-name">@angler.Name</h1>
+    <p class="ed-angler-kicker">@kicker</p>
+    @if (activeYearsLine is not null)
+    {
+        <p class="ed-angler-years">@activeYearsLine</p>
+    }
+</div>

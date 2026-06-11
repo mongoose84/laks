@@ -1,0 +1,40 @@
+@model Laks.Web.Models.AnglerProfileViewModel
+@{
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+}
+@if (Model.SeasonHistory.Count == 0)
+{
+    <p class="ed-empty">Ingen sæsoner at vise.</p>
+}
+else
+{
+    <div class="ed-table-wrap">
+        <table class="ed-table" aria-label="Sæson for sæson oversigt">
+            <caption class="sr-only">Fangster per sæson for denne fisker</caption>
+            <thead>
+                <tr>
+                    <th scope="col">År</th>
+                    <th scope="col" class="ed-td-num">Fangster</th>
+                    <th scope="col" class="ed-td-num">Total kg</th>
+                    <th scope="col" class="ed-td-num">Største</th>
+                    <th scope="col" class="ed-td-num">Rang</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.SeasonHistory)
+                {
+                    var rankCell = row.Rank.HasValue
+                        ? $"#{row.Rank} af {row.LeaderboardSize}"
+                        : "—";
+                    <tr>
+                        <td>@row.Year</td>
+                        <td class="ed-td-num">@row.FishCount</td>
+                        <td class="ed-td-num">@row.TotalWeightKg.ToString("F1", da) kg</td>
+                        <td class="ed-td-num">@row.BestWeightKg.ToString("F1", da) kg</td>
+                        <td class="ed-td-num">@rankCell</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

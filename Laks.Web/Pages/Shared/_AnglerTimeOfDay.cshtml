@@ -1,0 +1,38 @@
+@model Laks.Web.Models.AnglerProfileViewModel
+@{
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+    var tod = Model.TimeOfDay;
+    var total = tod.MorningCount + tod.DayCount + tod.EveningCount + tod.NightCount;
+}
+@if (tod.WinnerBucket is null || total == 0)
+{
+    <p class="ed-empty">Ingen fangster med registreret tidspunkt.</p>
+}
+else
+{
+    <ul class="ed-angler-tod-list">
+        @{
+            var buckets = new[]
+            {
+                ("Morgen", "04:00–09:59", tod.MorningCount),
+                ("Dag",    "10:00–15:59", tod.DayCount),
+                ("Aften",  "16:00–21:59", tod.EveningCount),
+                ("Nat",    "22:00–03:59", tod.NightCount)
+            };
+        }
+        @foreach (var (name, range, count) in buckets)
+        {
+            var isWinner = name == tod.WinnerBucket;
+            var pct = total > 0 ? Math.Round((decimal)count / total * 100m, 1) : 0m;
+            <li class="ed-angler-tod-item @(isWinner ? "ed-angler-tod-item--winner" : "")">
+                <span class="ed-angler-tod-bucket">@name</span>
+                <span class="ed-angler-tod-range">@range</span>
+                <span class="ed-angler-tod-count">@count fangster</span>
+                <span class="ed-angler-tod-pct">@pct.ToString("F1", da) %</span>
+            </li>
+        }
+    </ul>
+    <p class="ed-angler-tod-winner">
+        Bedste tid: <strong>@tod.WinnerBucket · @tod.WinnerSharePct.ToString("F1", da) %</strong>
+    </p>
+}

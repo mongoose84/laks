@@ -88,6 +88,7 @@ try
     {
         app.UseExceptionHandler("/Error");
         app.UseHsts();
+        app.UseStatusCodePagesWithReExecute("/NotFound");
     }
 
     app.UseHttpsRedirection();

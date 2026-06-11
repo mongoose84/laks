@@ -145,6 +145,7 @@ public class CatchRepository : ICatchRepository
         const string biggestSql = @"
             SELECT c.`Weight` AS BiggestFishKg,
                    p.`Name`   AS BiggestFishAngler,
+                   p.`Id`     AS BiggestFishAnglerId,
                    YEAR(c.`Date`) AS BiggestFishYear
             FROM `Catch` c
             JOIN `Person` p ON p.`Id` = c.`PersonId`
@@ -152,8 +153,9 @@ public class CatchRepository : ICatchRepository
             LIMIT 1";
 
         const string prolificSql = @"
-            SELECT p.`Name` AS MostProlificAngler,
-                   COUNT(c.`Id`) AS MostProlificFishCount
+            SELECT p.`Name`       AS MostProlificAngler,
+                   p.`Id`         AS MostProlificAnglerId,
+                   COUNT(c.`Id`)  AS MostProlificFishCount
             FROM `Catch` c
             JOIN `Person` p ON p.`Id` = c.`PersonId`
             GROUP BY p.`Id`, p.`Name`
@@ -183,8 +185,10 @@ public class CatchRepository : ICatchRepository
         {
             BiggestFishKg = biggest?.BiggestFishKg ?? 0,
             BiggestFishAngler = biggest?.BiggestFishAngler ?? string.Empty,
+            BiggestFishAnglerId = biggest?.BiggestFishAnglerId ?? 0,
             BiggestFishYear = biggest?.BiggestFishYear ?? 0,
             MostProlificAngler = prolific?.MostProlificAngler ?? string.Empty,
+            MostProlificAnglerId = prolific?.MostProlificAnglerId ?? 0,
             MostProlificFishCount = prolific?.MostProlificFishCount ?? 0,
             BestSeasonYear = bestSeason?.BestSeasonYear ?? 0,
             BestSeasonFishCount = bestSeason?.BestSeasonFishCount ?? 0,
@@ -200,6 +204,7 @@ public class CatchRepository : ICatchRepository
                    c.`Longitude`  AS Longitude,
                    c.`Weight`     AS WeightKg,
                    p.`Name`       AS AnglerName,
+                   p.`Id`         AS AnglerId,
                    c.`Type`       AS CatchType,
                    c.`Location`   AS Location,
                    c.`Bait`       AS Bait,
@@ -276,6 +281,14 @@ public class CatchRepository : ICatchRepository
                       AND (@Year IS NULL OR YEAR(c2.`Date`) = @Year)
                     ORDER BY c2.`Weight` DESC
                     LIMIT 1)                         AS AnglerName,
+                   (SELECT p2.`Id`
+                    FROM `Catch` c2
+                    JOIN `Person` p2 ON p2.`Id` = c2.`PersonId`
+                    WHERE c2.`TeamName` = c.`TeamName`
+                      AND c2.`Type` = 'Laks'
+                      AND (@Year IS NULL OR YEAR(c2.`Date`) = @Year)
+                    ORDER BY c2.`Weight` DESC
+                    LIMIT 1)                         AS AnglerId,
                    COUNT(c.`Id`)                     AS TotalSalmonCount,
                    COALESCE(AVG(c.`Weight`), 0)      AS AvgSalmonWeightKg
             FROM   `Catch` c

@@ -1,0 +1,35 @@
+@model Laks.Web.Models.AnglerCurrentSeasonStats
+@{
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+    var rankText = Model.Rank.HasValue
+        ? $"#{Model.Rank} af {Model.LeaderboardSize}"
+        : "—";
+}
+<div class="ed-conditions-grid">
+    <div class="ed-condition-card">
+        <div class="ed-condition-label">Fangster</div>
+        <div class="ed-condition-value">@Model.FishCount</div>
+        <div class="ed-condition-unit">stk</div>
+    </div>
+    <div class="ed-condition-card">
+        <div class="ed-condition-label">Total kg</div>
+        <div class="ed-condition-value">@Model.TotalWeightKg.ToString("F1", da)</div>
+        <div class="ed-condition-unit">kg</div>
+    </div>
+    <div class="ed-condition-card">
+        <div class="ed-condition-label">Største</div>
+        <div class="ed-condition-value">@Model.BestWeightKg.ToString("F1", da)</div>
+        <div class="ed-condition-unit">kg</div>
+    </div>
+    <div class="ed-condition-card">
+        <div class="ed-condition-label">Rang</div>
+        <div class="ed-condition-value ed-condition-value--compact">@rankText</div>
+    </div>
+    @if (Model.GroupNumber.HasValue)
+    {
+        <div class="ed-condition-card">
+            <div class="ed-condition-label">Hold</div>
+            <div class="ed-condition-value">@Model.GroupNumber</div>
+        </div>
+    }
+</div>

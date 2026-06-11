@@ -32,6 +32,7 @@ public class BiggestSalmonPerTeam
     public string TeamName { get; set; } = string.Empty;
     public decimal BiggestSalmonKg { get; set; }
     public string AnglerName { get; set; } = string.Empty;
+    public int AnglerId { get; set; }
     public int TotalSalmonCount { get; set; }
     public decimal AvgSalmonWeightKg { get; set; }
 }

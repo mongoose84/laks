@@ -30,7 +30,7 @@
             <article class="ed-catch-article">
                 <div>
                     <div class="ed-catch-byline">@DateLabel(c.CatchDate) · @c.Location</div>
-                    <div class="ed-catch-headline">@c.AnglerName landede en @(c.CatchType?.ToLowerInvariant()) <em>@Emphasis(c)</em></div>
+                    <div class="ed-catch-headline"><a class="ed-angler-link" asp-page="/Anglers/Index" asp-route-id="@c.AnglerId">@c.AnglerName</a> landede en @(c.CatchType?.ToLowerInvariant()) <em>@Emphasis(c)</em></div>
                 </div>
                 <div class="ed-catch-weight">
                     @c.WeightKg.ToString("F1", da)

@@ -4,6 +4,18 @@ using Laks.Web.Services;
 
 namespace Laks.Web.Tests.TestDoubles;
 
+/// <summary>Fake angler repository with one known angler (id=1).</summary>
+public sealed class FakeAnglerRepository : IAnglerRepository
+{
+    public static readonly Angler KnownAngler = new() { Id = 1, Name = "Erik Andersen", Country = "Norge" };
+
+    public Task<IEnumerable<Angler>> GetAllAsync() =>
+        Task.FromResult<IEnumerable<Angler>>([KnownAngler]);
+
+    public Task<Angler?> GetByIdAsync(int id) =>
+        Task.FromResult<Angler?>(id == 1 ? KnownAngler : null);
+}
+
 /// <summary>
 /// Deterministic in-memory fakes shared by the integration tests.
 /// Weights and water levels are chosen with decimals so Danish
@@ -12,6 +24,43 @@ namespace Laks.Web.Tests.TestDoubles;
 public sealed class InMemoryCatchRepository : ICatchRepository
 {
     public const int CurrentYear = 2026;
+
+    // Multi-season fixture for angler id=1 used by GetByAnglerAsync
+    private static readonly List<Catch> _anglerOneCatches =
+    [
+        new Catch
+        {
+            Id = 10, AnglerId = 1, SeasonYear = CurrentYear,
+            CatchDate = new DateTime(CurrentYear, 6, 26), CatchTime = new TimeSpan(7, 30, 0),
+            WeightKg = 8.4m, Location = "Holmfoss Øvre", Weather = "Overskyet",
+            WaterLevel = 1.234m, Bait = "Spinner", Latitude = 59.186959, Longitude = 9.993806,
+            CatchType = "Laks", TeamName = "Hold Rød", AnglerName = "Erik Andersen"
+        },
+        new Catch
+        {
+            Id = 11, AnglerId = 1, SeasonYear = CurrentYear,
+            CatchDate = new DateTime(CurrentYear, 6, 24), CatchTime = new TimeSpan(14, 0, 0),
+            WeightKg = 6.5m, Location = "Holmfoss Nedre", Weather = "Sol",
+            WaterLevel = 1.1m, Bait = "Flue", Latitude = 59.1871, Longitude = 9.9921,
+            CatchType = "Laks", TeamName = "Hold Rød", AnglerName = "Erik Andersen"
+        },
+        new Catch
+        {
+            Id = 12, AnglerId = 1, SeasonYear = CurrentYear - 1,
+            CatchDate = new DateTime(CurrentYear - 1, 6, 28), CatchTime = new TimeSpan(19, 0, 0),
+            WeightKg = 9.2m, Location = "Holmfoss Øvre", Weather = "Overskyet",
+            WaterLevel = 1.4m, Bait = "Flue", Latitude = 59.186959, Longitude = 9.993806,
+            CatchType = "Laks", TeamName = "Hold Rød", AnglerName = "Erik Andersen"
+        },
+        new Catch
+        {
+            Id = 13, AnglerId = 1, SeasonYear = CurrentYear - 2,
+            CatchDate = new DateTime(CurrentYear - 2, 7, 2), CatchTime = new TimeSpan(5, 0, 0),
+            WeightKg = 7.0m, Location = "Holmfoss Nedre", Weather = "Tåge",
+            WaterLevel = 1.6m, Bait = "spinner", Latitude = 59.1871, Longitude = 9.9921,
+            CatchType = "Laks", TeamName = "Hold Rød", AnglerName = "Erik Andersen"
+        }
+    ];
 
     private static readonly List<Catch> _catches =
     [
@@ -40,7 +89,10 @@ public sealed class InMemoryCatchRepository : ICatchRepository
         Task.FromResult<IEnumerable<Catch>>(_catches.Where(c => c.SeasonYear == year).ToList());
 
     public Task<IEnumerable<Catch>> GetByAnglerAsync(int anglerId) =>
-        Task.FromResult<IEnumerable<Catch>>(_catches.Where(c => c.AnglerId == anglerId).ToList());
+        Task.FromResult<IEnumerable<Catch>>(
+            anglerId == 1
+                ? _anglerOneCatches.OrderByDescending(c => c.CatchDate).ThenByDescending(c => c.CatchTime).ToList()
+                : _catches.Where(c => c.AnglerId == anglerId).ToList());
 
     public Task<int> GetTotalCountAsync() => Task.FromResult(_catches.Count);
 
@@ -80,8 +132,10 @@ public sealed class InMemoryCatchRepository : ICatchRepository
         {
             BiggestFishKg = 14.3m,
             BiggestFishAngler = "Ole Kristiansen",
+            BiggestFishAnglerId = 3,
             BiggestFishYear = 2018,
             MostProlificAngler = "Erik Andersen",
+            MostProlificAnglerId = 1,
             MostProlificFishCount = 127,
             BestSeasonYear = 2019,
             BestSeasonFishCount = 63,
@@ -94,7 +148,7 @@ public sealed class InMemoryCatchRepository : ICatchRepository
             new CatchLocation
             {
                 CatchId = 1, Latitude = 59.186959, Longitude = 9.993806, WeightKg = 8.4m,
-                AnglerName = "Erik Andersen", CatchType = "Laks", Location = "Holmfoss Øvre",
+                AnglerName = "Erik Andersen", AnglerId = 1, CatchType = "Laks", Location = "Holmfoss Øvre",
                 Bait = "Spinner", CatchDate = new DateTime(CurrentYear, 6, 26), SeasonYear = CurrentYear
             }
         ]);
@@ -123,8 +177,8 @@ public sealed class InMemoryCatchRepository : ICatchRepository
     public Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null) =>
         Task.FromResult<IEnumerable<BiggestSalmonPerTeam>>(
         [
-            new BiggestSalmonPerTeam { TeamName = "Hold Rød", BiggestSalmonKg = 9.5m, AnglerName = "Erik Andersen", TotalSalmonCount = 14, AvgSalmonWeightKg = 6.3m },
-            new BiggestSalmonPerTeam { TeamName = "Hold Blå", BiggestSalmonKg = 7.8m, AnglerName = "Lars Johansen", TotalSalmonCount = 11, AvgSalmonWeightKg = 5.7m }
+            new BiggestSalmonPerTeam { TeamName = "Hold Rød", BiggestSalmonKg = 9.5m, AnglerName = "Erik Andersen", AnglerId = 1, TotalSalmonCount = 14, AvgSalmonWeightKg = 6.3m },
+            new BiggestSalmonPerTeam { TeamName = "Hold Blå", BiggestSalmonKg = 7.8m, AnglerName = "Lars Johansen", AnglerId = 2, TotalSalmonCount = 11, AvgSalmonWeightKg = 5.7m }
         ]);
 
     public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() =>

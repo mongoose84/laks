@@ -73,7 +73,10 @@
                 weight: 1
             }).addTo(markersLayer);
 
-            var popup = "<strong>" + esc(point.angler) + "</strong><br/>"
+            var anglerHtml = (Number.isInteger(point.anglerId) && point.anglerId > 0)
+                ? '<a class="ed-angler-link" href="/Anglers/' + point.anglerId + '">' + esc(point.angler) + '</a>'
+                : esc(point.angler);
+            var popup = "<strong>" + anglerHtml + "</strong><br/>"
                 + esc(point.w) + " kg " + esc(point.type) + "<br/>"
                 + esc(point.location) + "<br/>"
                 + esc(new Date(point.date).toLocaleDateString("da-DK")) + "<br/>"

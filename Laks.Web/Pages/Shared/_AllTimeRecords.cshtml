@@ -14,14 +14,34 @@
             <article class="ed-catch-article">
                 <div>
                     <div class="ed-catch-byline">Største fisk nogensinde</div>
-                    <div class="ed-catch-headline">@Model.Records.BiggestFishAngler, <em>@Model.Records.BiggestFishYear</em></div>
+                    <div class="ed-catch-headline">
+                        @if (Model.Records.BiggestFishAnglerId > 0)
+                        {
+                            <a class="ed-angler-link" asp-page="/Anglers/Index" asp-route-id="@Model.Records.BiggestFishAnglerId">@Model.Records.BiggestFishAngler</a>
+                        }
+                        else
+                        {
+                            @Model.Records.BiggestFishAngler
+                        }
+                        , <em>@Model.Records.BiggestFishYear</em>
+                    </div>
                 </div>
                 <div class="ed-catch-weight">@Model.Records.BiggestFishKg.ToString("F1", da)<small>kg</small></div>
             </article>
             <article class="ed-catch-article">
                 <div>
                     <div class="ed-catch-byline">Mest produktive fisker</div>
-                    <div class="ed-catch-headline">@Model.Records.MostProlificAngler <em>gennem årene</em></div>
+                    <div class="ed-catch-headline">
+                        @if (Model.Records.MostProlificAnglerId > 0)
+                        {
+                            <a class="ed-angler-link" asp-page="/Anglers/Index" asp-route-id="@Model.Records.MostProlificAnglerId">@Model.Records.MostProlificAngler</a>
+                        }
+                        else
+                        {
+                            @Model.Records.MostProlificAngler
+                        }
+                        <em>gennem årene</em>
+                    </div>
                 </div>
                 <div class="ed-catch-weight">@Model.Records.MostProlificFishCount<small>fisk</small></div>
             </article>

@@ -257,6 +257,7 @@
     font-variant-numeric: tabular-nums;
 }
 .ed-condition-rising .ed-condition-value { color: var(--ed-accent); }
+.ed-condition-value--compact { font-size: 1.4rem; }
 .ed-condition-unit { font-size: 0.7em; color: var(--ed-text-muted); }
 
 /* ── Two column feature grid ── */
@@ -712,3 +713,149 @@
     .ed-stats-grid { grid-template-columns: 1fr 1fr; }
 }
 .ed-stats-grid .ed-chart-section { margin-bottom: 0; }
+
+/* ── Angler name links ── */
+.ed-angler-link {
+    color: inherit;
+    text-decoration: none;
+}
+.ed-angler-link:hover,
+.ed-angler-link:focus {
+    text-decoration: underline;
+}
+.ed-angler-link:focus-visible {
+    outline: 2px solid var(--ed-accent);
+    outline-offset: 2px;
+}
+
+/* ── Angler profile page ── */
+.ed-angler-identity {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--ed-rule);
+}
+.ed-angler-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ed-text-primary);
+    margin: 0 0 0.25rem;
+}
+.ed-angler-kicker {
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ed-accent);
+    font-weight: 600;
+    margin: 0 0 0.2rem;
+}
+.ed-angler-years {
+    font-size: 0.82rem;
+    color: var(--ed-text-muted);
+    margin: 0;
+}
+.ed-subsection-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ed-text-muted);
+    margin: 0 0 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--ed-rule);
+}
+
+/* ── Bait preference list ── */
+.ed-angler-bait-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.ed-angler-bait-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--ed-rule);
+    font-size: 0.9rem;
+}
+.ed-angler-bait-item:last-child { border-bottom: none; }
+.ed-angler-bait-name {
+    flex: 1;
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    color: var(--ed-text-primary);
+}
+.ed-angler-bait-pct {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    color: var(--ed-accent);
+    font-variant-numeric: tabular-nums;
+}
+.ed-angler-bait-count {
+    font-size: 0.75rem;
+    color: var(--ed-text-muted);
+}
+
+/* ── Time of day list ── */
+.ed-angler-tod-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.ed-angler-tod-item {
+    display: grid;
+    grid-template-columns: 4rem 5.5rem 1fr auto;
+    gap: 0.5rem;
+    align-items: baseline;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--ed-rule);
+    font-size: 0.85rem;
+    color: var(--ed-text-secondary);
+}
+.ed-angler-tod-item:last-child { border-bottom: none; }
+.ed-angler-tod-item--winner {
+    color: var(--ed-text-primary);
+}
+.ed-angler-tod-item--winner .ed-angler-tod-bucket {
+    color: var(--ed-accent);
+    font-weight: 600;
+}
+.ed-angler-tod-bucket {
+    font-family: 'Fraunces', serif;
+    font-size: 0.95rem;
+}
+.ed-angler-tod-range {
+    font-size: 0.7rem;
+    color: var(--ed-text-muted);
+    letter-spacing: 0.04em;
+}
+.ed-angler-tod-pct {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    text-align: right;
+}
+.ed-angler-tod-winner {
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+    color: var(--ed-text-secondary);
+}
+.ed-angler-tod-winner strong {
+    color: var(--ed-accent);
+}
+
+/* ── Visually hidden utility ── */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
