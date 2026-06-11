@@ -74,10 +74,12 @@ public class LeaderboardModel : PageModel
                 SelectedGroup = groups[0];
             }
 
+            // "last-year" defaults to LastSeasonLabelYear — the most recent season
+            // with catches — so the pill label and the loaded data always agree.
             var (year, group) = LeaderboardScope switch
             {
                 "all-groups" => (CurrentYear, (int?)null),
-                "last-year" => (Year.GetValueOrDefault(CurrentYear - 1), (int?)null),
+                "last-year" => (Year.GetValueOrDefault(LastSeasonLabelYear), (int?)null),
                 _ => (CurrentYear, SelectedGroup)
             };
 

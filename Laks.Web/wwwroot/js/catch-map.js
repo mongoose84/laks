@@ -84,20 +84,14 @@
     }
 
     function setMode(mode) {
-        if (mode === "all") {
-            seasonButton.classList.remove("btn-primary", "is-active");
-            seasonButton.classList.add("btn-outline-primary");
-            allButton.classList.add("btn-primary", "is-active");
-            allButton.classList.remove("btn-outline-primary");
-            renderLocations(allData);
-            return;
-        }
+        var showAll = mode === "all";
 
-        allButton.classList.remove("btn-primary", "is-active");
-        allButton.classList.add("btn-outline-primary");
-        seasonButton.classList.add("btn-primary", "is-active");
-        seasonButton.classList.remove("btn-outline-primary");
-        renderLocations(seasonData);
+        seasonButton.classList.toggle("is-active", !showAll);
+        seasonButton.setAttribute("aria-pressed", String(!showAll));
+        allButton.classList.toggle("is-active", showAll);
+        allButton.setAttribute("aria-pressed", String(showAll));
+
+        renderLocations(showAll ? allData : seasonData);
     }
 
     seasonButton.addEventListener("click", function () { setMode("season"); });

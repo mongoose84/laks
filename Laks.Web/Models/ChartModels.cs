@@ -35,3 +35,26 @@ public class BiggestSalmonPerTeam
     public int TotalSalmonCount { get; set; }
     public decimal AvgSalmonWeightKg { get; set; }
 }
+
+/// <summary>Catches per ISO week per season – used for the season-progress curve.</summary>
+public class CatchesPerWeek
+{
+    public int SeasonYear { get; set; }
+    public int WeekNumber { get; set; }
+    public int TotalCatches { get; set; }
+}
+
+/// <summary>Catches per hour of day – used for the time-of-day chart.</summary>
+public class CatchesByHour
+{
+    public int Hour { get; set; }
+    public int TotalCatches { get; set; }
+}
+
+/// <summary>Catches per water-level band – used for the water-level chart.</summary>
+public class CatchesByWaterLevel
+{
+    /// <summary>Lower bound of the band in metres (band width 0.25 m).</summary>
+    public decimal BandStartM { get; set; }
+    public int TotalCatches { get; set; }
+}

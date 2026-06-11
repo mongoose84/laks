@@ -20,4 +20,9 @@ public interface ICatchRepository
     Task<IEnumerable<CatchesPerAngler>> GetCatchesPerAnglerAsync(int? year = null);
     Task<IEnumerable<CatchesByType>> GetCatchesByTypeAsync(int? year = null);
     Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null);
+
+    // Fishing-insight statistics (descriptive — counts of registered catches)
+    Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync();
+    Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null);
+    Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null);
 }

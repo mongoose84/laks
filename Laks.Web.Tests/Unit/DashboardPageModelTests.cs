@@ -2,6 +2,7 @@
 using Laks.Web.Models;
 using Laks.Web.Pages;
 using Laks.Web.Services;
+using Laks.Web.Tests.TestDoubles;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Laks.Web.Tests.Unit;
@@ -156,6 +157,8 @@ public class DashboardPageModelTests
         Assert.True(result.IsOffSeason);
         Assert.False(result.IsBufferDay);
         Assert.Null(result.NextGroupStart);
+        // The season existed and is over — not "unconfigured".
+        Assert.True(result.SeasonHasEnded);
     }
 
     [Fact]
@@ -276,14 +279,15 @@ public class DashboardPageModelTests
     }
 
     [Fact]
-    public async Task OnGetAsync_LastYear_PreSeasonFallsBackToLastSeasonWithData()
+    public async Task OnGetAsync_LastYear_SkipsEmptySeasonsAndQueriesLastSeasonWithData()
     {
         var frozenNow = new DateTimeOffset(2026, 5, 20, 12, 0, 0, TimeSpan.Zero);
         var startYear = frozenNow.Year - 1;
         var catches = new HistoricalFallbackCatchRepository(startYear);
-        // Freeze time before the season starts (June 21) so ShouldFallbackToEarlierSeason() is deterministic.
+        // Season table: 2024 has catches, 2025 and 2026 are empty,
+        // so "last year" must resolve to 2024 — the last season with data.
         var model = new IndexModel(
-            new FakeSeasonRepository(frozenNow.Year),
+            new GapYearSeasonRepository(frozenNow.Year),
             catches,
             new FakeWeatherService(),
             new FakeWaterLevelService(),
@@ -302,12 +306,35 @@ public class DashboardPageModelTests
     }
 
     [Fact]
-    public async Task OnGetAsync_LastYear_ActiveSeasonDoesNotFallback()
+    public async Task OnGetAsync_LastYear_PillLabelMatchesQueriedYear()
+    {
+        // The "last year" pill displays LastSeasonLabelYear, so the leaderboard
+        // it links to must be loaded for that same year — under any season state.
+        var frozenNow = new DateTimeOffset(2026, 5, 20, 12, 0, 0, TimeSpan.Zero);
+        var model = new IndexModel(
+            new FakeSeasonRepository(frozenNow.Year),
+            new FakeCatchRepository(),
+            new FakeWeatherService(),
+            new FakeWaterLevelService(),
+            NullLogger<IndexModel>.Instance,
+            new FakeTimeProvider(frozenNow))
+        {
+            LeaderboardScope = "last-year"
+        };
+
+        await model.OnGetAsync(CancellationToken.None);
+
+        Assert.Equal(model.LastSeasonLabelYear, model.LeaderboardYear);
+    }
+
+    [Fact]
+    public async Task OnGetAsync_LastYear_ActiveSeasonQueriesPreviousYear()
     {
         var frozenNow = new DateTimeOffset(2026, 5, 15, 12, 0, 0, TimeSpan.Zero);
         var startYear = frozenNow.Year - 1;
         var catches = new HistoricalFallbackCatchRepository(startYear);
-        // Freeze time inside the active season (May 1–30) so IsOffSeason is false and no fallback occurs.
+        // Freeze time inside the active season (May 1–30); only the current year
+        // exists in the season table, so "last year" defaults to currentYear - 1.
         var model = new IndexModel(
             new ActiveSeasonRepository(frozenNow.Year),
             catches,
@@ -358,6 +385,9 @@ public class DashboardPageModelTests
         public Task<IEnumerable<CatchesPerAngler>> GetCatchesPerAnglerAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesPerAngler>>([]);
         public Task<IEnumerable<CatchesByType>> GetCatchesByTypeAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByType>>([]);
         public Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null) => Task.FromResult<IEnumerable<BiggestSalmonPerTeam>>([]);
+        public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => Task.FromResult<IEnumerable<CatchesPerWeek>>([]);
+        public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByHour>>([]);
+        public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
     }
 
     private sealed class HistoricalFallbackCatchRepository(int startYear) : ICatchRepository
@@ -400,11 +430,9 @@ public class DashboardPageModelTests
         public Task<IEnumerable<CatchesPerAngler>> GetCatchesPerAnglerAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesPerAngler>>([]);
         public Task<IEnumerable<CatchesByType>> GetCatchesByTypeAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByType>>([]);
         public Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null) => Task.FromResult<IEnumerable<BiggestSalmonPerTeam>>([]);
-    }
-
-    private sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => utcNow;
+        public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => Task.FromResult<IEnumerable<CatchesPerWeek>>([]);
+        public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByHour>>([]);
+        public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
     }
 
     private static List<SeasonConfig> ThreeGroupConfig(int year) =>
@@ -442,6 +470,34 @@ public class DashboardPageModelTests
 
         public Task<int?> GetAnglerGroupAsync(int year, int anglerId) =>
             Task.FromResult<int?>(2);
+    }
+
+    /// <summary>Season table where the previous year exists but has no catches.</summary>
+    private sealed class GapYearSeasonRepository(int currentYear) : ISeasonRepository
+    {
+        public Task<IEnumerable<FishingSeason>> GetAllAsync() =>
+            Task.FromResult<IEnumerable<FishingSeason>>(
+            [
+                new FishingSeason { Year = currentYear - 2, TotalCatches = 18 },
+                new FishingSeason { Year = currentYear - 1, TotalCatches = 0 },
+                new FishingSeason { Year = currentYear, TotalCatches = 0 }
+            ]);
+
+        public Task<FishingSeason?> GetByYearAsync(int year) =>
+            Task.FromResult<FishingSeason?>(new FishingSeason { Year = year, ParticipantCount = 36 });
+
+        public Task<FishingSeason?> GetLatestAsync() =>
+            Task.FromResult<FishingSeason?>(new FishingSeason { Year = currentYear, ParticipantCount = 36 });
+
+        public Task<IEnumerable<SeasonConfig>> GetSeasonConfigAsync(int year) =>
+            Task.FromResult<IEnumerable<SeasonConfig>>(
+            [
+                new SeasonConfig { Year = year, GroupNumber = 1, StartDate = new DateTime(year, 6, 21), EndDate = new DateTime(year, 6, 25) },
+                new SeasonConfig { Year = year, GroupNumber = 2, StartDate = new DateTime(year, 6, 26), EndDate = new DateTime(year, 6, 30) }
+            ]);
+
+        public Task<int?> GetAnglerGroupAsync(int year, int anglerId) =>
+            Task.FromResult<int?>(1);
     }
 
     private sealed class ActiveSeasonRepository(int currentYear) : ISeasonRepository
@@ -544,19 +600,9 @@ public class DashboardPageModelTests
         public Task<IEnumerable<CatchesPerAngler>> GetCatchesPerAnglerAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesPerAngler>>([]);
         public Task<IEnumerable<CatchesByType>> GetCatchesByTypeAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByType>>([]);
         public Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null) => Task.FromResult<IEnumerable<BiggestSalmonPerTeam>>([]);
-    }
-
-    private sealed class FakeWeatherService : IWeatherService
-    {
-        public Task<WeatherData?> GetCurrentAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<WeatherData?>(new WeatherData
-            {
-                AirTemperatureC = 13.5m,
-                WindSpeedMs = 4.2m,
-                WindDirection = "NW",
-                WeatherSymbol = "clearsky_day",
-                MeasuredAt = new DateTime(2026, 6, 26, 8, 0, 0, DateTimeKind.Utc)
-            });
+        public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => Task.FromResult<IEnumerable<CatchesPerWeek>>([]);
+        public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByHour>>([]);
+        public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
     }
 
     private sealed class ThrowingWeatherService : IWeatherService
@@ -565,23 +611,4 @@ public class DashboardPageModelTests
             => throw new HttpRequestException("Weather API unavailable");
     }
 
-    private sealed class FakeWaterLevelService : IWaterLevelService
-    {
-        public Task<WaterLevelSnapshot?> GetCurrentAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<WaterLevelSnapshot?>(new WaterLevelSnapshot
-            {
-                LevelMeters = 1.82m,
-                WaterTemperatureC = 10.4m,
-                Trend = WaterLevelTrend.Rising,
-                MeasuredAt = new DateTime(2026, 6, 26, 8, 0, 0, DateTimeKind.Utc),
-                LastKnownAt = new DateTime(2026, 6, 26, 8, 0, 0, DateTimeKind.Utc)
-            });
-
-        public Task<IReadOnlyList<WaterLevelReading>> GetLast24HoursAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<WaterLevelReading>>(
-            [
-                new WaterLevelReading { Time = new DateTime(2026, 6, 25, 8, 0, 0, DateTimeKind.Utc), LevelMeters = 1.70m },
-                new WaterLevelReading { Time = new DateTime(2026, 6, 26, 8, 0, 0, DateTimeKind.Utc), LevelMeters = 1.82m }
-            ]);
-    }
 }

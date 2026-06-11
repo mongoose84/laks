@@ -2,126 +2,169 @@
 @model Laks.Web.Pages.Statistics.IndexModel
 @{
     ViewData["Title"] = "Statistik";
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
 }
 
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="h3 mb-0">📊 Fiskestatistik</h1>
+<div class="ed-page-header">
+    <h1 class="ed-section-title">Fiskestatistik</h1>
 </div>
 
-<!-- Year filter -->
-<div class="card mb-4 shadow-sm">
-    <div class="card-body">
-        <form method="get" class="row g-2 align-items-end">
-            <div class="col-sm-4">
-                <label for="year" class="form-label fw-semibold">Filtrer fisker- og typediagrammer efter år</label>
-                <select id="year" name="year" class="form-select" onchange="this.form.submit()">
-                    <option value="">— Alle år —</option>
-                    @foreach (var season in Model.Seasons)
-                    {
-                        <option value="@season.Year" selected="@(Model.SelectedYear == season.Year)">@season.Year</option>
-                    }
-                </select>
-            </div>
-        </form>
-    </div>
+<div class="ed-filter-bar">
+    <form method="get">
+        <label for="year" class="ed-form-label">Filtrer fisker- og typediagrammer efter år</label>
+        <select id="year" name="year" class="ed-form-select" onchange="this.form.submit()">
+            <option value="">— Alle år —</option>
+            @foreach (var season in Model.Seasons)
+            {
+                <option value="@season.Year" selected="@(Model.SelectedYear == season.Year)">@season.Year</option>
+            }
+        </select>
+        <noscript><button type="submit" class="ed-form-submit">Filtrer</button></noscript>
+    </form>
 </div>
 
-<div class="row g-4">
-
-    <!-- ① Trend line: catches per year -->
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-header fw-semibold">Fangster pr. år (historisk trend)</div>
-            <div class="card-body">
-                <canvas id="trendChart" height="90"></canvas>
-            </div>
+<section class="ed-section ed-chart-section" aria-labelledby="trend-title">
+    <h2 id="trend-title" class="ed-section-title">
+        Fangster pr. år (historisk trend)
+    </h2>
+    <figure class="ed-chart-figure">
+        <div class="ed-chart-wrap">
+            <canvas id="trendChart" role="img" aria-label="Linjediagram over antal fangster og samlet vægt pr. år"></canvas>
         </div>
-    </div>
+    </figure>
+</section>
 
-    <!-- ② Bar: catches per angler -->
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header fw-semibold">
-                Fangster pr. fisker
-                @if (Model.SelectedYear.HasValue) { <span class="badge bg-primary ms-1">@Model.SelectedYear</span> }
-            </div>
-            <div class="card-body">
-                <canvas id="barChart"></canvas>
-            </div>
+<section class="ed-section ed-chart-section" aria-labelledby="season-progress-title">
+    <h2 id="season-progress-title" class="ed-section-title">
+        Sæsonens forløb <span class="ed-kicker">Fangster pr. uge</span>
+    </h2>
+    <figure class="ed-chart-figure">
+        <div class="ed-chart-wrap">
+            <canvas id="seasonProgressChart" role="img" aria-label="Linjediagram over fangster pr. uge gennem sæsonen, seneste sæsoner lagt oven på hinanden"></canvas>
         </div>
-    </div>
+        <figcaption class="ed-chart-caption">Antal registrerede fangster pr. uge — de seneste sæsoner lagt over hinanden.</figcaption>
+    </figure>
+</section>
 
-    <!-- ③ Donut: catch type distribution -->
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header fw-semibold">
-                Fangsttype-fordeling
-                @if (Model.SelectedYear.HasValue) { <span class="badge bg-primary ms-1">@Model.SelectedYear</span> }
-            </div>
-            <div class="card-body d-flex justify-content-center">
-                <div style="max-width:380px; width:100%">
-                    <canvas id="donutChart"></canvas>
+<div class="ed-stats-grid">
+    <section class="ed-section ed-chart-section" aria-labelledby="hour-title">
+        <h2 id="hour-title" class="ed-section-title">
+            Fangster fordelt på døgnet
+            @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
+        </h2>
+        <figure class="ed-chart-figure">
+            @if (Model.HasHourData)
+            {
+                <div class="ed-chart-wrap">
+                    <canvas id="hourChart" role="img" aria-label="Søjlediagram over hvornår på døgnet fangsterne er registreret"></canvas>
                 </div>
-            </div>
-        </div>
-    </div>
+                <figcaption class="ed-chart-caption">Hvornår på døgnet fangsterne blev registreret.</figcaption>
+            }
+            else
+            {
+                <div class="ed-chart-empty">Ingen fangster med registreret klokkeslæt.</div>
+            }
+        </figure>
+    </section>
 
-    <!-- ④ Team statistics: biggest salmons per team -->
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-header fw-semibold">
-                🏆 Største laks pr. hold
-                @if (Model.SelectedYear.HasValue) { <span class="badge bg-primary ms-1">@Model.SelectedYear</span> }
-            </div>
-            <div class="card-body">
-                @if (Model.TeamStats.Any())
-                {
-                    <div class="row">
-                        <div class="col-lg-7">
-                            <canvas id="teamChart" height="100"></canvas>
-                        </div>
-                        <div class="col-lg-5">
-                            <div class="table-responsive mt-3 mt-lg-0">
-                                <table class="table table-striped table-hover align-middle mb-0" aria-label="Holdstatistik for laks">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">#</th>
-                                            <th scope="col">Hold</th>
-                                            <th scope="col" class="text-end">Største (kg)</th>
-                                            <th scope="col">Fanget af</th>
-                                            <th scope="col" class="text-end">Laks</th>
-                                            <th scope="col" class="text-end">Gns. (kg)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @{ var rank = 0; }
-                                        @foreach (var team in Model.TeamStats)
-                                        {
-                                            rank++;
-                                            <tr>
-                                                <td>@rank</td>
-                                                <td class="fw-semibold">@team.TeamName</td>
-                                                <td class="text-end">@team.BiggestSalmonKg.ToString("N1")</td>
-                                                <td>@team.AnglerName</td>
-                                                <td class="text-end">@team.TotalSalmonCount</td>
-                                                <td class="text-end">@team.AvgSalmonWeightKg.ToString("N1")</td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <p class="text-muted mb-0">Ingen holddata for laks tilgængelig.</p>
-                }
-            </div>
-        </div>
-    </div>
-
+    <section class="ed-section ed-chart-section" aria-labelledby="waterband-title">
+        <h2 id="waterband-title" class="ed-section-title">
+            Fangster fordelt på vandstand
+            @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
+        </h2>
+        <figure class="ed-chart-figure">
+            @if (Model.HasWaterBandData)
+            {
+                <div class="ed-chart-wrap">
+                    <canvas id="waterBandChart" role="img" aria-label="Søjlediagram over fangster fordelt på vandstandsintervaller"></canvas>
+                </div>
+                <figcaption class="ed-chart-caption">Vandstand ved fangsttidspunktet, i intervaller på 25 cm.</figcaption>
+            }
+            else
+            {
+                <div class="ed-chart-empty">Ingen fangster med registreret vandstand.</div>
+            }
+        </figure>
+    </section>
 </div>
+
+<div class="ed-stats-grid">
+    <section class="ed-section ed-chart-section" aria-labelledby="angler-title">
+        <h2 id="angler-title" class="ed-section-title">
+            Fangster pr. fisker
+            @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
+        </h2>
+        <figure class="ed-chart-figure">
+            <div class="ed-chart-wrap">
+                <canvas id="barChart" role="img" aria-label="Søjlediagram over fangster og samlet vægt pr. fisker"></canvas>
+            </div>
+        </figure>
+    </section>
+
+    <section class="ed-section ed-chart-section" aria-labelledby="type-title">
+        <h2 id="type-title" class="ed-section-title">
+            Fangsttype-fordeling
+            @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
+        </h2>
+        <figure class="ed-chart-figure">
+            <div class="ed-chart-wrap" style="max-width:360px;margin:0 auto">
+                <canvas id="donutChart" role="img" aria-label="Cirkeldiagram over fordeling af fangsttyper"></canvas>
+            </div>
+        </figure>
+    </section>
+</div>
+
+<section class="ed-section" aria-labelledby="team-title">
+    <h2 id="team-title" class="ed-section-title">
+        Største laks pr. hold
+        @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
+    </h2>
+    @if (Model.TeamStats.Any())
+    {
+        <div class="ed-stats-grid">
+            <div class="ed-chart-section">
+                <figure class="ed-chart-figure">
+                    <div class="ed-chart-wrap">
+                        <canvas id="teamChart" role="img" aria-label="Søjlediagram over største og gennemsnitlig laksevægt pr. hold"></canvas>
+                    </div>
+                </figure>
+            </div>
+            <div class="ed-table-wrap">
+                <table class="ed-table" aria-label="Holdstatistik for laks">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Hold</th>
+                            <th scope="col" class="ed-td-num">Største (kg)</th>
+                            <th scope="col">Fanget af</th>
+                            <th scope="col" class="ed-td-num">Laks</th>
+                            <th scope="col" class="ed-td-num">Gns. (kg)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ var rank = 0; }
+                        @foreach (var team in Model.TeamStats)
+                        {
+                            rank++;
+                            <tr>
+                                <td>@rank</td>
+                                <td>@team.TeamName</td>
+                                <td class="ed-td-num">@team.BiggestSalmonKg.ToString("N1", da)</td>
+                                <td>@team.AnglerName</td>
+                                <td class="ed-td-num">@team.TotalSalmonCount</td>
+                                <td class="ed-td-num">@team.AvgSalmonWeightKg.ToString("N1", da)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="ed-empty">Ingen holddata for laks tilgængelig.</p>
+    }
+</section>
 
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
@@ -131,17 +174,14 @@
 (function () {
     'use strict';
 
-    // ----------------------------------------------------------------
-    // Shared chart defaults for readability
-    // ----------------------------------------------------------------
     Chart.defaults.font.family = "'Inter', system-ui, -apple-system, sans-serif";
     Chart.defaults.font.size   = 13;
-    Chart.defaults.color       = '#8899a8';
-    Chart.defaults.borderColor = '#243442';
+    Chart.defaults.color       = '#7a6f60';
+    Chart.defaults.borderColor = '#3a3128';
 
     const PALETTE = [
-        '#0d6efd','#198754','#ffc107','#dc3545','#0dcaf0',
-        '#6610f2','#fd7e14','#20c997','#d63384','#6c757d'
+        '#d97757','#b35d3f','#e8a989','#b8a890','#7a6f60',
+        '#f5ede0','#3a3128','#25201a','#1c1814','#a06040'
     ];
 
     // ① Trend line -------------------------------------------------------
@@ -157,8 +197,8 @@
                 {
                     label: 'Antal fangster',
                     data: trendTotals,
-                    borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(13,110,253,.12)',
+                    borderColor: '#d97757',
+                    backgroundColor: 'rgba(217,119,87,.12)',
                     fill: true,
                     tension: 0.3,
                     pointRadius: 5,
@@ -167,8 +207,8 @@
                 {
                     label: 'Samlet vægt (kg)',
                     data: trendWeight,
-                    borderColor: '#198754',
-                    backgroundColor: 'rgba(25,135,84,.1)',
+                    borderColor: '#b8a890',
+                    backgroundColor: 'rgba(184,168,144,.1)',
                     fill: false,
                     tension: 0.3,
                     pointRadius: 5,
@@ -179,6 +219,7 @@
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
                 tooltip: { callbacks: {
@@ -196,6 +237,112 @@
         }
     });
 
+    // ②a Season progress: catches per week, seasons overlaid --------------
+    const progressLabels = @Html.Raw(Model.SeasonProgressLabelsJson);
+    const progressSeries = @Html.Raw(Model.SeasonProgressSeriesJson);
+
+    if (progressSeries.length > 0) {
+        const SERIES_COLORS = ['#7a6f60', '#b8a890', '#e8a989', '#b35d3f', '#d97757'];
+        new Chart(document.getElementById('seasonProgressChart'), {
+            type: 'line',
+            data: {
+                labels: progressLabels,
+                datasets: progressSeries.map((s, i) => {
+                    const isLatest = i === progressSeries.length - 1;
+                    const color = SERIES_COLORS[Math.max(0, SERIES_COLORS.length - progressSeries.length + i)];
+                    return {
+                        label: String(s.Year),
+                        data: s.Data,
+                        borderColor: isLatest ? '#d97757' : color,
+                        backgroundColor: 'transparent',
+                        borderWidth: isLatest ? 3 : 1.5,
+                        pointRadius: isLatest ? 4 : 2,
+                        tension: 0.3,
+                        spanGaps: false
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} fangster`
+                    }}
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Fangster' }, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
+
+    // ②b Bar: catches per hour of day --------------------------------------
+    const hourData = @Html.Raw(Model.HourDataJson);
+
+    new Chart(document.getElementById('hourChart'), {
+        type: 'bar',
+        data: {
+            labels: hourData.map((_, h) => String(h).padStart(2, '0')),
+            datasets: [{
+                label: 'Fangster',
+                data: hourData,
+                backgroundColor: '#d97757',
+                borderRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: {
+                    title: items => `Kl. ${items[0].label}–${String((Number(items[0].label) + 1) % 24).padStart(2, '0')}`,
+                    label: ctx => ` ${ctx.parsed.y} fangster`
+                }}
+            },
+            scales: {
+                x: { title: { display: true, text: 'Klokkeslæt' }, ticks: { maxTicksLimit: 12 } },
+                y: { beginAtZero: true, title: { display: true, text: 'Fangster' }, ticks: { precision: 0 } }
+            }
+        }
+    });
+
+    // ②c Bar: catches per water-level band ---------------------------------
+    const bandLabels = @Html.Raw(Model.WaterBandLabelsJson);
+    const bandData   = @Html.Raw(Model.WaterBandDataJson);
+
+    if (bandLabels.length > 0) {
+        new Chart(document.getElementById('waterBandChart'), {
+            type: 'bar',
+            data: {
+                labels: bandLabels,
+                datasets: [{
+                    label: 'Fangster',
+                    data: bandData,
+                    backgroundColor: '#b35d3f',
+                    borderRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: {
+                        label: ctx => ` ${ctx.parsed.y} fangster`
+                    }}
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Vandstand (m)' } },
+                    y: { beginAtZero: true, title: { display: true, text: 'Fangster' }, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
+
     // ② Bar: catches per angler ------------------------------------------
     const barLabels  = @Html.Raw(Model.BarLabelsJson);
     const barCatches = @Html.Raw(Model.BarCatchesJson);
@@ -210,19 +357,20 @@
                     label: 'Fangster',
                     data: barCatches,
                     backgroundColor: barLabels.map((_, i) => PALETTE[i % PALETTE.length]),
-                    borderRadius: 4
+                    borderRadius: 0
                 },
                 {
                     label: 'Samlet vægt (kg)',
                     data: barWeight,
-                    backgroundColor: 'rgba(25,135,84,.5)',
-                    borderRadius: 4,
+                    backgroundColor: 'rgba(184,168,144,.45)',
+                    borderRadius: 0,
                     yAxisID: 'y1'
                 }
             ]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: { legend: { position: 'top' } },
             scales: {
                 y:  { title: { display: true, text: 'Fangster' }, beginAtZero: true },
@@ -243,11 +391,13 @@
             datasets: [{
                 data: pieData,
                 backgroundColor: PALETTE,
-                hoverOffset: 8
+                hoverOffset: 8,
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: { position: 'bottom' },
                 tooltip: { callbacks: {
@@ -262,9 +412,9 @@
     });
 
     // ④ Team bar: biggest salmons per team --------------------------------
-    const teamLabels      = @Html.Raw(Model.TeamLabelsJson);
-    const teamBiggest     = @Html.Raw(Model.TeamBiggestJson);
-    const teamAvgWeight = @Html.Raw(Model.TeamAvgWeightJson);
+    const teamLabels  = @Html.Raw(Model.TeamLabelsJson);
+    const teamBiggest = @Html.Raw(Model.TeamBiggestJson);
+    const teamAvg     = @Html.Raw(Model.TeamAvgWeightJson);
 
     if (teamLabels.length > 0) {
         new Chart(document.getElementById('teamChart'), {
@@ -275,21 +425,22 @@
                     {
                         label: 'Største laks (kg)',
                         data: teamBiggest,
-                        backgroundColor: '#0d6efd',
-                        borderRadius: 4,
+                        backgroundColor: '#d97757',
+                        borderRadius: 0,
                         yAxisID: 'y'
                     },
                     {
                         label: 'Gns. laksevægt (kg)',
-                        data: teamAvgWeight,
-                        backgroundColor: 'rgba(25,135,84,.45)',
-                        borderRadius: 4,
+                        data: teamAvg,
+                        backgroundColor: 'rgba(184,168,144,.45)',
+                        borderRadius: 0,
                         yAxisID: 'y1'
                     }
                 ]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { position: 'top' },
                     tooltip: { callbacks: {
