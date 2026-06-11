@@ -32,6 +32,7 @@ public class IndexModel : PageModel
     public string SeasonProgressLabelsJson { get; private set; } = "[]";
     public string SeasonProgressSeriesJson { get; private set; } = "[]";
     public string HourDataJson             { get; private set; } = "[]";
+    public bool HasHourData                { get; private set; }
     public string WaterBandLabelsJson      { get; private set; } = "[]";
     public string WaterBandDataJson        { get; private set; } = "[]";
     public bool HasWaterBandData           { get; private set; }
@@ -91,10 +92,12 @@ public class IndexModel : PageModel
             // Season-progress curve – catches per ISO week, recent seasons overlaid
             var (weekLabels, weekSeries) = BuildSeasonProgress(await weekTask);
             SeasonProgressLabelsJson = Serialize(weekLabels);
-            SeasonProgressSeriesJson = JsonSerializer.Serialize(weekSeries);
+            SeasonProgressSeriesJson = Serialize(weekSeries);
 
             // Time of day – catches per hour, filled to a full 24-hour axis
-            HourDataJson = Serialize(BuildHourBuckets(await hourTask));
+            var hourBuckets = BuildHourBuckets(await hourTask);
+            HasHourData  = hourBuckets.Any(v => v > 0);
+            HourDataJson = Serialize(hourBuckets);
 
             // Water-level bands (0.25 m)
             var bands = (await bandTask).ToList();
@@ -108,8 +111,10 @@ public class IndexModel : PageModel
         }
     }
 
-    private static string Serialize<T>(IEnumerable<T> data) =>
-        JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = false });
+    private static readonly JsonSerializerOptions SerializeOptions = new() { WriteIndented = false };
+
+    private static string Serialize<T>(T data) =>
+        JsonSerializer.Serialize(data, SerializeOptions);
 
     /// <summary>
     /// Aligns catches-per-week rows on a shared week axis covering all included

@@ -1,6 +1,7 @@
 using Laks.Web.Data.Repositories;
 using Laks.Web.Models;
 using Laks.Web.Pages.Statistics;
+using Laks.Web.Tests.TestDoubles;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Laks.Web.Tests.Unit;
@@ -142,11 +143,6 @@ public class LeaderboardPageModelTests
             LeaderboardScope = scope,
             GroupNumber = groupNumber
         };
-
-    private sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => utcNow;
-    }
 
     /// <summary>Season table where 2025 exists but has no catches; 2024 is the last season with data.</summary>
     private sealed class GapYearSeasonRepository : ISeasonRepository

@@ -293,11 +293,13 @@ public class CatchRepository : ICatchRepository
     public async Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync()
     {
         // WEEK(date, 3) = ISO-8601 week number, matching Danish/Norwegian convention.
+        // Limit to the 5 most recent years to bound the result set.
         const string sql = @"
-            SELECT YEAR(c.`Date`)   AS SeasonYear,
+            SELECT YEAR(c.`Date`)    AS SeasonYear,
                    WEEK(c.`Date`, 3) AS WeekNumber,
-                   COUNT(c.`Id`)    AS TotalCatches
+                   COUNT(c.`Id`)     AS TotalCatches
             FROM   `Catch` c
+            WHERE  YEAR(c.`Date`) >= (SELECT MAX(YEAR(c2.`Date`)) - 4 FROM `Catch` c2)
             GROUP  BY YEAR(c.`Date`), WEEK(c.`Date`, 3)
             ORDER  BY SeasonYear, WeekNumber";
 

@@ -180,7 +180,12 @@ public sealed class InMemorySeasonRepository : ISeasonRepository
     public Task<int?> GetAnglerGroupAsync(int year, int anglerId) => Task.FromResult<int?>(1);
 }
 
-public sealed class StubWeatherService : IWeatherService
+public sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider
+{
+    public override DateTimeOffset GetUtcNow() => utcNow;
+}
+
+public sealed class FakeWeatherService : IWeatherService
 {
     public Task<WeatherData?> GetCurrentAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<WeatherData?>(new WeatherData
@@ -194,7 +199,7 @@ public sealed class StubWeatherService : IWeatherService
         });
 }
 
-public sealed class StubWaterLevelService : IWaterLevelService
+public sealed class FakeWaterLevelService : IWaterLevelService
 {
     public Task<WaterLevelSnapshot?> GetCurrentAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<WaterLevelSnapshot?>(new WaterLevelSnapshot

@@ -31,7 +31,7 @@
     }
     else
     {
-        @* Pages that hide the chrome (Index) render their own <main> landmark. *@
+        @* HideChrome pages (e.g. Index) are required to render their own <main role="main"> landmark. *@
         @RenderBody()
     }
 

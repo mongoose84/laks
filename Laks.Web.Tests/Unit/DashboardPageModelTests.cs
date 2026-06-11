@@ -2,6 +2,7 @@
 using Laks.Web.Models;
 using Laks.Web.Pages;
 using Laks.Web.Services;
+using Laks.Web.Tests.TestDoubles;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Laks.Web.Tests.Unit;
@@ -434,11 +435,6 @@ public class DashboardPageModelTests
         public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
     }
 
-    private sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => utcNow;
-    }
-
     private static List<SeasonConfig> ThreeGroupConfig(int year) =>
     [
         new() { Year = year, GroupNumber = 1, StartDate = new DateTime(year, 6, 21), EndDate = new DateTime(year, 6, 25) },
@@ -609,42 +605,10 @@ public class DashboardPageModelTests
         public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
     }
 
-    private sealed class FakeWeatherService : IWeatherService
-    {
-        public Task<WeatherData?> GetCurrentAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<WeatherData?>(new WeatherData
-            {
-                AirTemperatureC = 13.5m,
-                WindSpeedMs = 4.2m,
-                WindDirection = "NW",
-                WeatherSymbol = "clearsky_day",
-                MeasuredAt = new DateTime(2026, 6, 26, 8, 0, 0, DateTimeKind.Utc)
-            });
-    }
-
     private sealed class ThrowingWeatherService : IWeatherService
     {
         public Task<WeatherData?> GetCurrentAsync(CancellationToken cancellationToken = default)
             => throw new HttpRequestException("Weather API unavailable");
     }
 
-    private sealed class FakeWaterLevelService : IWaterLevelService
-    {
-        public Task<WaterLevelSnapshot?> GetCurrentAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<WaterLevelSnapshot?>(new WaterLevelSnapshot
-            {
-                LevelMeters = 1.82m,
-                WaterTemperatureC = 10.4m,
-                Trend = WaterLevelTrend.Rising,
-                MeasuredAt = new DateTime(2026, 6, 26, 8, 0, 0, DateTimeKind.Utc),
-                LastKnownAt = new DateTime(2026, 6, 26, 8, 0, 0, DateTimeKind.Utc)
-            });
-
-        public Task<IReadOnlyList<WaterLevelReading>> GetLast24HoursAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<WaterLevelReading>>(
-            [
-                new WaterLevelReading { Time = new DateTime(2026, 6, 25, 8, 0, 0, DateTimeKind.Utc), LevelMeters = 1.70m },
-                new WaterLevelReading { Time = new DateTime(2026, 6, 26, 8, 0, 0, DateTimeKind.Utc), LevelMeters = 1.82m }
-            ]);
-    }
 }

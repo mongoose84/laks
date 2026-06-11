@@ -15,13 +15,16 @@
         <a class="ed-pill @(Model.LeaderboardScope == "my-group" ? "is-active" : "")"
            asp-page="/Statistics/Leaderboard"
            asp-route-leaderboardScope="my-group"
-           asp-route-groupNumber="@Model.SelectedGroup">Mit hold</a>
+           asp-route-groupNumber="@Model.SelectedGroup"
+           aria-current="@(Model.LeaderboardScope == "my-group" ? "page" : null)">Mit hold</a>
         <a class="ed-pill @(Model.LeaderboardScope == "all-groups" ? "is-active" : "")"
            asp-page="/Statistics/Leaderboard"
-           asp-route-leaderboardScope="all-groups">Alle hold @Model.CurrentYear</a>
+           asp-route-leaderboardScope="all-groups"
+           aria-current="@(Model.LeaderboardScope == "all-groups" ? "page" : null)">Alle hold @Model.CurrentYear</a>
         <a class="ed-pill @(Model.LeaderboardScope == "last-year" ? "is-active" : "")"
            asp-page="/Statistics/Leaderboard"
-           asp-route-leaderboardScope="last-year">@Model.LastSeasonLabelYear</a>
+           asp-route-leaderboardScope="last-year"
+           aria-current="@(Model.LeaderboardScope == "last-year" ? "page" : null)">@Model.LastSeasonLabelYear</a>
     </div>
 
     @if (Model.AvailableGroups.Count > 1 && Model.LeaderboardScope == "my-group")
@@ -33,7 +36,8 @@
                 <a class="ed-pill @(g.GroupNumber == Model.SelectedGroup ? "is-active" : "")"
                    asp-page="/Statistics/Leaderboard"
                    asp-route-leaderboardScope="my-group"
-                   asp-route-groupNumber="@g.GroupNumber">@g.GroupNumber</a>
+                   asp-route-groupNumber="@g.GroupNumber"
+                   aria-current="@(g.GroupNumber == Model.SelectedGroup ? "page" : null)">@g.GroupNumber</a>
             }
         </div>
     }

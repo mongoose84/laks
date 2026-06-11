@@ -29,8 +29,8 @@ public sealed class LaksWebApplicationFactory : WebApplicationFactory<Program>
 
             services.AddSingleton<ICatchRepository, InMemoryCatchRepository>();
             services.AddSingleton<ISeasonRepository, InMemorySeasonRepository>();
-            services.AddSingleton<IWeatherService, StubWeatherService>();
-            services.AddSingleton<IWaterLevelService, StubWaterLevelService>();
+            services.AddSingleton<IWeatherService, FakeWeatherService>();
+            services.AddSingleton<IWaterLevelService, FakeWaterLevelService>();
         });
     }
 }

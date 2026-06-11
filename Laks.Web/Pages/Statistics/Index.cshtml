@@ -53,10 +53,17 @@
             @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
         </h2>
         <figure class="ed-chart-figure">
-            <div class="ed-chart-wrap">
-                <canvas id="hourChart" role="img" aria-label="Søjlediagram over hvornår på døgnet fangsterne er registreret"></canvas>
-            </div>
-            <figcaption class="ed-chart-caption">Hvornår på døgnet fangsterne blev registreret.</figcaption>
+            @if (Model.HasHourData)
+            {
+                <div class="ed-chart-wrap">
+                    <canvas id="hourChart" role="img" aria-label="Søjlediagram over hvornår på døgnet fangsterne er registreret"></canvas>
+                </div>
+                <figcaption class="ed-chart-caption">Hvornår på døgnet fangsterne blev registreret.</figcaption>
+            }
+            else
+            {
+                <div class="ed-chart-empty">Ingen fangster med registreret klokkeslæt.</div>
+            }
         </figure>
     </section>
 

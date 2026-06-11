@@ -129,8 +129,6 @@ public class IndexModel : PageModel
                 $"load group {g.GroupNumber} summary"))
             .ToList();
 
-        await Task.WhenAll(groupSummaryTasks);
-
         GroupSummaries = (await Task.WhenAll(groupSummaryTasks))
             .Where(g => g is not null)
             .Select(g => g!)
