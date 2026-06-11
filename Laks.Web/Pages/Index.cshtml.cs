@@ -112,15 +112,6 @@ public class IndexModel : PageModel
         SelectedGroup = selectedGroup;
         var (leaderboardYear, leaderboardGroup) = ResolveLeaderboardScope(selectedGroup);
 
-        if (ShouldFallbackToEarlierSeason())
-        {
-            leaderboardYear = allSeasons
-                .Where(s => s.Year < leaderboardYear && s.TotalCatches > 0)
-                .Select(s => s.Year)
-                .DefaultIfEmpty(leaderboardYear)
-                .Max();
-        }
-
         LeaderboardYear = leaderboardYear;
 
         var leaderboardList = (await SafeCallAsync(
@@ -255,20 +246,14 @@ public class IndexModel : PageModel
             _ => "my-group"
         };
 
+        // "last-year" uses LastSeasonLabelYear — the most recent season with
+        // catches — so the pill label and the loaded data always agree.
         return LeaderboardScope switch
         {
             "all-groups" => (CurrentYear, null),
-            "last-year" => (CurrentYear - 1, null),
+            "last-year" => (LastSeasonLabelYear, null),
             _ => (CurrentYear, selectedGroup)
         };
-    }
-
-    private bool ShouldFallbackToEarlierSeason()
-    {
-        return LeaderboardScope == "last-year"
-               && SeasonDay.IsOffSeason
-               && SeasonDay.NextGroupStart.HasValue
-               && _timeProvider.GetUtcNow().UtcDateTime.Date < SeasonDay.NextGroupStart.Value.Date;
     }
 
     private static int? ResolveSelectedGroup(IEnumerable<SeasonConfig> configs, int? requestedGroup, int? currentGroup)
@@ -324,6 +309,7 @@ public class IndexModel : PageModel
         {
             IsOffSeason = !isBufferDay,
             IsBufferDay = isBufferDay,
+            SeasonHasEnded = currentDate > last.EndDate.Date,
             NextGroupStart = next?.StartDate,
             NextGroupTeamName = next?.TeamName,
             TotalGroups = totalGroups

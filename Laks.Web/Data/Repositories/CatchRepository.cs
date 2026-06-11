@@ -289,4 +289,49 @@ public class CatchRepository : ICatchRepository
         using var conn = _db.CreateConnection();
         return await conn.QueryAsync<BiggestSalmonPerTeam>(sql, new { Year = year });
     }
+
+    public async Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync()
+    {
+        // WEEK(date, 3) = ISO-8601 week number, matching Danish/Norwegian convention.
+        const string sql = @"
+            SELECT YEAR(c.`Date`)   AS SeasonYear,
+                   WEEK(c.`Date`, 3) AS WeekNumber,
+                   COUNT(c.`Id`)    AS TotalCatches
+            FROM   `Catch` c
+            GROUP  BY YEAR(c.`Date`), WEEK(c.`Date`, 3)
+            ORDER  BY SeasonYear, WeekNumber";
+
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<CatchesPerWeek>(sql);
+    }
+
+    public async Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null)
+    {
+        const string sql = @"
+            SELECT HOUR(c.`Time`) AS Hour,
+                   COUNT(c.`Id`)  AS TotalCatches
+            FROM   `Catch` c
+            WHERE  (@Year IS NULL OR YEAR(c.`Date`) = @Year)
+            GROUP  BY HOUR(c.`Time`)
+            ORDER  BY Hour";
+
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<CatchesByHour>(sql, new { Year = year });
+    }
+
+    public async Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null)
+    {
+        // 0.25 m bands; catches without a recorded water level are excluded.
+        const string sql = @"
+            SELECT FLOOR(c.`WaterLevel` / 0.25) * 0.25 AS BandStartM,
+                   COUNT(c.`Id`)                       AS TotalCatches
+            FROM   `Catch` c
+            WHERE  c.`WaterLevel` IS NOT NULL
+              AND  (@Year IS NULL OR YEAR(c.`Date`) = @Year)
+            GROUP  BY FLOOR(c.`WaterLevel` / 0.25) * 0.25
+            ORDER  BY BandStartM";
+
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<CatchesByWaterLevel>(sql, new { Year = year });
+    }
 }

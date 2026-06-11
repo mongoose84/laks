@@ -115,7 +115,8 @@ public class ModelTests
             NextGroupTeamName = "Hold Rød"
         };
 
-        Assert.Equal("Fiskeriet starter i dag · Team Hold Rød", day.DisplayText);
+        // No English "Team" prefix — the team name stands alone.
+        Assert.Equal("Fiskeriet starter i dag · Hold Rød", day.DisplayText);
     }
 
     [Fact]
@@ -129,5 +130,21 @@ public class ModelTests
         };
 
         Assert.Equal("Sæson ikke konfigureret", day.DisplayText);
+    }
+
+    [Fact]
+    public void SeasonDay_DisplayText_SeasonOver_ReturnsSeasonEndedDanish()
+    {
+        // A configured season that has ended must not claim the season
+        // is "not configured".
+        var day = new SeasonDay
+        {
+            IsOffSeason = true,
+            IsBufferDay = false,
+            NextGroupStart = null,
+            SeasonHasEnded = true
+        };
+
+        Assert.Equal("Sæsonen er slut for i år — vi ses til næste sommer", day.DisplayText);
     }
 }

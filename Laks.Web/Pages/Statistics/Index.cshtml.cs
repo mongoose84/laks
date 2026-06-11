@@ -28,6 +28,14 @@ public class IndexModel : PageModel
     public string TeamAvgWeightJson { get; private set; } = "[]";
     public IEnumerable<BiggestSalmonPerTeam> TeamStats { get; private set; } = [];
 
+    // Fishing-insight modules (descriptive statistics)
+    public string SeasonProgressLabelsJson { get; private set; } = "[]";
+    public string SeasonProgressSeriesJson { get; private set; } = "[]";
+    public string HourDataJson             { get; private set; } = "[]";
+    public string WaterBandLabelsJson      { get; private set; } = "[]";
+    public string WaterBandDataJson        { get; private set; } = "[]";
+    public bool HasWaterBandData           { get; private set; }
+
     public IEnumerable<FishingSeason> Seasons { get; private set; } = [];
     public int? SelectedYear { get; private set; }
 
@@ -50,8 +58,11 @@ public class IndexModel : PageModel
             var anglerTask  = _catches.GetCatchesPerAnglerAsync(year);
             var typeTask    = _catches.GetCatchesByTypeAsync(year);
             var teamTask    = _catches.GetBiggestSalmonPerTeamAsync(year);
+            var weekTask    = _catches.GetCatchesPerWeekAsync();
+            var hourTask    = _catches.GetCatchesByHourAsync(year);
+            var bandTask    = _catches.GetCatchesByWaterLevelAsync(year);
 
-            await Task.WhenAll(trendTask, anglerTask, typeTask, teamTask);
+            await Task.WhenAll(trendTask, anglerTask, typeTask, teamTask, weekTask, hourTask, bandTask);
 
             // Trend line – all years
             var trend = (await trendTask).ToList();
@@ -76,6 +87,20 @@ public class IndexModel : PageModel
             TeamLabelsJson     = Serialize(teams.Select(x => x.TeamName));
             TeamBiggestJson    = Serialize(teams.Select(x => x.BiggestSalmonKg));
             TeamAvgWeightJson = Serialize(teams.Select(x => x.AvgSalmonWeightKg));
+
+            // Season-progress curve – catches per ISO week, recent seasons overlaid
+            var (weekLabels, weekSeries) = BuildSeasonProgress(await weekTask);
+            SeasonProgressLabelsJson = Serialize(weekLabels);
+            SeasonProgressSeriesJson = JsonSerializer.Serialize(weekSeries);
+
+            // Time of day – catches per hour, filled to a full 24-hour axis
+            HourDataJson = Serialize(BuildHourBuckets(await hourTask));
+
+            // Water-level bands (0.25 m)
+            var bands = (await bandTask).ToList();
+            HasWaterBandData   = bands.Count > 0;
+            WaterBandLabelsJson = Serialize(bands.Select(b => FormatBandLabel(b.BandStartM)));
+            WaterBandDataJson   = Serialize(bands.Select(b => b.TotalCatches));
         }
         catch (Exception ex)
         {
@@ -85,4 +110,66 @@ public class IndexModel : PageModel
 
     private static string Serialize<T>(IEnumerable<T> data) =>
         JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = false });
+
+    /// <summary>
+    /// Aligns catches-per-week rows on a shared week axis covering all included
+    /// seasons. Weeks without catches are null so Chart.js leaves gaps; at most
+    /// the <paramref name="maxSeasons"/> most recent seasons are included.
+    /// </summary>
+    internal static (List<string> Labels, List<SeasonProgressSeries> Series) BuildSeasonProgress(
+        IEnumerable<CatchesPerWeek> rows, int maxSeasons = 5)
+    {
+        var included = rows
+            .GroupBy(r => r.SeasonYear)
+            .OrderByDescending(g => g.Key)
+            .Take(maxSeasons)
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        if (included.Count == 0)
+        {
+            return ([], []);
+        }
+
+        var minWeek = included.Min(g => g.Min(r => r.WeekNumber));
+        var maxWeek = included.Max(g => g.Max(r => r.WeekNumber));
+        var weeks = Enumerable.Range(minWeek, maxWeek - minWeek + 1).ToList();
+        var labels = weeks.Select(w => $"Uge {w}").ToList();
+
+        var series = included
+            .Select(g =>
+            {
+                var byWeek = g.ToDictionary(r => r.WeekNumber, r => r.TotalCatches);
+                return new SeasonProgressSeries(
+                    g.Key,
+                    weeks.Select(w => byWeek.TryGetValue(w, out var c) ? c : (int?)null).ToList());
+            })
+            .ToList();
+
+        return (labels, series);
+    }
+
+    /// <summary>Fills hour rows into a complete 24-slot array (index = hour of day).</summary>
+    internal static int[] BuildHourBuckets(IEnumerable<CatchesByHour> rows)
+    {
+        var buckets = new int[24];
+        foreach (var row in rows)
+        {
+            if (row.Hour is >= 0 and < 24)
+            {
+                buckets[row.Hour] = row.TotalCatches;
+            }
+        }
+
+        return buckets;
+    }
+
+    /// <summary>Formats a 0.25 m band as a Danish range label, e.g. "1,25–1,50 m".</summary>
+    internal static string FormatBandLabel(decimal bandStart)
+    {
+        var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+        return $"{bandStart.ToString("0.00", da)}–{(bandStart + 0.25m).ToString("0.00", da)} m";
+    }
+
+    public sealed record SeasonProgressSeries(int Year, List<int?> Data);
 }

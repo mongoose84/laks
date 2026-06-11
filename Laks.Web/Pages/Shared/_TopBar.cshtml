@@ -3,13 +3,17 @@
     var now = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central European Standard Time");
     var currentYear = now.Year.ToString();
     var dateLabel = now.ToString("d. MMMM yyyy", da);
+    var currentPage = ViewContext.RouteData.Values["page"] as string ?? string.Empty;
+
+    string ActiveClass(string page) => currentPage.Equals(page, StringComparison.OrdinalIgnoreCase) ? "active" : null!;
+    string AriaCurrent(string page) => currentPage.Equals(page, StringComparison.OrdinalIgnoreCase) ? "page" : null!;
 }
 <div class="ed-top-bar">
     <span>Sæson <span class="ed-issue">@currentYear</span></span>
     <nav class="ed-top-bar-links" aria-label="Sidenavigation">
-        <a asp-area="" asp-page="/Index">Forside</a>
-        <a asp-area="" asp-page="/Catches/Index">Fangster</a>
-        <a asp-area="" asp-page="/Statistics/Index">Statistik</a>
+        <a asp-area="" asp-page="/Index" class="@ActiveClass("/Index")" aria-current="@AriaCurrent("/Index")">Forside</a>
+        <a asp-area="" asp-page="/Catches/Index" class="@ActiveClass("/Catches/Index")" aria-current="@AriaCurrent("/Catches/Index")">Fangster</a>
+        <a asp-area="" asp-page="/Statistics/Index" class="@ActiveClass("/Statistics/Index")" aria-current="@AriaCurrent("/Statistics/Index")">Statistik</a>
     </nav>
     <div class="ed-top-bar-right">
         <span class="ed-top-bar-date">@dateLabel</span>
@@ -23,9 +27,9 @@
         </button>
     </div>
     <nav class="ed-nav-drawer" id="edNavDrawer" aria-label="Mobilnavigation">
-        <a asp-page="/Index">Forside</a>
-        <a asp-page="/Catches/Index">Fangster</a>
-        <a asp-page="/Statistics/Index">Statistik</a>
+        <a asp-page="/Index" aria-current="@AriaCurrent("/Index")">Forside</a>
+        <a asp-page="/Catches/Index" aria-current="@AriaCurrent("/Catches/Index")">Fangster</a>
+        <a asp-page="/Statistics/Index" aria-current="@AriaCurrent("/Statistics/Index")">Statistik</a>
     </nav>
 </div>
 <script src="~/js/nav-drawer.js" asp-append-version="true"></script>

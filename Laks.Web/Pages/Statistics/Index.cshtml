@@ -2,6 +2,7 @@
 @model Laks.Web.Pages.Statistics.IndexModel
 @{
     ViewData["Title"] = "Statistik";
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
 }
 
 <div class="ed-page-header">
@@ -18,58 +19,106 @@
                 <option value="@season.Year" selected="@(Model.SelectedYear == season.Year)">@season.Year</option>
             }
         </select>
+        <noscript><button type="submit" class="ed-form-submit">Filtrer</button></noscript>
     </form>
 </div>
 
-<div class="ed-section ed-chart-section">
-    <div class="ed-section-title">
+<section class="ed-section ed-chart-section" aria-labelledby="trend-title">
+    <h2 id="trend-title" class="ed-section-title">
         Fangster pr. år (historisk trend)
-    </div>
+    </h2>
     <figure class="ed-chart-figure">
         <div class="ed-chart-wrap">
-            <canvas id="trendChart"></canvas>
+            <canvas id="trendChart" role="img" aria-label="Linjediagram over antal fangster og samlet vægt pr. år"></canvas>
         </div>
     </figure>
+</section>
+
+<section class="ed-section ed-chart-section" aria-labelledby="season-progress-title">
+    <h2 id="season-progress-title" class="ed-section-title">
+        Sæsonens forløb <span class="ed-kicker">Fangster pr. uge</span>
+    </h2>
+    <figure class="ed-chart-figure">
+        <div class="ed-chart-wrap">
+            <canvas id="seasonProgressChart" role="img" aria-label="Linjediagram over fangster pr. uge gennem sæsonen, seneste sæsoner lagt oven på hinanden"></canvas>
+        </div>
+        <figcaption class="ed-chart-caption">Antal registrerede fangster pr. uge — de seneste sæsoner lagt over hinanden.</figcaption>
+    </figure>
+</section>
+
+<div class="ed-stats-grid">
+    <section class="ed-section ed-chart-section" aria-labelledby="hour-title">
+        <h2 id="hour-title" class="ed-section-title">
+            Fangster fordelt på døgnet
+            @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
+        </h2>
+        <figure class="ed-chart-figure">
+            <div class="ed-chart-wrap">
+                <canvas id="hourChart" role="img" aria-label="Søjlediagram over hvornår på døgnet fangsterne er registreret"></canvas>
+            </div>
+            <figcaption class="ed-chart-caption">Hvornår på døgnet fangsterne blev registreret.</figcaption>
+        </figure>
+    </section>
+
+    <section class="ed-section ed-chart-section" aria-labelledby="waterband-title">
+        <h2 id="waterband-title" class="ed-section-title">
+            Fangster fordelt på vandstand
+            @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
+        </h2>
+        <figure class="ed-chart-figure">
+            @if (Model.HasWaterBandData)
+            {
+                <div class="ed-chart-wrap">
+                    <canvas id="waterBandChart" role="img" aria-label="Søjlediagram over fangster fordelt på vandstandsintervaller"></canvas>
+                </div>
+                <figcaption class="ed-chart-caption">Vandstand ved fangsttidspunktet, i intervaller på 25 cm.</figcaption>
+            }
+            else
+            {
+                <div class="ed-chart-empty">Ingen fangster med registreret vandstand.</div>
+            }
+        </figure>
+    </section>
 </div>
 
 <div class="ed-stats-grid">
-    <div class="ed-section ed-chart-section">
-        <div class="ed-section-title">
+    <section class="ed-section ed-chart-section" aria-labelledby="angler-title">
+        <h2 id="angler-title" class="ed-section-title">
             Fangster pr. fisker
             @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
-        </div>
+        </h2>
         <figure class="ed-chart-figure">
             <div class="ed-chart-wrap">
-                <canvas id="barChart"></canvas>
+                <canvas id="barChart" role="img" aria-label="Søjlediagram over fangster og samlet vægt pr. fisker"></canvas>
             </div>
         </figure>
-    </div>
+    </section>
 
-    <div class="ed-section ed-chart-section">
-        <div class="ed-section-title">
+    <section class="ed-section ed-chart-section" aria-labelledby="type-title">
+        <h2 id="type-title" class="ed-section-title">
             Fangsttype-fordeling
             @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
-        </div>
+        </h2>
         <figure class="ed-chart-figure">
             <div class="ed-chart-wrap" style="max-width:360px;margin:0 auto">
-                <canvas id="donutChart"></canvas>
+                <canvas id="donutChart" role="img" aria-label="Cirkeldiagram over fordeling af fangsttyper"></canvas>
             </div>
         </figure>
-    </div>
+    </section>
 </div>
 
-<div class="ed-section">
-    <div class="ed-section-title">
+<section class="ed-section" aria-labelledby="team-title">
+    <h2 id="team-title" class="ed-section-title">
         Største laks pr. hold
         @if (Model.SelectedYear.HasValue) { <span class="ed-badge">@Model.SelectedYear</span> }
-    </div>
+    </h2>
     @if (Model.TeamStats.Any())
     {
         <div class="ed-stats-grid">
             <div class="ed-chart-section">
                 <figure class="ed-chart-figure">
                     <div class="ed-chart-wrap">
-                        <canvas id="teamChart"></canvas>
+                        <canvas id="teamChart" role="img" aria-label="Søjlediagram over største og gennemsnitlig laksevægt pr. hold"></canvas>
                     </div>
                 </figure>
             </div>
@@ -93,10 +142,10 @@
                             <tr>
                                 <td>@rank</td>
                                 <td>@team.TeamName</td>
-                                <td class="ed-td-num">@team.BiggestSalmonKg.ToString("N1")</td>
+                                <td class="ed-td-num">@team.BiggestSalmonKg.ToString("N1", da)</td>
                                 <td>@team.AnglerName</td>
                                 <td class="ed-td-num">@team.TotalSalmonCount</td>
-                                <td class="ed-td-num">@team.AvgSalmonWeightKg.ToString("N1")</td>
+                                <td class="ed-td-num">@team.AvgSalmonWeightKg.ToString("N1", da)</td>
                             </tr>
                         }
                     </tbody>
@@ -108,7 +157,7 @@
     {
         <p class="ed-empty">Ingen holddata for laks tilgængelig.</p>
     }
-</div>
+</section>
 
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
@@ -180,6 +229,112 @@
             }
         }
     });
+
+    // ②a Season progress: catches per week, seasons overlaid --------------
+    const progressLabels = @Html.Raw(Model.SeasonProgressLabelsJson);
+    const progressSeries = @Html.Raw(Model.SeasonProgressSeriesJson);
+
+    if (progressSeries.length > 0) {
+        const SERIES_COLORS = ['#7a6f60', '#b8a890', '#e8a989', '#b35d3f', '#d97757'];
+        new Chart(document.getElementById('seasonProgressChart'), {
+            type: 'line',
+            data: {
+                labels: progressLabels,
+                datasets: progressSeries.map((s, i) => {
+                    const isLatest = i === progressSeries.length - 1;
+                    const color = SERIES_COLORS[Math.max(0, SERIES_COLORS.length - progressSeries.length + i)];
+                    return {
+                        label: String(s.Year),
+                        data: s.Data,
+                        borderColor: isLatest ? '#d97757' : color,
+                        backgroundColor: 'transparent',
+                        borderWidth: isLatest ? 3 : 1.5,
+                        pointRadius: isLatest ? 4 : 2,
+                        tension: 0.3,
+                        spanGaps: false
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} fangster`
+                    }}
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Fangster' }, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
+
+    // ②b Bar: catches per hour of day --------------------------------------
+    const hourData = @Html.Raw(Model.HourDataJson);
+
+    new Chart(document.getElementById('hourChart'), {
+        type: 'bar',
+        data: {
+            labels: hourData.map((_, h) => String(h).padStart(2, '0')),
+            datasets: [{
+                label: 'Fangster',
+                data: hourData,
+                backgroundColor: '#d97757',
+                borderRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: {
+                    title: items => `Kl. ${items[0].label}–${String((Number(items[0].label) + 1) % 24).padStart(2, '0')}`,
+                    label: ctx => ` ${ctx.parsed.y} fangster`
+                }}
+            },
+            scales: {
+                x: { title: { display: true, text: 'Klokkeslæt' }, ticks: { maxTicksLimit: 12 } },
+                y: { beginAtZero: true, title: { display: true, text: 'Fangster' }, ticks: { precision: 0 } }
+            }
+        }
+    });
+
+    // ②c Bar: catches per water-level band ---------------------------------
+    const bandLabels = @Html.Raw(Model.WaterBandLabelsJson);
+    const bandData   = @Html.Raw(Model.WaterBandDataJson);
+
+    if (bandLabels.length > 0) {
+        new Chart(document.getElementById('waterBandChart'), {
+            type: 'bar',
+            data: {
+                labels: bandLabels,
+                datasets: [{
+                    label: 'Fangster',
+                    data: bandData,
+                    backgroundColor: '#b35d3f',
+                    borderRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: {
+                        label: ctx => ` ${ctx.parsed.y} fangster`
+                    }}
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Vandstand (m)' } },
+                    y: { beginAtZero: true, title: { display: true, text: 'Fangster' }, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
 
     // ② Bar: catches per angler ------------------------------------------
     const barLabels  = @Html.Raw(Model.BarLabelsJson);

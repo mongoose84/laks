@@ -24,7 +24,7 @@
                 <div class="ed-condition-value">@Model.CurrentSeasonSummary.AvgWeightKg.ToString("F1", da)</div>
             </article>
             <article class="ed-condition-card">
-                <div class="ed-condition-label">Største (@Model.CurrentSeasonSummary.BiggestFishAngler)</div>
+                <div class="ed-condition-label">Største@(string.IsNullOrWhiteSpace(Model.CurrentSeasonSummary.BiggestFishAngler) ? "" : $" ({Model.CurrentSeasonSummary.BiggestFishAngler})")</div>
                 <div class="ed-condition-value">@Model.CurrentSeasonSummary.BiggestFishKg.ToString("F1", da)</div>
             </article>
             <article class="ed-condition-card">

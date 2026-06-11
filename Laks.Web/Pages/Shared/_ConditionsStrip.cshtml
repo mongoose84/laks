@@ -37,11 +37,11 @@
             <div class="ed-condition-value">@FormatPrecip(Model.CurrentWeather?.PrecipitationMm)</div>
         </article>
         <article class="ed-condition-card">
-            <div class="ed-condition-label">Vind</div>
-            <div class="ed-condition-value">@Format(Model.CurrentWeather?.WindSpeedMs) <span style="font-size:0.7em;color:var(--ed-text-muted);">@Model.CurrentWeather?.WindDirection</span></div>
+            <div class="ed-condition-label">Vind (m/s)</div>
+            <div class="ed-condition-value">@Format(Model.CurrentWeather?.WindSpeedMs) <span class="ed-condition-unit">@Model.CurrentWeather?.WindDirection</span></div>
         </article>
         <article class="ed-condition-card @risingClass">
-            <div class="ed-condition-label">Vandstand</div>
+            <div class="ed-condition-label">Vandstand (m)</div>
             <div class="ed-condition-value">
                 @FormatLevel(Model.CurrentWaterLevel?.LevelMeters)
                 <span aria-hidden="true">@trendArrow</span>

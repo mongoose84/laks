@@ -257,6 +257,7 @@
     font-variant-numeric: tabular-nums;
 }
 .ed-condition-rising .ed-condition-value { color: var(--ed-accent); }
+.ed-condition-unit { font-size: 0.7em; color: var(--ed-text-muted); }
 
 /* ── Two column feature grid ── */
 .ed-feature-grid { display: block; }
@@ -404,21 +405,17 @@
 }
 .ed-lb-groups {
     display: flex;
-    flex-wrap: nowrap;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.75rem;
     margin-top: 0.75rem;
     padding-top: 0.5rem;
     border-top: 1px solid var(--ed-rule);
     font-size: 0.65rem;
     color: var(--ed-text-muted);
     letter-spacing: 0.04em;
-    white-space: nowrap;
-    overflow: hidden;
 }
 .ed-lb-group-chip {
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 .ed-lb-groups .is-selected,
 .ed-lb-group-chip.is-selected { color: var(--ed-accent); font-weight: 600; }
@@ -602,6 +599,20 @@
     border-color: var(--ed-accent);
 }
 .ed-form-select option { background: var(--ed-bg-raised); }
+.ed-form-submit {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--ed-rule);
+    background: var(--ed-accent);
+    color: var(--ed-bg-base);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+.ed-form-submit:hover { background: var(--ed-accent-soft); }
 
 /* ── Editorial table ── */
 .ed-table {
@@ -637,6 +648,7 @@
     color: var(--ed-text-primary);
     vertical-align: middle;
 }
+.ed-table th.ed-td-num { text-align: right; }
 .ed-table td.ed-td-num {
     text-align: right;
     font-variant-numeric: tabular-nums;

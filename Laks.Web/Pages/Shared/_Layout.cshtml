@@ -31,9 +31,8 @@
     }
     else
     {
-        <main role="main">
-            @RenderBody()
-        </main>
+        @* Pages that hide the chrome (Index) render their own <main> landmark. *@
+        @RenderBody()
     }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

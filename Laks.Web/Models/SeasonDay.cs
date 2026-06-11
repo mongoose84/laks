@@ -4,6 +4,7 @@ public class SeasonDay
 {
     public bool IsOffSeason { get; set; }
     public bool IsBufferDay { get; set; }
+    public bool SeasonHasEnded { get; set; }
     public int? GroupNumber { get; set; }
     public int? DayInGroup { get; set; }
     public int GroupLengthDays { get; set; }
@@ -22,7 +23,7 @@ public class SeasonDay
             {
                 var days = (NextGroupStart.Value.Date - DateTime.UtcNow.Date).Days;
                 var teamSuffix = !string.IsNullOrWhiteSpace(NextGroupTeamName)
-                    ? $" · Team {NextGroupTeamName}"
+                    ? $" · {NextGroupTeamName}"
                     : "";
                 return days switch
                 {
@@ -32,7 +33,9 @@ public class SeasonDay
                 };
             }
 
-            return "Sæson ikke konfigureret";
+            return SeasonHasEnded
+                ? "Sæsonen er slut for i år — vi ses til næste sommer"
+                : "Sæson ikke konfigureret";
         }
     }
 }

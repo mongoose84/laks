@@ -2,6 +2,7 @@
 @model Laks.Web.Pages.Catches.IndexModel
 @{
     ViewData["Title"] = "Fangster";
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
 }
 
 <div class="ed-page-header">
@@ -21,6 +22,7 @@
                 </option>
             }
         </select>
+        <noscript><button type="submit" class="ed-form-submit">Filtrer</button></noscript>
     </form>
 </div>
 
@@ -51,7 +53,7 @@
                     <th scope="col" class="ed-td-num">Vægt (kg)</th>
                     <th scope="col">Sted</th>
                     <th scope="col">Vejr</th>
-                    <th scope="col">Vandstand</th>
+                    <th scope="col" class="ed-td-num">Vandstand (m)</th>
                     <th scope="col">Agn</th>
                     <th scope="col">Noter</th>
                 </tr>
@@ -65,10 +67,10 @@
                         <td>@c.SeasonYear</td>
                         <td>@c.AnglerName</td>
                         <td>@c.CatchType</td>
-                        <td class="ed-td-num">@c.WeightKg.ToString("F2")</td>
+                        <td class="ed-td-num">@c.WeightKg.ToString("F2", da)</td>
                         <td>@c.Location</td>
                         <td>@c.Weather</td>
-                        <td>@(c.WaterLevel?.ToString("F3") ?? "—")</td>
+                        <td class="ed-td-num">@(c.WaterLevel?.ToString("F3", da) ?? "—")</td>
                         <td>@c.Bait</td>
                         <td class="ed-td-muted">@c.Notes</td>
                     </tr>
