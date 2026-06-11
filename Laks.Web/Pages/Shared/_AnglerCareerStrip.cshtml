@@ -1,0 +1,39 @@
+@model Laks.Web.Models.AnglerProfileViewModel
+@{
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+    var career = Model.Career;
+}
+<section class="ed-section" aria-labelledby="career-title">
+    <h2 id="career-title" class="ed-section-title">Karriere</h2>
+    <div class="ed-conditions-grid">
+        <div class="ed-condition-card">
+            <div class="ed-condition-label">Fangster</div>
+            <div class="ed-condition-value">@career.FishCount</div>
+            <div class="ed-condition-unit">stk</div>
+        </div>
+        <div class="ed-condition-card">
+            <div class="ed-condition-label">Total kg</div>
+            <div class="ed-condition-value">@career.TotalWeightKg.ToString("F1", da)</div>
+            <div class="ed-condition-unit">kg</div>
+        </div>
+        <div class="ed-condition-card">
+            <div class="ed-condition-label">Største fangst</div>
+            <div class="ed-condition-value">@career.BestWeightKg.ToString("F1", da)</div>
+            <div class="ed-condition-unit">
+                @if (career.BestWeightYear > 0)
+                {
+                    <span>kg · sæson @career.BestWeightYear</span>
+                }
+                else
+                {
+                    <span>kg</span>
+                }
+            </div>
+        </div>
+        <div class="ed-condition-card">
+            <div class="ed-condition-label">Sæsoner aktive</div>
+            <div class="ed-condition-value">@career.SeasonsActive</div>
+            <div class="ed-condition-unit">år</div>
+        </div>
+    </div>
+</section>

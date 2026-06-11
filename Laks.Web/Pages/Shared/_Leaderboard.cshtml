@@ -47,7 +47,7 @@
             {
                 <div class="ed-lb-row @(item.Rank == 1 ? "ed-lb-row--leader" : "")">
                     <span class="ed-lb-rank">@item.Rank</span>
-                    <span class="ed-lb-name">@item.AnglerName</span>
+                    <a class="ed-lb-name ed-angler-link" asp-page="/Anglers/Index" asp-route-id="@item.AnglerId">@item.AnglerName</a>
                     <div class="ed-lb-stats">
                         <span class="ed-lb-weight">@item.TotalWeightKg.ToString("F1", da) kg</span>
                         <span>@item.FishCount fisk</span>

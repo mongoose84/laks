@@ -24,11 +24,13 @@ public sealed class LaksWebApplicationFactory : WebApplicationFactory<Program>
         {
             services.RemoveAll<ICatchRepository>();
             services.RemoveAll<ISeasonRepository>();
+            services.RemoveAll<IAnglerRepository>();
             services.RemoveAll<IWeatherService>();
             services.RemoveAll<IWaterLevelService>();
 
             services.AddSingleton<ICatchRepository, InMemoryCatchRepository>();
             services.AddSingleton<ISeasonRepository, InMemorySeasonRepository>();
+            services.AddSingleton<IAnglerRepository, FakeAnglerRepository>();
             services.AddSingleton<IWeatherService, FakeWeatherService>();
             services.AddSingleton<IWaterLevelService, FakeWaterLevelService>();
         });
@@ -216,5 +218,26 @@ public class PageRenderingTests : IClassFixture<LaksWebApplicationFactory>
         Assert.Contains("Fangster fordelt på vandstand", html);
         // Band labels are Danish-formatted ranges from the fake data (1.25–1.50 m).
         Assert.Contains("1,25\\u20131,50 m", html);
+    }
+
+    // ── Angler profile page ──────────────────────────────────────────
+
+    [Fact]
+    public async Task AnglerProfile_KnownAngler_Returns200AndAnglerNameInH1Region()
+    {
+        // FakeAnglerRepository seeds angler id=1 as "Erik Andersen"
+        var response = await _client.GetAsync("/Anglers/1");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Erik Andersen", html);
+    }
+
+    [Fact]
+    public async Task AnglerProfile_UnknownAnglerId_Returns404()
+    {
+        var response = await _client.GetAsync("/Anglers/9999");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

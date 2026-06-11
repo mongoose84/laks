@@ -150,7 +150,16 @@
                                 <td>@rank</td>
                                 <td>@team.TeamName</td>
                                 <td class="ed-td-num">@team.BiggestSalmonKg.ToString("N1", da)</td>
-                                <td>@team.AnglerName</td>
+                                <td>
+                                    @if (team.AnglerId > 0)
+                                    {
+                                        <a class="ed-angler-link" asp-page="/Anglers/Index" asp-route-id="@team.AnglerId">@team.AnglerName</a>
+                                    }
+                                    else
+                                    {
+                                        @team.AnglerName
+                                    }
+                                </td>
                                 <td class="ed-td-num">@team.TotalSalmonCount</td>
                                 <td class="ed-td-num">@team.AvgSalmonWeightKg.ToString("N1", da)</td>
                             </tr>

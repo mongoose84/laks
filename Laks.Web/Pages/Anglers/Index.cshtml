@@ -1,0 +1,55 @@
+@page "/Anglers/{id:int}"
+@model Laks.Web.Pages.Anglers.IndexModel
+@{
+    ViewData["Title"] = "Fiskerprofil";
+}
+
+<div class="ed-page-header">
+    <a asp-page="/Statistics/Leaderboard" class="ed-action-link" onclick="if(history.length>1){history.back();return false;}">&larr; Tilbage</a>
+</div>
+
+<partial name="_AnglerIdentity" model="Model.Profile" />
+
+@if (!Model.Profile.HasAnyCatches)
+{
+    <div class="ed-empty">Ingen fangster registreret endnu.</div>
+}
+else
+{
+    <partial name="_AnglerCareerStrip" model="Model.Profile" />
+
+    @if (Model.Profile.CurrentSeason is not null)
+    {
+        <section class="ed-section" aria-labelledby="current-season-title">
+            <h2 id="current-season-title" class="ed-section-title">Sæson @Model.CurrentYear</h2>
+            <partial name="_AnglerCurrentSeasonStrip" model="Model.Profile.CurrentSeason" />
+        </section>
+    }
+
+    <section class="ed-section" aria-labelledby="season-history-title">
+        <h2 id="season-history-title" class="ed-section-title">Sæson for sæson</h2>
+        <partial name="_AnglerSeasonHistory" model="Model.Profile" />
+    </section>
+
+    <section class="ed-section" aria-labelledby="recent-catches-title">
+        <h2 id="recent-catches-title" class="ed-section-title">
+            Seneste fangster
+            <a asp-page="/Catches/Index" class="ed-kicker">Se alle i fangstloggen &rarr;</a>
+        </h2>
+        <partial name="_AnglerRecentCatches" model="Model.Profile" />
+    </section>
+
+    <section class="ed-section" aria-labelledby="what-works-title">
+        <h2 id="what-works-title" class="ed-section-title">Hvad virker</h2>
+        <div class="ed-stats-grid">
+            <div>
+                <h3 class="ed-subsection-title">Foretrukken agn</h3>
+                <partial name="_AnglerBaitPreference" model="Model.Profile" />
+            </div>
+            <div>
+                <h3 class="ed-subsection-title">Tid på dagen</h3>
+                <partial name="_AnglerTimeOfDay" model="Model.Profile" />
+            </div>
+        </div>
+    </section>
+}

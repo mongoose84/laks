@@ -1,0 +1,38 @@
+@model Laks.Web.Models.AnglerProfileViewModel
+@{
+    var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+
+    static string DateLabel(DateTime date)
+    {
+        var da = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+        return date.ToString("d. MMM yyyy", da).ToLower(da);
+    }
+
+    static string Emphasis(Laks.Web.Models.Catch c)
+    {
+        if (!string.IsNullOrWhiteSpace(c.Bait)) return $"på {c.Bait.ToLowerInvariant()}";
+        if (c.CatchTime.Hours < 10) return "i morgentimerne";
+        if (c.CatchTime.Hours >= 18) return "ved aftenstid";
+        return "midt på dagen";
+    }
+}
+@if (!Model.RecentCatches.Any())
+{
+    <div class="ed-catch-empty">Ingen fangster registreret endnu.</div>
+}
+else
+{
+    @foreach (var c in Model.RecentCatches)
+    {
+        <article class="ed-catch-article">
+            <div>
+                <div class="ed-catch-byline">@DateLabel(c.CatchDate) · @c.Location</div>
+                <div class="ed-catch-headline">@c.AnglerName landede en @(c.CatchType?.ToLowerInvariant()) <em>@Emphasis(c)</em></div>
+            </div>
+            <div class="ed-catch-weight">
+                @c.WeightKg.ToString("F1", da)
+                <small>kg</small>
+            </div>
+        </article>
+    }
+}
