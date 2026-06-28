@@ -1,10 +1,24 @@
 using Dapper;
 using Laks.Web.Models;
+using System.Globalization;
 
 namespace Laks.Web.Data.Repositories;
 
 public class CatchRepository : ICatchRepository
 {
+    /// <summary>Flat row returned by the per-spot SQL query. Internal so tests can create instances.</summary>
+    internal record CatchRow
+    {
+        public string Location { get; set; } = string.Empty;
+        public decimal WeightKg { get; set; }
+        public string? Bait { get; set; }
+        public decimal? WaterLevel { get; set; }
+        public TimeSpan CatchTime { get; set; }
+        public DateTime CatchDate { get; set; }
+        public int Id { get; set; }
+        public string AnglerName { get; set; } = string.Empty;
+    }
+
     private readonly IDbConnectionFactory _db;
 
     private const string CatchProjection = @"
@@ -348,5 +362,101 @@ public class CatchRepository : ICatchRepository
 
         using var conn = _db.CreateConnection();
         return await conn.QueryAsync<CatchesByWaterLevel>(sql, new { Year = year });
+    }
+
+    // ── Per-spot statistics (all-time, all catch types) ──────────────────────
+
+    private const string SpotStatsSql = @"
+        SELECT TRIM(c.`Location`) AS Location,
+               c.`Weight`         AS WeightKg,
+               c.`Bait`           AS Bait,
+               c.`WaterLevel`     AS WaterLevel,
+               c.`Time`           AS CatchTime,
+               c.`Date`           AS CatchDate,
+               c.`Id`             AS Id,
+               p.`Name`           AS AnglerName
+        FROM   `Catch` c
+        JOIN   `Person` p ON p.`Id` = c.`PersonId`
+        WHERE  c.`Location` IS NOT NULL
+          AND  TRIM(c.`Location`) <> ''";
+
+    public async Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync()
+    {
+        using var conn = _db.CreateConnection();
+        var rows = await conn.QueryAsync<CatchRow>(SpotStatsSql);
+        return AggregateSpotStats(rows);
+    }
+
+    /// <summary>
+    /// Aggregates flat catch rows into per-spot statistics. Extracted as an
+    /// internal static helper so unit tests can exercise aggregation logic
+    /// without a database connection.
+    /// </summary>
+    internal static IEnumerable<SpotStats> AggregateSpotStats(IEnumerable<CatchRow> catches)
+    {
+        var daDk = CultureInfo.GetCultureInfo("da-DK");
+
+        return catches
+            .Where(r => !string.IsNullOrWhiteSpace(r.Location))
+            .GroupBy(r => r.Location.Trim())
+            .Select(group =>
+            {
+                var rows = group.ToList();
+                int totalCatches = rows.Count;
+                decimal totalWeightKg = rows.Sum(r => r.WeightKg);
+                decimal avgWeightKg = totalCatches > 0 ? totalWeightKg / totalCatches : 0m;
+
+                // Biggest fish: max weight, then earliest CatchDate, then lowest Id
+                var biggest = rows
+                    .OrderByDescending(r => r.WeightKg)
+                    .ThenBy(r => r.CatchDate)
+                    .ThenBy(r => r.Id)
+                    .First();
+
+                // Top bait: most frequent non-empty bait; ties broken alphabetically (da-DK, case-insensitive)
+                var topBait = rows
+                    .Where(r => !string.IsNullOrWhiteSpace(r.Bait))
+                    .GroupBy(r => r.Bait!)
+                    .OrderByDescending(g => g.Count())
+                    .ThenBy(g => g.Key, StringComparer.Create(daDk, CompareOptions.IgnoreCase))
+                    .Select(g => g.Key)
+                    .FirstOrDefault() ?? string.Empty;
+
+                // Best water-level band: 0.25 m band with most catches; ties broken by lowest band
+                var bestBand = rows
+                    .Where(r => r.WaterLevel.HasValue)
+                    .Select(r => Math.Floor(r.WaterLevel!.Value / 0.25m) * 0.25m)
+                    .GroupBy(band => band)
+                    .OrderByDescending(g => g.Count())
+                    .ThenBy(g => g.Key)
+                    .Select(g => (decimal?)g.Key)
+                    .FirstOrDefault();
+
+                // Best hour: hour (0–23) with most catches; ties broken by earliest hour
+                var bestHour = rows
+                    .GroupBy(r => r.CatchTime.Hours)
+                    .OrderByDescending(g => g.Count())
+                    .ThenBy(g => g.Key)
+                    .Select(g => (int?)g.Key)
+                    .FirstOrDefault();
+
+                return new SpotStats
+                {
+                    Location            = group.Key,
+                    TotalCatches        = totalCatches,
+                    TotalWeightKg       = totalWeightKg,
+                    AvgWeightKg         = avgWeightKg,
+                    BiggestWeightKg     = biggest.WeightKg,
+                    BiggestAnglerName   = biggest.AnglerName,
+                    BiggestCatchDate    = biggest.CatchDate,
+                    TopBait             = topBait,
+                    BestWaterBandStartM = bestBand,
+                    BestHour            = bestHour
+                };
+            })
+            .OrderByDescending(s => s.TotalCatches)
+            .ThenByDescending(s => s.TotalWeightKg)
+            .ThenBy(s => s.Location, StringComparer.Create(CultureInfo.GetCultureInfo("da-DK"), CompareOptions.None))
+            .ToList();
     }
 }

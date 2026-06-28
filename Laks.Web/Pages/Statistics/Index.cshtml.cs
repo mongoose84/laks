@@ -37,6 +37,12 @@ public class IndexModel : PageModel
     public string WaterBandDataJson        { get; private set; } = "[]";
     public bool HasWaterBandData           { get; private set; }
 
+    // Per-spot statistics (all-time, ignores year filter)
+    public IEnumerable<SpotStats> SpotStatsRows { get; private set; } = [];
+    public string SpotChartLabelsJson { get; private set; } = "[]";
+    public string SpotChartCountsJson { get; private set; } = "[]";
+    public bool HasSpotData { get; private set; }
+
     public IEnumerable<FishingSeason> Seasons { get; private set; } = [];
     public int? SelectedYear { get; private set; }
 
@@ -62,8 +68,9 @@ public class IndexModel : PageModel
             var weekTask    = _catches.GetCatchesPerWeekAsync();
             var hourTask    = _catches.GetCatchesByHourAsync(year);
             var bandTask    = _catches.GetCatchesByWaterLevelAsync(year);
+            var spotTask    = _catches.GetCatchStatsPerSpotAsync();
 
-            await Task.WhenAll(trendTask, anglerTask, typeTask, teamTask, weekTask, hourTask, bandTask);
+            await Task.WhenAll(trendTask, anglerTask, typeTask, teamTask, weekTask, hourTask, bandTask, spotTask);
 
             // Trend line – all years
             var trend = (await trendTask).ToList();
@@ -104,6 +111,13 @@ public class IndexModel : PageModel
             HasWaterBandData   = bands.Count > 0;
             WaterBandLabelsJson = Serialize(bands.Select(b => FormatBandLabel(b.BandStartM)));
             WaterBandDataJson   = Serialize(bands.Select(b => b.TotalCatches));
+
+            // Per-spot statistics (all-time — no year filter applied)
+            var spots = (await spotTask).ToList();
+            SpotStatsRows       = spots;
+            HasSpotData         = spots.Count > 0;
+            SpotChartLabelsJson = Serialize(spots.Select(s => s.Location));
+            SpotChartCountsJson = Serialize(spots.Select(s => s.TotalCatches));
         }
         catch (Exception ex)
         {

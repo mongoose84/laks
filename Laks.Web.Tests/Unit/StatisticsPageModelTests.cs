@@ -1,5 +1,9 @@
+using Laks.Web.Data.Repositories;
 using Laks.Web.Models;
 using Laks.Web.Pages.Statistics;
+using Laks.Web.Tests.TestDoubles;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Text.Json;
 
 namespace Laks.Web.Tests.Unit;
@@ -191,5 +195,108 @@ public class StatisticsPageModelTests
     {
         Assert.Equal("1,25–1,50 m", IndexModel.FormatBandLabel(1.25m));
         Assert.Equal("0,00–0,25 m", IndexModel.FormatBandLabel(0m));
+    }
+
+    // ── Spot statistics serialization ────────────────────────────────
+
+    [Fact]
+    public void SpotStats_Serializes_To_ValidJsonArrays()
+    {
+        var spots = new List<Laks.Web.Models.SpotStats>
+        {
+            new() { Location = "Foss",   TotalCatches = 10 },
+            new() { Location = "Pynten", TotalCatches = 5  }
+        };
+
+        var labelsJson = JsonSerializer.Serialize(spots.Select(s => s.Location));
+        var countsJson = JsonSerializer.Serialize(spots.Select(s => s.TotalCatches));
+
+        var labels = JsonSerializer.Deserialize<string[]>(labelsJson);
+        var counts = JsonSerializer.Deserialize<int[]>(countsJson);
+
+        Assert.NotNull(labels);
+        Assert.Equal(2, labels.Length);
+        Assert.Equal("Foss",   labels[0]);
+        Assert.Equal("Pynten", labels[1]);
+
+        Assert.NotNull(counts);
+        Assert.Equal(2, counts.Length);
+        Assert.Equal(10, counts[0]);
+        Assert.Equal(5,  counts[1]);
+    }
+
+    // ── OnGetAsync wiring ────────────────────────────────────────────
+
+    [Fact]
+    public async Task OnGetAsync_PopulatesSpotStats_WhenRepositoryReturnsData()
+    {
+        var spots = new List<SpotStats>
+        {
+            new() { Location = "Foss",   TotalCatches = 5, TotalWeightKg = 10m,
+                    BiggestCatchDate = new DateTime(2024, 6, 15) },
+            new() { Location = "Pynten", TotalCatches = 3, TotalWeightKg = 6m,
+                    BiggestCatchDate = new DateTime(2023, 7, 20) }
+        };
+        var catchRepo  = new SpotStubCatchRepository(spots);
+        var seasonRepo = new InMemorySeasonRepository();
+        var model      = new IndexModel(catchRepo, seasonRepo, NullLogger<IndexModel>.Instance);
+
+        await model.OnGetAsync(year: null);
+
+        Assert.True(model.HasSpotData);
+        Assert.Equal(2, model.SpotStatsRows.Count());
+
+        var labels = JsonSerializer.Deserialize<string[]>(model.SpotChartLabelsJson);
+        Assert.NotNull(labels);
+        Assert.Equal(2, labels.Length);
+
+        var counts = JsonSerializer.Deserialize<int[]>(model.SpotChartCountsJson);
+        Assert.NotNull(counts);
+        Assert.Equal([5, 3], counts);
+    }
+
+    [Fact]
+    public async Task OnGetAsync_SetsHasSpotData_False_WhenRepositoryReturnsEmpty()
+    {
+        var catchRepo  = new SpotStubCatchRepository([]);
+        var seasonRepo = new InMemorySeasonRepository();
+        var model      = new IndexModel(catchRepo, seasonRepo, NullLogger<IndexModel>.Instance);
+
+        await model.OnGetAsync(year: null);
+
+        Assert.False(model.HasSpotData);
+        Assert.Equal("[]", model.SpotChartLabelsJson);
+        Assert.Equal("[]", model.SpotChartCountsJson);
+    }
+
+    // ── Stub helpers ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Wraps <see cref="InMemoryCatchRepository"/> and overrides only
+    /// <see cref="GetCatchStatsPerSpotAsync"/> with a caller-supplied list.
+    /// </summary>
+    private sealed class SpotStubCatchRepository(IReadOnlyList<SpotStats> spots) : ICatchRepository
+    {
+        private readonly InMemoryCatchRepository _inner = new();
+
+        public Task<IEnumerable<Catch>> GetRecentAsync(int count = 20) => _inner.GetRecentAsync(count);
+        public Task<IEnumerable<Catch>> GetByYearAsync(int year) => _inner.GetByYearAsync(year);
+        public Task<IEnumerable<Catch>> GetByAnglerAsync(int anglerId) => _inner.GetByAnglerAsync(anglerId);
+        public Task<int> GetTotalCountAsync() => _inner.GetTotalCountAsync();
+        public Task<IEnumerable<LeaderboardEntry>> GetLeaderboardAsync(int year, int? groupNumber = null) => _inner.GetLeaderboardAsync(year, groupNumber);
+        public Task<GroupSummary?> GetGroupSummaryAsync(int year, int groupNumber) => _inner.GetGroupSummaryAsync(year, groupNumber);
+        public Task<SeasonSummary?> GetSeasonSummaryAsync(int year) => _inner.GetSeasonSummaryAsync(year);
+        public Task<AllTimeRecords?> GetAllTimeRecordsAsync() => _inner.GetAllTimeRecordsAsync();
+        public Task<IEnumerable<CatchLocation>> GetCatchLocationsAsync(int? year = null) => _inner.GetCatchLocationsAsync(year);
+        public Task<IEnumerable<CatchesPerYear>> GetCatchesPerYearAsync() => _inner.GetCatchesPerYearAsync();
+        public Task<IEnumerable<CatchesPerAngler>> GetCatchesPerAnglerAsync(int? year = null) => _inner.GetCatchesPerAnglerAsync(year);
+        public Task<IEnumerable<CatchesByType>> GetCatchesByTypeAsync(int? year = null) => _inner.GetCatchesByTypeAsync(year);
+        public Task<IEnumerable<BiggestSalmonPerTeam>> GetBiggestSalmonPerTeamAsync(int? year = null) => _inner.GetBiggestSalmonPerTeamAsync(year);
+        public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => _inner.GetCatchesPerWeekAsync();
+        public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => _inner.GetCatchesByHourAsync(year);
+        public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => _inner.GetCatchesByWaterLevelAsync(year);
+
+        public Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync() =>
+            Task.FromResult<IEnumerable<SpotStats>>(spots);
     }
 }

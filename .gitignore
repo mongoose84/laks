@@ -486,6 +486,9 @@ Laks.Web/appsettings.Development.json
 
 Laks.Importer/credentials.json
 
+Laks.Importer/service-account.json
+
 Laks.Importer/tokens.json
 
 Laks.Importer/token.json/Google.Apis.Auth.OAuth2.Responses.TokenResponse-user
+Laks.Importer/appsettings.json

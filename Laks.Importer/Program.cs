@@ -10,7 +10,7 @@ var db = new FishDatabase(connectionString);
 
 // Get data from Google Sheets
 Console.WriteLine("Connecting to Google Sheets...");
-var sheetsConnector = new SheetsConnector();
+var sheetsConnector = new SheetsConnector("service-account.json");
 var rows = await sheetsConnector.GetRowsAsync();
 if (rows is null)
 {

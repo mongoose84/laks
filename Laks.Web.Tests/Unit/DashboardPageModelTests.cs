@@ -388,6 +388,7 @@ public class DashboardPageModelTests
         public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => Task.FromResult<IEnumerable<CatchesPerWeek>>([]);
         public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByHour>>([]);
         public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
+        public Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync() => Task.FromResult<IEnumerable<SpotStats>>([]);
     }
 
     private sealed class HistoricalFallbackCatchRepository(int startYear) : ICatchRepository
@@ -433,6 +434,7 @@ public class DashboardPageModelTests
         public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => Task.FromResult<IEnumerable<CatchesPerWeek>>([]);
         public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByHour>>([]);
         public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
+        public Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync() => Task.FromResult<IEnumerable<SpotStats>>([]);
     }
 
     private static List<SeasonConfig> ThreeGroupConfig(int year) =>
@@ -603,6 +605,7 @@ public class DashboardPageModelTests
         public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => Task.FromResult<IEnumerable<CatchesPerWeek>>([]);
         public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByHour>>([]);
         public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
+        public Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync() => Task.FromResult<IEnumerable<SpotStats>>([]);
     }
 
     private sealed class ThrowingWeatherService : IWeatherService
