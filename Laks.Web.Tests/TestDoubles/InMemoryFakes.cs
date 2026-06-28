@@ -203,6 +203,9 @@ public sealed class InMemoryCatchRepository : ICatchRepository
             new CatchesByWaterLevel { BandStartM = 1.25m, TotalCatches = 11 },
             new CatchesByWaterLevel { BandStartM = 1.50m, TotalCatches = 19 }
         ]);
+
+    public Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync() =>
+        Task.FromResult<IEnumerable<SpotStats>>([]);
 }
 
 public sealed class InMemorySeasonRepository : ISeasonRepository

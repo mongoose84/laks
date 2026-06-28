@@ -660,6 +660,24 @@
 .ed-table tr.ed-row--leader td { color: var(--ed-accent); font-weight: 600; }
 .ed-table-wrap { overflow-x: auto; }
 
+.ed-sort-btn {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-weight: inherit;
+    color: inherit;
+    cursor: pointer;
+    text-align: inherit;
+}
+
+.ed-sort-btn:focus-visible {
+    outline: 2px solid #1A4D7A;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 /* ── Alerts / callouts ── */
 .ed-alert {
     border: 1px solid var(--ed-rule);

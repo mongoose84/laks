@@ -230,6 +230,7 @@ public class AnglerProfilePageModelTests
         public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => Task.FromResult<IEnumerable<CatchesPerWeek>>([]);
         public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByHour>>([]);
         public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
+        public Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync() => Task.FromResult<IEnumerable<SpotStats>>([]);
     }
 
     private sealed class NoCatchRepository : ICatchRepository
@@ -250,6 +251,7 @@ public class AnglerProfilePageModelTests
         public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => Task.FromResult<IEnumerable<CatchesPerWeek>>([]);
         public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByHour>>([]);
         public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
+        public Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync() => Task.FromResult<IEnumerable<SpotStats>>([]);
     }
 
     /// <summary>Returns 15 catches for angler 1 so the ≤10 cap can be tested.</summary>
@@ -285,6 +287,7 @@ public class AnglerProfilePageModelTests
         public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => Task.FromResult<IEnumerable<CatchesPerWeek>>([]);
         public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByHour>>([]);
         public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
+        public Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync() => Task.FromResult<IEnumerable<SpotStats>>([]);
     }
 
     /// <summary>Returns catches for multiple years; leaderboard throws for the oldest year.</summary>
@@ -331,6 +334,7 @@ public class AnglerProfilePageModelTests
         public Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync() => Task.FromResult<IEnumerable<CatchesPerWeek>>([]);
         public Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByHour>>([]);
         public Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null) => Task.FromResult<IEnumerable<CatchesByWaterLevel>>([]);
+        public Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync() => Task.FromResult<IEnumerable<SpotStats>>([]);
     }
 
     private sealed class FakeAnglerSeasonRepository : ISeasonRepository

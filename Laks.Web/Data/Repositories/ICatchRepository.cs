@@ -25,4 +25,5 @@ public interface ICatchRepository
     Task<IEnumerable<CatchesPerWeek>> GetCatchesPerWeekAsync();
     Task<IEnumerable<CatchesByHour>> GetCatchesByHourAsync(int? year = null);
     Task<IEnumerable<CatchesByWaterLevel>> GetCatchesByWaterLevelAsync(int? year = null);
+    Task<IEnumerable<SpotStats>> GetCatchStatsPerSpotAsync();
 }

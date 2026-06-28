@@ -175,6 +175,95 @@
     }
 </section>
 
+<section class="ed-section" aria-labelledby="spots-title">
+  <h2 id="spots-title" class="ed-section-title">
+    Pladser <span class="ed-kicker">Alle sæsoner</span>
+  </h2>
+  <p>Statistik pr. plads opgøres på tværs af alle sæsoner — uafhængigt af årsfilteret ovenfor.</p>
+
+  @if (Model.HasSpotData)
+  {
+    <div class="ed-chart-section">
+      <figure class="ed-chart-figure">
+        <div class="ed-chart-wrap">
+          <canvas id="spotChart" role="img"
+                  aria-label="Søjlediagram over antal fangster pr. plads, alle sæsoner, sorteret faldende"></canvas>
+        </div>
+        <figcaption class="ed-chart-caption">
+          Alle registrerede fangster pr. plads, på tværs af alle sæsoner.
+        </figcaption>
+      </figure>
+    </div>
+
+    <div class="ed-table-wrap">
+      <table class="ed-table" id="spotTable" aria-label="Statistik pr. plads, alle sæsoner">
+        <caption class="sr-only">Statistik pr. plads — sortérbar tabel</caption>
+        <thead>
+          <tr>
+            <th scope="col" aria-sort="none">
+              <button type="button" class="ed-sort-btn" data-sort-key="location" data-sort-type="text" aria-label="Sortér efter Plads stigende">Plads</button>
+            </th>
+            <th scope="col" class="ed-td-num" aria-sort="descending">
+              <button type="button" class="ed-sort-btn" data-sort-key="catches" data-sort-type="number" aria-label="Sortér efter Fangster stigende">Fangster</button>
+            </th>
+            <th scope="col" class="ed-td-num" aria-sort="none">
+              <button type="button" class="ed-sort-btn" data-sort-key="weight" data-sort-type="number" aria-label="Sortér efter Vægt i alt stigende">Vægt i alt (kg)</button>
+            </th>
+            <th scope="col" class="ed-td-num" aria-sort="none">
+              <button type="button" class="ed-sort-btn" data-sort-key="avg" data-sort-type="number" aria-label="Sortér efter Gns. vægt stigende">Gns. vægt (kg)</button>
+            </th>
+            <th scope="col" class="ed-td-num" aria-sort="none">
+              <button type="button" class="ed-sort-btn" data-sort-key="biggest" data-sort-type="number" aria-label="Sortér efter Største stigende">Største (kg)</button>
+            </th>
+            <th scope="col" aria-sort="none">
+              <button type="button" class="ed-sort-btn" data-sort-key="angler" data-sort-type="text" aria-label="Sortér efter Fanget af stigende">Fanget af</button>
+            </th>
+            <th scope="col" aria-sort="none">
+              <button type="button" class="ed-sort-btn" data-sort-key="date" data-sort-type="text" aria-label="Sortér efter Dato stigende">Dato</button>
+            </th>
+            <th scope="col" aria-sort="none">
+              <button type="button" class="ed-sort-btn" data-sort-key="bait" data-sort-type="text" aria-label="Sortér efter Bedste agn stigende">Bedste agn</button>
+            </th>
+            <th scope="col" class="ed-td-num" aria-sort="none">
+              <button type="button" class="ed-sort-btn" data-sort-key="band" data-sort-type="number" aria-label="Sortér efter Bedste vandstand stigende">Bedste vandstand</button>
+            </th>
+            <th scope="col" class="ed-td-num" aria-sort="none">
+              <button type="button" class="ed-sort-btn" data-sort-key="hour" data-sort-type="number" aria-label="Sortér efter Bedste tidsrum stigende">Bedste tidsrum</button>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach (var s in Model.SpotStatsRows)
+          {
+            <tr>
+              <td data-sort-value="@s.Location">@s.Location</td>
+              <td class="ed-td-num" data-sort-value="@s.TotalCatches">@s.TotalCatches</td>
+              <td class="ed-td-num" data-sort-value="@s.TotalWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)">@s.TotalWeightKg.ToString("N1", da)</td>
+              <td class="ed-td-num" data-sort-value="@s.AvgWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)">@s.AvgWeightKg.ToString("N1", da)</td>
+              <td class="ed-td-num" data-sort-value="@s.BiggestWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)">@s.BiggestWeightKg.ToString("N1", da)</td>
+              <td data-sort-value="@s.BiggestAnglerName">@s.BiggestAnglerName</td>
+              <td data-sort-value="@s.BiggestCatchDate.ToString("yyyy-MM-dd")">@s.BiggestCatchDate.ToString("d. MMM yyyy", da)</td>
+              <td data-sort-value="@s.TopBait">
+                @if (string.IsNullOrEmpty(s.TopBait)) { <span aria-label="ingen data">—</span> } else { @s.TopBait }
+              </td>
+              <td class="ed-td-num" data-sort-value="@(s.BestWaterBandStartM?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")">
+                @if (s.BestWaterBandStartM.HasValue) { @IndexModel.FormatBandLabel(s.BestWaterBandStartM.Value) } else { <span aria-label="ingen data">—</span> }
+              </td>
+              <td class="ed-td-num" data-sort-value="@(s.BestHour?.ToString() ?? "")">
+                @if (s.BestHour.HasValue) { @($"{s.BestHour.Value:00}–{((s.BestHour.Value + 1) % 24):00}") } else { <span aria-label="ingen data">—</span> }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  else
+  {
+    <p class="ed-empty">Ingen fangster registreret med plads endnu.</p>
+  }
+</section>
+
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
         integrity="sha256-1G2Xof0CLF+yn6L0Xry8MiAtc67r8HbOX3JI9UmPx9c="
@@ -465,5 +554,42 @@
         });
     }
 }());
+
+@if (Model.HasSpotData)
+{
+  <text>
+  // ⑤ Pladser — antal fangster pr. plads (alle sæsoner)
+  (function() {
+    var spotLabels = @Html.Raw(Model.SpotChartLabelsJson);
+    var spotCounts = @Html.Raw(Model.SpotChartCountsJson);
+    new Chart(document.getElementById('spotChart'), {
+      type: 'bar',
+      data: {
+        labels: spotLabels,
+        datasets: [{
+          label: 'Fangster',
+          data: spotCounts,
+          backgroundColor: PALETTE[0],
+          borderRadius: 0
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function(ctx) { return ' ' + ctx.parsed.x + ' fangster'; } } }
+        },
+        scales: {
+          x: { beginAtZero: true, title: { display: true, text: 'Fangster' }, ticks: { precision: 0 } },
+          y: { title: { display: true, text: 'Plads' } }
+        }
+      }
+    });
+  })();
+  </text>
+}
 </script>
+<script src="~/js/spot-table-sort.js" defer></script>
 }
